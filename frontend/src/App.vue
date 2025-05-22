@@ -1,8 +1,11 @@
 <script setup>
+import Header from './components/Header.vue'
 </script>
 
 <template>
+  <Header />
   <div class="min-h-screen flex flex-col items-center justify-center bg-background">
+   
     <h1 class="text-4xl font-bold text-primary mb-4">Hello KoulMaghreb 👋</h1>
     <p class="text-lg text-accent">Si tu vois ce texte joliment stylé, Tailwind CSS fonctionne ! 🎉</p>
     
@@ -27,5 +30,4 @@
   </div>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>
