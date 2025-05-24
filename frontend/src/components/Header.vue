@@ -4,8 +4,8 @@ import { BellIcon, FunnelIcon } from '@heroicons/vue/24/outline'
 
 <template>
 
-  <header class="w-full bg-white shadow-sm px-4 py-3 md:px-8 md:py-3" role="banner">
-    <div class="max-w-7xl mx-auto">
+  <header class="w-full bg-white shadow-sm px-4 py-3 md:px-2 md:py-3" role="banner">
+    <div class="w-full">
 
       <!-- MOBILE -->
       <div class="flex items-center justify-between md:hidden">
@@ -48,7 +48,8 @@ import { BellIcon, FunnelIcon } from '@heroicons/vue/24/outline'
         </a>
 
         <!-- Recherche + Filtrer -->
-        <form class="flex flex-1 items-center justify-center mx-8 space-x-2" role="search" action="/search" method="GET"
+
+        <form class="flex flex-1 items-center justify-start space-x-2 ml-8" role="search" action="/search" method="GET"
           aria-label="Recherche de plats">
           <input name="q" type="search" placeholder="Rechercher…"
             class="w-1/2 px-4 py-2 border border-accent rounded-lg focus:outline-none focus:ring-2 focus:ring-accent placeholder-gray-400" />
