@@ -48,6 +48,7 @@ import { BellIcon, FunnelIcon } from '@heroicons/vue/24/outline'
         </a>
 
         <!-- Recherche + Filtrer -->
+
         <form class="flex flex-1 items-center justify-start space-x-2 ml-8" role="search" action="/search" method="GET"
           aria-label="Recherche de plats">
           <input name="q" type="search" placeholder="Rechercher…"
