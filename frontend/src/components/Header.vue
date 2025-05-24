@@ -4,7 +4,7 @@ import { BellIcon, FunnelIcon } from '@heroicons/vue/24/outline'
 
 <template>
 
-  <header class="w-full bg-white shadow-sm px-4 py-3 md:px-2 md:py-3" role="banner">
+  <header class="w-full bg-white shadow-sm px-4 py-3 md:px-4 md:py-3" role="banner">
     <div class="w-full">
 
       <!-- MOBILE -->
