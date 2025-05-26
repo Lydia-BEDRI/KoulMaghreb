@@ -1,7 +1,5 @@
 <template>
-  <main class="px-4 py-8 space-y-12">
-
-
+  <main class="px-4 py-8 space-y-16">
     <!-- Section Bannière -->
     <section class="relative bg-gray-200 text-accent rounded-xl overflow-hidden shadow-md">
       <img src="/src/assets/img/banner.png" alt="Bannière KoulMaghreb" class="absolute inset-0 w-full h-full object-cover opacity-55" />
@@ -76,7 +74,7 @@
     </section>
 
     <!-- Section Pourquoi nous choisir -->
-    <section class="pb-8">
+    <section>
       <div class="max-w-4xl mx-auto text-center mb-10">
         <h2 class="text-3xl md:text-4xl font-extrabold text-primary mb-2 tracking-tight uppercase">Pourquoi nous choisir ?</h2>
         <p class="text-gray-700 text-base md:text-lg">
@@ -99,26 +97,11 @@
           <h3 class="font-bold text-lg text-accent mb-2">Livraison rapide</h3>
           <p class="text-gray-600 text-sm">Commandez et faites-vous livrer rapidement chez vous ou au bureau.</p>
         </div>
-        <div class="bg-white rounded-xl shadow-md p-8 flex flex-col items-center hover:shadow-lg transition">
-          <SparklesIcon class="h-10 w-10 text-primary mb-4" />
-          <h3 class="font-bold text-lg text-accent mb-2">Ambiance authentique</h3>
-          <p class="text-gray-600 text-sm">Ambiance chaleureuse et événements maghrébins réguliers.</p>
-        </div>
-        <div class="bg-white rounded-xl shadow-md p-8 flex flex-col items-center hover:shadow-lg transition">
-          <ShieldCheckIcon class="h-10 w-10 text-primary mb-4" />
-          <h3 class="font-bold text-lg text-accent mb-2">Paiement sécurisé</h3>
-          <p class="text-gray-600 text-sm">Vos transactions sont protégées et confidentielles.</p>
-        </div>
-        <div class="bg-white rounded-xl shadow-md p-8 flex flex-col items-center hover:shadow-lg transition">
-          <UserGroupIcon class="h-10 w-10 text-primary mb-4" />
-          <h3 class="font-bold text-lg text-accent mb-2">Convivialité</h3>
-          <p class="text-gray-600 text-sm">Un accueil chaleureux et une ambiance familiale à chaque visite.</p>
-        </div>
       </div>
     </section>
 
     <!-- Section Actualités -->
-    <section class="pb-12">
+    <section>
       <div class="max-w-4xl mx-auto text-center mb-10">
         <h2 class="text-3xl md:text-4xl font-extrabold text-primary mb-4">Actualités</h2>
         <p class="text-gray-700 text-base md:text-lg">
@@ -126,7 +109,6 @@
         </p>
       </div>
       <div class="grid md:grid-cols-3 gap-6">
-        <!-- Actualité 1 -->
         <div class="bg-white rounded-xl shadow-md p-6 flex flex-col hover:shadow-lg transition">
           <h3 class="font-bold text-lg text-primary mb-2">Nouvelle carte de saison</h3>
           <p class="text-gray-600 text-sm mb-4">
@@ -136,7 +118,6 @@
             <a href="#news1" class="text-accent font-medium hover:underline">Lire plus</a>
           </div>
         </div>
-        <!-- Actualité 2 -->
         <div class="bg-white rounded-xl shadow-md p-6 flex flex-col hover:shadow-lg transition">
           <h3 class="font-bold text-lg text-primary mb-2">Soirée spéciale couscous</h3>
           <p class="text-gray-600 text-sm mb-4">
@@ -146,7 +127,6 @@
             <a href="#news2" class="text-accent font-medium hover:underline">Lire plus</a>
           </div>
         </div>
-        <!-- Actualité 3 -->
         <div class="bg-white rounded-xl shadow-md p-6 flex flex-col hover:shadow-lg transition">
           <h3 class="font-bold text-lg text-primary mb-2">Atelier pâtisserie</h3>
           <p class="text-gray-600 text-sm mb-4">
@@ -163,13 +143,122 @@
         </a>
       </div>
     </section>
+
+    <!-- Section Témoignages -->
+    <section class="py-12">
+      <h2 class="text-2xl md:text-3xl font-bold text-center text-primary mb-8">Ce que nos clients disent</h2>
+      <div class="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+      <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow text-center">
+        <p class="text-gray-600 italic">"Un véritable voyage culinaire ! Les plats sont délicieux et l'accueil chaleureux."</p>
+        <h4 class="mt-4 font-semibold text-accent">Amine B.</h4>
+      </div>
+      <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow text-center">
+        <p class="text-gray-600 italic">"J’ai retrouvé les saveurs de mon enfance. Je recommande les yeux fermés."</p>
+        <h4 class="mt-4 font-semibold text-accent">Sonia M.</h4>
+      </div>
+      <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow  text-center">
+        <p class="text-gray-600 italic">"Service rapide, plats authentiques, et ambiance conviviale !"</p>
+        <h4 class="mt-4 font-semibold text-accent">Khaled T.</h4>
+      </div>
+      </div>
+    </section>
+
+  <!-- Section Notre histoire -->
+  <section class="py-20 bg-white rounded-lg">
+    <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center px-4">
+      <img src="/src/assets/img/our_story.jpeg" alt="Notre histoire" class="rounded-xl shadow-md w-full max-h-96 object-cover mx-auto" />
+      <div>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-primary mb-4 text-center">Notre histoire</h2>
+        <p class="text-gray-700 text-base md:text-lg mb-4">
+          KoulMaghreb est né de l’envie de partager les trésors culinaires du Maghreb avec le plus grand nombre.
+          Fondé par une équipe passionnée, notre restaurant mêle tradition et innovation pour offrir une expérience unique à chaque client.
+        </p>
+        <p class="text-gray-700 text-base md:text-lg">
+          Grâce à nos chefs issus de différentes régions du Maghreb, nous proposons une carte authentique, riche et évolutive.
+          Notre objectif : faire découvrir ou redécouvrir les plats qui font la fierté de notre culture.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section Localisation -->
+  <section class="py-16 bg-white rounded-lg">
+    <div class="max-w-6xl mx-auto text-center mb-10">
+      <h2 class="text-3xl md:text-4xl font-extrabold text-primary mb-4">Où nous trouver ?</h2>
+      <p class="text-gray-700 text-base md:text-lg">
+        Venez nous rendre visite dans notre restaurant pour une expérience culinaire unique. Voici où nous sommes situés :
+      </p>
+    </div>
+    <div class="max-w-4xl mx-auto">
+      <!-- Carte intégrée -->
+      <iframe 
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.835434509374!2d-122.4194154846816!3d37.77492977975962!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80858064f0e2c5b1%3A0x4c8b8b8b8b8b8b8b!2sRestaurant!5e0!3m2!1sen!2sfr!4v1680000000000!5m2!1sen!2sfr" 
+        width="100%" 
+        height="400" 
+        style="border:0;" 
+        allowfullscreen="" 
+        loading="lazy" 
+        referrerpolicy="no-referrer-when-downgrade"
+        class="rounded-xl shadow-md">
+      </iframe>
+    </div>
+    <div class="text-center mt-8">
+      <p class="text-gray-700 text-base md:text-lg">
+        Adresse : 123 Rue des Saveurs, 75000 Paris, France
+      </p>
+      <a href="https://www.google.com/maps/dir/?api=1&destination=123+Rue+des+Saveurs,+75000+Paris,+France" 
+         target="_blank" 
+         class="mt-4 inline-block bg-accent text-white font-medium py-3 px-6 rounded-lg hover:bg-primary transition">
+        Obtenir l'itinéraire
+      </a>
+    </div>
+  </section>
+
+  <!-- Bouton pour revenir en haut -->
+  <button 
+    v-show="showScrollTop" 
+    @click="scrollToTop" 
+    class="fixed bottom-6 right-6 bg-accent text-white p-3 rounded-full shadow-lg hover:bg-primary transition">
+    <ChevronUpIcon class="h-6 w-6" />
+  </button>
   </main>
 </template>
 
 <script setup>
-import { UserGroupIcon, TruckIcon, SparklesIcon, StarIcon, ShieldCheckIcon } from '@heroicons/vue/24/outline'
+import { UserGroupIcon, TruckIcon, StarIcon, ChevronUpIcon } from '@heroicons/vue/24/outline'
+import { ref, onMounted, onUnmounted } from 'vue'
+
+const showScrollTop = ref(false)
+let homeContainer = null
+
+const handleScroll = () => {
+  if (homeContainer) {
+    showScrollTop.value = homeContainer.scrollTop > 200 // Affiche le bouton après 200px de scroll
+  }
+}
+
+const scrollToTop = () => {
+  if (homeContainer) {
+    homeContainer.scrollTo({ top: 0, behavior: 'smooth' }) // Remonte en haut avec un effet fluide
+  }
+}
+
+onMounted(() => {
+  homeContainer = document.querySelector('main') // Sélectionne le conteneur de Home
+  if (homeContainer) {
+    homeContainer.addEventListener('scroll', handleScroll)
+  }
+})
+
+onUnmounted(() => {
+  if (homeContainer) {
+    homeContainer.removeEventListener('scroll', handleScroll)
+  }
+})
 </script>
 
 <style scoped>
-/* Tu peux adapter ou étendre les couleurs et polices ici */
+button {
+  z-index: 50;
+}
 </style>
