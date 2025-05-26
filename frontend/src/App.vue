@@ -17,7 +17,7 @@ import Sidebar from './components/Sidebar.vue'
       </aside>
 
       <main class="flex-1 overflow-y-auto p-4 bg-background">
-        <Home />
+        <router-view />
       </main>
     </div>
   </div>

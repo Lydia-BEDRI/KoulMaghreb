@@ -4,16 +4,16 @@
     <div>
       <h3 class="text-sm font-semibold text-gray-500 uppercase mb-2">Visiteur</h3>
       <nav class="flex flex-col gap-2">
-        <SidebarItem icon="home" label="Accueil" :active="true" />
-        <SidebarItem icon="fire" label="Découvrir les plats" />
-        <SidebarItem icon="star" label="Recettes populaires" />
-        <SidebarItem icon="globe-alt" label="Cuisine marocaine" />
-        <SidebarItem icon="globe-alt" label="Cuisine algérienne" />
-        <SidebarItem icon="globe-alt" label="Cuisine tunisienne" />
-        <SidebarItem icon="question-mark-circle" label="FAQ" />
-        <SidebarItem icon="chat-bubble-left-ellipsis" label="Contact" />
-        <SidebarItem icon="newspaper" label="Blog / Actus" />
-        <SidebarItem icon="document-text" label="Mentions légales" />
+        <SidebarItem icon="home" label="Accueil" to="/" />
+        <SidebarItem icon="fire" label="Découvrir les plats" to="/decouvrir-les-plats" />
+        <SidebarItem icon="star" label="Recettes populaires" to="/recettes-populaires" />
+        <SidebarItem icon="globe-alt" label="Cuisine marocaine" to="/cuisine-marocaine" />
+        <SidebarItem icon="globe-alt" label="Cuisine algérienne" to="/cuisine-algerienne" />
+        <SidebarItem icon="globe-alt" label="Cuisine tunisienne" to="/cuisine-tunisienne" />
+        <SidebarItem icon="question-mark-circle" label="FAQ" to="/faq" />
+        <SidebarItem icon="chat-bubble-left-ellipsis" label="Contact" to="/contact" />
+        <SidebarItem icon="newspaper" label="Blog / Actus" to="/blog" />
+        <SidebarItem icon="document-text" label="Mentions légales" to="/mentions-legales" />
       </nav>
     </div>
 
@@ -21,13 +21,13 @@
     <div>
       <h3 class="text-sm font-semibold text-gray-500 uppercase mb-2">Utilisateur connecté</h3>
       <nav class="flex flex-col gap-2">
-        <SidebarItem icon="home" label="Accueil" />
-        <SidebarItem icon="list-bullet" label="Nos plats" />
-        <SidebarItem icon="heart" label="Mes favoris" />
-        <SidebarItem icon="shopping-cart" label="Mon panier" />
-        <SidebarItem icon="archive-box" label="Mes commandes" />
-        <SidebarItem icon="chat-bubble-left-ellipsis" label="Contact" />
-        <SidebarItem icon="question-mark-circle" label="FAQ" />
+        <SidebarItem icon="home" label="Accueil" to="/" />
+        <SidebarItem icon="list-bullet" label="Nos plats" to="/nos-plats" />
+        <SidebarItem icon="heart" label="Mes favoris" to="/mes-favoris" />
+        <SidebarItem icon="shopping-cart" label="Mon panier" to="/mon-panier" />
+        <SidebarItem icon="archive-box" label="Mes commandes" to="/mes-commandes" />
+        <SidebarItem icon="chat-bubble-left-ellipsis" label="Contact" to="/contact" />
+        <SidebarItem icon="question-mark-circle" label="FAQ" to="/faq" />
       </nav>
     </div>
   </aside>
