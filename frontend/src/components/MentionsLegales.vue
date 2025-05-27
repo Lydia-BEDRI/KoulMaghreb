@@ -1,5 +1,5 @@
 <template>
-  <section class="py-12 px-4 md:px-16 bg-gray-50">
+  <section class="py-12 px-4 md:px-16">
     <div class="max-w-4xl mx-auto">
       <h1 class="text-3xl md:text-4xl font-bold text-primary mb-8 text-center">
         Mentions légales
@@ -67,33 +67,4 @@
 </template>
 
 <style scoped>
-/* Ajout d'un style harmonisé */
-h1 {
-  font-weight: 700;
-  color: var(--primary-color);
-}
-
-h2 {
-  font-weight: 600;
-  color: var(--primary-color);
-}
-
-a {
-  color: var(--accent-color);
-  text-decoration: underline;
-}
-
-section {
-  background-color: var(--background-color);
-}
-
-div {
-  box-shadow: var(--shadow-md);
-  border-radius: var(--rounded-xl);
-}
-
-/* Ajout d'espace entre les paragraphes et les titres */
-p {
-  margin-bottom: 1.5rem; /* Ajout d'espace entre les paragraphes */
-}
 </style>
