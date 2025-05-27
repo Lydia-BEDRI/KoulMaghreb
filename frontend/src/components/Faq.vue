@@ -1,5 +1,5 @@
 <template>
-  <section class="py-12 px-4 md:px-16">
+  <section class="py-12 px-4 md:px-16 bg-gray-50">
     <h2 class="text-3xl font-bold text-primary mb-8 text-center">
       Foire Aux Questions
     </h2>
@@ -9,23 +9,31 @@
 
     <!-- Résumé des questions sous forme de cards -->
     <div class="grid md:grid-cols-3 gap-6 mb-12">
-      <div class="bg-white rounded-2xl shadow-md p-6 flex flex-col items-center text-center">
-        <svg class="w-10 h-10 text-accent mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.657 0 3-1.343 3-3S13.657 2 12 2 9 3.343 9 5s1.343 3 3 3zm0 0v13m0-13c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3z"></path>
+      <div class="bg-white rounded-2xl shadow-md p-6 flex flex-col items-center text-center transition hover:shadow-lg hover:-translate-y-1">
+        <!-- Icône Carte Bancaire -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="currentColor" class="text-accent mb-4">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+          <path d="M22 10v6a4 4 0 0 1 -4 4h-12a4 4 0 0 1 -4 -4v-6h20zm-14.99 4h-.01a1 1 0 1 0 .01 2a1 1 0 0 0 0 -2zm5.99 0h-2a1 1 0 0 0 0 2h2a1 1 0 0 0 0 -2zm5 -10a4 4 0 0 1 4 4h-20a4 4 0 0 1 4 -4h12z" />
         </svg>
         <h3 class="text-lg font-semibold text-primary mb-2">Méthodes de paiement</h3>
         <p class="text-gray-600 text-sm">Découvrez les moyens de paiement acceptés pour vos commandes.</p>
       </div>
-      <div class="bg-white rounded-2xl shadow-md p-6 flex flex-col items-center text-center">
-        <svg class="w-10 h-10 text-accent mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h11M9 21V3m0 18l-6-6m6 6l6-6"></path>
+
+      <div class="bg-white rounded-2xl shadow-md p-6 flex flex-col items-center text-center transition hover:shadow-lg hover:-translate-y-1">
+        <!-- Icône Localisation -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="currentColor" class="text-accent mb-4">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+          <path d="M20.891 2.006l.106 -.006l.13 .008l.09 .016l.123 .035l.107 .046l.1 .057l.09 .067l.082 .075l.052 .059l.082 .116l.052 .096c.047 .1 .077 .206 .09 .316l.005 .106c0 .075 -.008 .149 -.024 .22l-.035 .123l-6.532 18.077a1.55 1.55 0 0 1 -1.409 .903a1.547 1.547 0 0 1 -1.329 -.747l-.065 -.127l-3.352 -6.702l-6.67 -3.336a1.55 1.55 0 0 1 -.898 -1.259l-.006 -.149c0 -.56 .301 -1.072 .841 -1.37l.14 -.07l18.017 -6.506l.106 -.03l.108 -.018z" />
         </svg>
         <h3 class="text-lg font-semibold text-primary mb-2">Zones de livraison</h3>
         <p class="text-gray-600 text-sm">Consultez les zones où nous livrons actuellement.</p>
       </div>
-      <div class="bg-white rounded-2xl shadow-md p-6 flex flex-col items-center text-center">
-        <svg class="w-10 h-10 text-accent mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-3-3v6m-7 4h14m-7-7a7 7 0 100-14 7 7 0 000 14z"></path>
+
+      <div class="bg-white rounded-2xl shadow-md p-6 flex flex-col items-center text-center transition hover:shadow-lg hover:-translate-y-1">
+        <!-- Icône Heure / Délais -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="currentColor" class="text-accent mb-4">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+          <path d="M17 3.34a10 10 0 1 1 -15 8.66l.005 -.324a10 10 0 0 1 14.995 -8.336m-5 2.66a1 1 0 0 0 -1 1v5.026l.009 .105l.02 .107l.04 .129l.048 .102l.046 .078l.042 .06l.069 .08l.088 .083l.083 .062l3 2a1 1 0 1 0 1.11 -1.664l-2.555 -1.704v-4.464a1 1 0 0 0 -.883 -.993z" />
         </svg>
         <h3 class="text-lg font-semibold text-primary mb-2">Délais de livraison</h3>
         <p class="text-gray-600 text-sm">Apprenez-en plus sur nos délais de livraison estimés.</p>
@@ -37,7 +45,7 @@
       <div
         v-for="(item, index) in faqs"
         :key="index"
-        class="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-200"
+        class="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-200 transition hover:shadow-lg hover:-translate-y-1"
       >
         <button
           @click="toggle(index)"
