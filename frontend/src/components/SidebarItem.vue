@@ -54,7 +54,8 @@ const iconMap = {
 const iconComponent = iconMap[props.icon] || HomeIcon
 
 const activeClasses = computed(() => {
-  return route.path === props.to
+  const isActive = route.path === props.to || route.path.startsWith(props.to + '/')
+  return isActive
     ? 'bg-primary text-white shadow border-primary hover:border-accent hover:bg-accent hover:text-white'
     : 'bg-white text-accent border-accent hover:bg-accent hover:text-white'
 })

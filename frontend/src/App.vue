@@ -1,6 +1,5 @@
 <script setup>
 import Header from './components/Header.vue'
-import Home from './components/Home.vue'
 import Sidebar from './components/Sidebar.vue'
 </script>
 
