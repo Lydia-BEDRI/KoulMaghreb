@@ -6,6 +6,7 @@ import MentionsLegales from '@/components/MentionsLegales.vue'
 import CuisineAlgerienne from '@/components/CuisineAlgerienne.vue'
 import CuisineMarocaine from '@/components/CuisineMarocaine.vue'
 import CuisineTunisienne from '@/components/CuisineTunisienne.vue'
+import Contact from '@/components/Contact.vue'
 
 
 const routes = [
@@ -15,6 +16,7 @@ const routes = [
   { path:'/cuisine-algerienne', name: 'Cuisine algérienne', component: CuisineAlgerienne },
   { path:'/cuisine-marocaine', name: 'Cuisine marocaine', component: CuisineMarocaine },
   { path:'/cuisine-tunisienne', name: 'Cuisine tunisienne', component: CuisineTunisienne},
+  { path:'/contact', name: 'Contact', component: Contact},
 ]
 
 const router = createRouter({
