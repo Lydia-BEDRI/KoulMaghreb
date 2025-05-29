@@ -1,6 +1,5 @@
 <template>
   <main class="px-4 py-8 space-y-16 bg-background">
-    <!-- Section Formulaire de Contact -->
     <section>
       <div class="container mx-auto px-6 md:px-12">
         <h1 class="text-4xl font-bold text-center mb-4 text-primary">Contactez-nous</h1>
@@ -55,7 +54,6 @@
             <div class="mt-6">
               <h4 class="font-semibold mb-2">Suivez-nous :</h4>
               <div class="flex space-x-4 text-orange-500 text-2xl">
-                <!-- Facebook -->
                 <a href="#" aria-label="Facebook">
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 rounded-sm" fill="currentColor" viewBox="0 0 24 24">
                     <path
@@ -63,7 +61,6 @@
                   </svg>
                 </a>
 
-                <!-- Instagram -->
                 <a href="#" aria-label="Instagram">
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                     <path
@@ -71,7 +68,6 @@
                   </svg>
                 </a>
 
-                <!-- TikTok -->
                 <a href="#" aria-label="TikTok">
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                     <path
