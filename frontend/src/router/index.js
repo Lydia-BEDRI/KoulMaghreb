@@ -9,6 +9,7 @@ import CuisineTunisienne from '@/components/CuisineTunisienne.vue'
 import Contact from '@/components/Contact.vue'
 import BlogList from '@/components/BlogList.vue'
 import BlogDetail from '@/components/BlogDetail.vue'
+import Panier from '@/components/Panier.vue'
 
 
 const routes = [
@@ -21,6 +22,7 @@ const routes = [
   { path:'/contact', name: 'Contact', component: Contact},
   { path: '/blog', name: 'Blog', component: BlogList },
   { path: '/blog/:slug', name: 'Article', component: BlogDetail, meta: { parent: 'Blog' } },
+  { path:'/mon-panier', name: 'Panier', component: Panier },
 ]
 
 const router = createRouter({
