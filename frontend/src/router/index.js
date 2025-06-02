@@ -10,6 +10,7 @@ import Contact from '@/components/Contact.vue'
 import BlogList from '@/components/BlogList.vue'
 import BlogDetail from '@/components/BlogDetail.vue'
 import Panier from '@/components/Panier.vue'
+import Commandes from '@/components/Commandes.vue'
 
 
 const routes = [
@@ -23,6 +24,7 @@ const routes = [
   { path: '/blog', name: 'Blog', component: BlogList },
   { path: '/blog/:slug', name: 'Article', component: BlogDetail, meta: { parent: 'Blog' } },
   { path:'/mon-panier', name: 'Panier', component: Panier },
+  { path:'/mes-commandes', name: 'Mes commandes', component: Commandes },
 ]
 
 const router = createRouter({
