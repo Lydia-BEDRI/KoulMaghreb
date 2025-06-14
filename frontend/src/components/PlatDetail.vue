@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 min-h-screen bg-background">
+  <div class="p-6 min-h-screen">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <!-- Image du plat -->
       <div>
@@ -10,11 +10,9 @@
         />
       </div>
 
-      <!-- Informations du plat -->
       <div class="space-y-4">
         <h1 class="text-3xl font-semibold text-primary">{{ plat.nom }}</h1>
         <div class="flex items-center gap-4">
-          <!-- Note avec étoiles et chiffre -->
           <div class="flex items-center gap-2">
             <span class="flex items-center text-yellow-400">
               <template v-for="n in Math.floor(plat.note)">
@@ -27,7 +25,6 @@
             <span class="text-lg text-gray-700 font-semibold">{{ plat.note }}</span>
           </div>
         </div>
-        <!-- Prix avec couleur sur sa propre ligne -->
         <p class="text-2xl font-semibold text-accent">{{ plat.prix }} €</p>
 
         <p class="text-gray-600">{{ plat.shortDesc }}</p>
@@ -94,14 +91,12 @@
           :key="similarPlat.id"
           class="flex items-center bg-white rounded-xl shadow-lg p-4 gap-4 max-w-lg transition-transform duration-200 hover:scale-105 hover:shadow-2xl"
         >
-          <!-- Image à gauche -->
           <img
             :src="similarPlat.image"
             :alt="similarPlat.nom"
             class="rounded-lg w-32 h-32 object-cover"
           />
 
-          <!-- Informations à droite -->
           <div class="flex-1 space-y-2">
             <h3 class="text-lg font-semibold text-primary">{{ similarPlat.nom }}</h3>
             <div class="flex items-center gap-2">
@@ -167,7 +162,4 @@ const similarPlats = computed(() => {
 </script>
 
 <style scoped>
-.bg-background {
-  background-color: #f9fafb;
-}
 </style>
