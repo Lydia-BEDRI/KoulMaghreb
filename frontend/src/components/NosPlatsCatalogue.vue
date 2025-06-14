@@ -9,7 +9,7 @@
         <h3 class="text-lg font-semibold mb-2">Type de plat</h3>
         <div class="grid grid-cols-4 gap-4">
           <div v-for="type in types" :key="type" :class="[
-            'bg-white rounded-lg p-4 shadow transition flex items-center justify-center cursor-pointer',
+            'bg-white rounded-xl p-4 shadow transition flex items-center justify-center cursor-pointer',
             selectedType === type ? 'border-2 border-primary' : 'border border-gray-200'
           ]" @click="selectedType = (selectedType === type ? '' : type)">
             {{ type }}
@@ -22,7 +22,7 @@
         <h3 class="text-lg font-semibold mb-2">Pays</h3>
         <div class="grid grid-cols-3 gap-4">
           <div v-for="pays in paysList" :key="pays" :class="[
-            'bg-white rounded-lg p-4 shadow transition flex items-center justify-center cursor-pointer',
+            'bg-white rounded-xl p-4 shadow transition flex items-center justify-center cursor-pointer',
             selectedPays === pays ? 'border-2 border-accent' : 'border border-gray-200'
           ]" @click="selectedPays = (selectedPays === pays ? '' : pays)">
             {{ pays }}
@@ -46,7 +46,7 @@
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Ordonner par</label>
           <select v-model="selectedOrder"
-            class="w-full bg-white text-gray-700 rounded-lg p-2 shadow border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary">
+            class="w-full bg-white text-gray-700 rounded-xl p-2 shadow border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary">
             <option value="default">Par défaut</option>
             <option value="prix-asc">Prix croissant</option>
             <option value="prix-desc">Prix décroissant</option>
