@@ -27,6 +27,7 @@ const routes = [
   { path:'/mon-panier', name: 'Panier', component: Panier },
   { path:'/mes-commandes', name: 'Mes commandes', component: Commandes },
   { path:'/nos-plats', name: 'Nos plats', component: NosPlatsCatalogue },
+  { path:'/decouvrir-les-plats', name: 'Découvrir les plats', component: NosPlatsCatalogue },
 ]
 
 const router = createRouter({
