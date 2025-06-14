@@ -11,6 +11,7 @@ import BlogList from '@/components/BlogList.vue'
 import BlogDetail from '@/components/BlogDetail.vue'
 import Panier from '@/components/Panier.vue'
 import Commandes from '@/components/Commandes.vue'
+import NosPlatsCatalogue from '@/components/NosPlatsCatalogue.vue'
 
 
 const routes = [
@@ -25,6 +26,8 @@ const routes = [
   { path: '/blog/:slug', name: 'Article', component: BlogDetail, meta: { parent: 'Blog' } },
   { path:'/mon-panier', name: 'Panier', component: Panier },
   { path:'/mes-commandes', name: 'Mes commandes', component: Commandes },
+  { path:'/nos-plats', name: 'Nos plats', component: NosPlatsCatalogue },
+  { path:'/decouvrir-les-plats', name: 'Découvrir les plats', component: NosPlatsCatalogue },
 ]
 
 const router = createRouter({
