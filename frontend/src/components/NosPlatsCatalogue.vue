@@ -44,7 +44,7 @@
   <!-- Note et tri -->
   <div class="grid grid-cols-2 gap-6">
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+      <label class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
         <Icon icon="mdi:star-outline" class="text-2xl text-primary" /> Note minimale
       </label>
       <select
@@ -59,7 +59,7 @@
     </div>
 
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+      <label class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
         <Icon icon="mdi:sort-variant" class="text-2xl text-primary" /> Ordonner par
       </label>
       <select
@@ -199,6 +199,10 @@ const ajouterAuPanier = (plat) => {
   } else {
     panier.value.push({ ...plat, quantite: 1 })
   }
+}
+
+const voirDetails = (plat) => {
+  router.push({ name: 'Plat', params: { id: plat.id } })
 }
 
 const redirectToPanier = () => {
