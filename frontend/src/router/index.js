@@ -13,6 +13,7 @@ import Panier from '@/components/Panier.vue'
 import Commandes from '@/components/Commandes.vue'
 import NosPlatsCatalogue from '@/components/NosPlatsCatalogue.vue'
 import PlatDetail from '@/components/PlatDetail.vue'
+import Favoris from '@/components/Favoris.vue'
 
 
 const routes = [
@@ -30,6 +31,7 @@ const routes = [
   { path:'/nos-plats', name: 'Nos plats', component: NosPlatsCatalogue },
   { path:'/decouvrir-les-plats', name: 'Découvrir les plats', component: NosPlatsCatalogue },
   { path:'/plat/:id', name: 'Plat', component: PlatDetail },
+  { path:'/mes-favoris', name: 'Mes favoris', component: Favoris },
 ]
 
 const router = createRouter({

@@ -56,7 +56,7 @@
               'px-4 py-2 rounded-lg transition flex items-center justify-center border',
               isFavori
                 ? ' border-accent text-accent'
-                : 'bg-accent/80 border-accent text-accent'
+                : ' border-accent text-accent'
             ]"
             @click="toggleFavori"
           >

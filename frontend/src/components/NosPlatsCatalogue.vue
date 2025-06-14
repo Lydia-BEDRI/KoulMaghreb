@@ -2,85 +2,99 @@
   <div class="p-6 bg-background min-h-screen">
     <h1 class="text-2xl font-semibold mb-6 text-primary">Catalogue des Plats</h1>
 
-<div class="filters space-y-8 mb-8">
-  <!-- Type de plat -->
-  <div>
-    <h3 class="text-lg font-semibold mb-2">Type de plat</h3>
-    <div class="grid grid-cols-4 gap-4">
-      <div
-        v-for="type in types"
-        :key="type"
-        :class="[
-          'bg-white rounded-xl p-4 shadow transition flex items-center justify-center gap-3 cursor-pointer',
-          selectedType === type ? 'border-2 border-primary' : 'border border-gray-200'
-        ]"
-        @click="selectedType = (selectedType === type ? '' : type)"
-      >
-        <Icon :icon="getTypeIcon(type)" class="text-3xl text-primary" />
-        <span class="text-sm font-medium">{{ type }}</span>
+    <div class="filters space-y-8 mb-8">
+      <!-- Type de plat -->
+      <div>
+        <h3 class="text-lg font-semibold mb-2">Type de plat</h3>
+        <div class="grid grid-cols-4 gap-4">
+          <div
+            v-for="type in types"
+            :key="type"
+            :class="[
+              'bg-white rounded-xl p-4 shadow transition flex items-center justify-center gap-3 cursor-pointer',
+              selectedType === type ? 'border-2 border-primary' : 'border border-gray-200'
+            ]"
+            @click="selectedType = (selectedType === type ? '' : type)"
+          >
+            <Icon :icon="getTypeIcon(type)" class="text-3xl text-primary" />
+            <span class="text-sm font-medium">{{ type }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pays d'origine -->
+      <div>
+        <h3 class="text-lg font-semibold mb-2">Pays</h3>
+        <div class="grid grid-cols-3 gap-4">
+          <div
+            v-for="pays in paysList"
+            :key="pays"
+            :class="[
+              'bg-white rounded-xl p-4 shadow transition flex items-center justify-center gap-3 cursor-pointer',
+              selectedPays === pays ? 'border-2 border-accent' : 'border border-gray-200'
+            ]"
+            @click="selectedPays = (selectedPays === pays ? '' : pays)"
+          >
+            <Icon :icon="getPaysIcon(pays)" class="text-3xl text-accent" />
+            <span class="text-sm font-medium">{{ pays }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Note et tri -->
+      <div class="grid grid-cols-2 gap-6">
+        <div>
+          <label class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+            <Icon icon="mdi:star-outline" class="text-2xl text-primary" /> Note minimale
+          </label>
+          <select
+            v-model="selectedNote"
+            class="w-full bg-white text-gray-700 rounded-lg p-2 shadow border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="0">Toutes les notes</option>
+            <option v-for="note in notes" :key="note" :value="note">
+              {{ note }} ⭐
+            </option>
+          </select>
+        </div>
+
+        <div>
+          <label class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+            <Icon icon="mdi:sort-variant" class="text-2xl text-primary" /> Ordonner par
+          </label>
+          <select
+            v-model="selectedOrder"
+            class="w-full bg-white text-gray-700 rounded-xl p-2 shadow border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="default">Par défaut</option>
+            <option value="prix-asc">Prix croissant</option>
+            <option value="prix-desc">Prix décroissant</option>
+            <option value="note-desc">Note décroissante</option>
+          </select>
+        </div>
       </div>
     </div>
-  </div>
-
-  <!-- Pays d'origine -->
-  <div>
-    <h3 class="text-lg font-semibold mb-2">Pays</h3>
-    <div class="grid grid-cols-3 gap-4">
-      <div
-        v-for="pays in paysList"
-        :key="pays"
-        :class="[
-          'bg-white rounded-xl p-4 shadow transition flex items-center justify-center gap-3 cursor-pointer',
-          selectedPays === pays ? 'border-2 border-accent' : 'border border-gray-200'
-        ]"
-        @click="selectedPays = (selectedPays === pays ? '' : pays)"
-      >
-        <Icon :icon="getPaysIcon(pays)" class="text-3xl text-accent" />
-        <span class="text-sm font-medium">{{ pays }}</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Note et tri -->
-  <div class="grid grid-cols-2 gap-6">
-    <div>
-      <label class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-        <Icon icon="mdi:star-outline" class="text-2xl text-primary" /> Note minimale
-      </label>
-      <select
-        v-model="selectedNote"
-        class="w-full bg-white text-gray-700 rounded-lg p-2 shadow border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
-      >
-        <option value="0">Toutes les notes</option>
-        <option v-for="note in notes" :key="note" :value="note">
-          {{ note }} ⭐
-        </option>
-      </select>
-    </div>
-
-    <div>
-      <label class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-        <Icon icon="mdi:sort-variant" class="text-2xl text-primary" /> Ordonner par
-      </label>
-      <select
-        v-model="selectedOrder"
-        class="w-full bg-white text-gray-700 rounded-xl p-2 shadow border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
-      >
-        <option value="default">Par défaut</option>
-        <option value="prix-asc">Prix croissant</option>
-        <option value="prix-desc">Prix décroissant</option>
-        <option value="note-desc">Note décroissante</option>
-      </select>
-    </div>
-  </div>
-</div>
 
     <!-- Liste filtrée -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <div v-for="plat in filteredPlats" :key="plat.id"
-        class="bg-white rounded-2xl shadow border border-gray-200 p-6 transition hover:shadow-lg">
-        <div class="aspect-video bg-gray-100 rounded-lg overflow-hidden mb-4">
+        class="relative bg-white rounded-2xl shadow border border-gray-200 p-6 transition hover:shadow-lg">
+        <div class="aspect-video bg-gray-100 rounded-lg overflow-hidden mb-4 relative">
           <img :src="plat.image" :alt="plat.nom" class="w-full h-full object-cover" />
+          <div
+            class="absolute top-2 right-2 z-10 cursor-pointer group"
+            @click="toggleFavoris(plat.id)"
+          >
+            <div
+              class="w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-md hover:shadow-lg transition"
+            >
+              <Icon
+                :icon="favoris.some(f => f.id === plat.id) ? 'mdi:heart' : 'mdi:heart-outline'"
+                :class="favoris.some(f => f.id === plat.id) ? 'text-red-500' : 'text-gray-400'"
+                class="text-xl group-hover:scale-110 transform transition-transform duration-200"
+              />
+            </div>
+          </div>
         </div>
         <h2 class="text-lg font-semibold text-primary mb-2">{{ plat.nom }}</h2>
         <div class="flex justify-between items-center mb-4">
@@ -142,6 +156,7 @@ const selectedOrder = ref('default')
 
 const plats = ref(platsData)
 const panier = ref([])
+const favoris = ref([])
 
 const getTypeIcon = (type) => {
   switch (type.toLowerCase()) {
@@ -207,6 +222,16 @@ const voirDetails = (plat) => {
 
 const redirectToPanier = () => {
   router.push('/mon-panier')
+}
+
+const toggleFavoris = (id) => {
+  const index = favoris.value.findIndex(plat => plat.id === id)
+  if (index !== -1) {
+    favoris.value.splice(index, 1) // Retirer des favoris
+  } else {
+    const plat = plats.value.find(plat => plat.id === id)
+    if (plat) favoris.value.push(plat) // Ajouter aux favoris
+  }
 }
 </script>
 
