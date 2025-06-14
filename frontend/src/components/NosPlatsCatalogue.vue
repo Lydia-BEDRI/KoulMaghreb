@@ -2,59 +2,78 @@
   <div class="p-6 bg-background min-h-screen">
     <h1 class="text-2xl font-semibold mb-6 text-primary">Catalogue des Plats</h1>
 
-    <!-- Filtres -->
-    <div class="filters space-y-8 mb-8">
-      <!-- Type de plat -->
-      <div>
-        <h3 class="text-lg font-semibold mb-2">Type de plat</h3>
-        <div class="grid grid-cols-4 gap-4">
-          <div v-for="type in types" :key="type" :class="[
-            'bg-white rounded-xl p-4 shadow transition flex items-center justify-center cursor-pointer',
-            selectedType === type ? 'border-2 border-primary' : 'border border-gray-200'
-          ]" @click="selectedType = (selectedType === type ? '' : type)">
-            {{ type }}
-          </div>
-        </div>
-      </div>
-
-      <!-- Pays d'origine -->
-      <div>
-        <h3 class="text-lg font-semibold mb-2">Pays</h3>
-        <div class="grid grid-cols-3 gap-4">
-          <div v-for="pays in paysList" :key="pays" :class="[
-            'bg-white rounded-xl p-4 shadow transition flex items-center justify-center cursor-pointer',
-            selectedPays === pays ? 'border-2 border-accent' : 'border border-gray-200'
-          ]" @click="selectedPays = (selectedPays === pays ? '' : pays)">
-            {{ pays }}
-          </div>
-        </div>
-      </div>
-
-      <!-- Note et tri -->
-      <div class="grid grid-cols-2 gap-6">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Note minimale</label>
-          <select v-model="selectedNote"
-            class="w-full bg-white text-gray-700 rounded-lg p-2 shadow border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary">
-            <option value="0">Toutes les notes</option>
-            <option v-for="note in notes" :key="note" :value="note">
-              {{ note }} ⭐
-            </option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Ordonner par</label>
-          <select v-model="selectedOrder"
-            class="w-full bg-white text-gray-700 rounded-xl p-2 shadow border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary">
-            <option value="default">Par défaut</option>
-            <option value="prix-asc">Prix croissant</option>
-            <option value="prix-desc">Prix décroissant</option>
-            <option value="note-desc">Note décroissante</option>
-          </select>
-        </div>
+<div class="filters space-y-8 mb-8">
+  <!-- Type de plat -->
+  <div>
+    <h3 class="text-lg font-semibold mb-2">Type de plat</h3>
+    <div class="grid grid-cols-4 gap-4">
+      <div
+        v-for="type in types"
+        :key="type"
+        :class="[
+          'bg-white rounded-xl p-4 shadow transition flex items-center justify-center gap-3 cursor-pointer',
+          selectedType === type ? 'border-2 border-primary' : 'border border-gray-200'
+        ]"
+        @click="selectedType = (selectedType === type ? '' : type)"
+      >
+        <Icon :icon="getTypeIcon(type)" class="text-3xl text-primary" />
+        <span class="text-sm font-medium">{{ type }}</span>
       </div>
     </div>
+  </div>
+
+  <!-- Pays d'origine -->
+  <div>
+    <h3 class="text-lg font-semibold mb-2">Pays</h3>
+    <div class="grid grid-cols-3 gap-4">
+      <div
+        v-for="pays in paysList"
+        :key="pays"
+        :class="[
+          'bg-white rounded-xl p-4 shadow transition flex items-center justify-center gap-3 cursor-pointer',
+          selectedPays === pays ? 'border-2 border-accent' : 'border border-gray-200'
+        ]"
+        @click="selectedPays = (selectedPays === pays ? '' : pays)"
+      >
+        <Icon :icon="getPaysIcon(pays)" class="text-3xl text-accent" />
+        <span class="text-sm font-medium">{{ pays }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Note et tri -->
+  <div class="grid grid-cols-2 gap-6">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+        <Icon icon="mdi:star-outline" class="text-2xl text-primary" /> Note minimale
+      </label>
+      <select
+        v-model="selectedNote"
+        class="w-full bg-white text-gray-700 rounded-lg p-2 shadow border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
+      >
+        <option value="0">Toutes les notes</option>
+        <option v-for="note in notes" :key="note" :value="note">
+          {{ note }} ⭐
+        </option>
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+        <Icon icon="mdi:sort-variant" class="text-2xl text-primary" /> Ordonner par
+      </label>
+      <select
+        v-model="selectedOrder"
+        class="w-full bg-white text-gray-700 rounded-xl p-2 shadow border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
+      >
+        <option value="default">Par défaut</option>
+        <option value="prix-asc">Prix croissant</option>
+        <option value="prix-desc">Prix décroissant</option>
+        <option value="note-desc">Note décroissante</option>
+      </select>
+    </div>
+  </div>
+</div>
 
     <!-- Liste filtrée -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -108,6 +127,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { plats as platsData } from '@/data/plats.js'
 import { ShoppingCartIcon } from '@heroicons/vue/24/outline'
+import { Icon } from '@iconify/vue'
 
 const router = useRouter()
 
@@ -122,6 +142,36 @@ const selectedOrder = ref('default')
 
 const plats = ref(platsData)
 const panier = ref([])
+
+const getTypeIcon = (type) => {
+  switch (type.toLowerCase()) {
+    case 'entrée':
+      return 'map:food'
+    case 'plat principal':
+      return 'emojione-monotone:pot-of-food'
+    case 'dessert':
+      return 'mdi:ice-cream'
+    case 'boisson':
+      return 'mdi:cup-water'
+    case 'accompagnement':
+      return 'fluent:food-toast-16-filled'
+    default:
+      return 'mdi:food'
+  }
+}
+
+const getPaysIcon = (pays) => {
+  switch (pays.toLowerCase()) {
+    case 'maroc':
+      return 'twemoji:flag-morocco'
+    case 'algérie':
+      return 'twemoji:flag-algeria'
+    case 'tunisie':
+      return 'twemoji:flag-tunisia'
+    default:
+      return 'mdi:earth'
+  }
+}
 
 const filteredPlats = computed(() => {
   let result = plats.value.filter(plat => {
