@@ -1,10 +1,14 @@
 <script setup>
 import Header from './components/Header.vue'
+import LoginModal from './components/LoginModal.vue'
 import Sidebar from './components/Sidebar.vue'
-</script>
+import { useModalStore } from './stores/useModalStore'
 
+const modal = useModalStore()
+</script>
 <template>
   <div class="h-screen flex flex-col overflow-hidden">
+    <LoginModal v-if="modal.showLoginModal" />
     <header class="h-20 flex-shrink-0">
       <Header />
     </header>
