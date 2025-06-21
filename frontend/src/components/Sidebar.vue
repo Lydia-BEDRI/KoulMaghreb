@@ -6,7 +6,6 @@
       <nav class="flex flex-col gap-2">
         <SidebarItem icon="home" label="Accueil" to="/" />
         <SidebarItem icon="fire" label="Découvrir les plats" to="/decouvrir-les-plats" />
-        <SidebarItem icon="star" label="Recettes populaires" to="/recettes-populaires" />
         <SidebarItem icon="globe-alt" label="Cuisine marocaine" to="/cuisine-marocaine" />
         <SidebarItem icon="globe-alt" label="Cuisine algérienne" to="/cuisine-algerienne" />
         <SidebarItem icon="globe-alt" label="Cuisine tunisienne" to="/cuisine-tunisienne" />

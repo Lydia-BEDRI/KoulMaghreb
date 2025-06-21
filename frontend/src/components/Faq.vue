@@ -1,5 +1,5 @@
 <template>
-  <section class="py-12 px-4 md:px-16 bg-gray-50">
+  <section class="py-12 px-4 md:px-16">
     <h2 class="text-3xl font-bold text-primary mb-8 text-center">
       Foire Aux Questions
     </h2>
