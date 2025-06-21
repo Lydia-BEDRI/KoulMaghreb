@@ -1,12 +1,30 @@
 <script setup>
-import { BellIcon, FunnelIcon } from '@heroicons/vue/24/outline'
+import { ref, watch } from 'vue'
+import { BellIcon, FunnelIcon, UserIcon } from '@heroicons/vue/24/outline'
+import { useModalStore } from '../stores/useModalStore'
+
+const openMenu = ref(false) 
+const modal = useModalStore()
+
+function toggleMenu() {
+  openMenu.value = !openMenu.value
+}
+
+function handleLoginClick() {
+  modal.openLogin() 
+  openMenu.value = false 
+}
+
+watch(() => modal.showLoginModal, (isModalVisible) => {
+  if (isModalVisible) {
+    openMenu.value = false
+  }
+})
 </script>
 
 <template>
-
   <header class="w-full bg-white shadow-sm px-4 py-3 md:px-4 md:py-3" role="banner">
     <div class="w-full">
-
       <!-- MOBILE -->
       <div class="flex items-center justify-between md:hidden">
         <!-- Logo cliquable -->
@@ -20,10 +38,26 @@ import { BellIcon, FunnelIcon } from '@heroicons/vue/24/outline'
             <BellIcon class="h-6 w-6" />
             <span class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
           </button>
-          <!-- Avatar  -->
-          <a href="/profil" aria-label="Mon compte">
-            <img src="https://i.pravatar.cc/40" alt="Photo de profil" class="h-10 w-10 rounded-full object-cover" />
-          </a>
+
+          <!-- Bouton Compte (Mobile) -->
+          <div class="relative">
+            <button @click="toggleMenu"
+              class="flex items-center bg-neutral rounded-lg px-3 py-1 border border-primary text-accent font-medium hover:bg-primary hover:text-white transition">
+              Compte
+              <svg class="ml-2 h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            <!-- Menu déroulant Mobile -->
+            <div v-if="openMenu"
+              class="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+              <button @click="handleLoginClick"
+                class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-neutral">Se connecter</button>
+              <a href="/register" class="block px-4 py-2 text-sm text-gray-700 hover:bg-neutral">S’inscrire</a>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -61,23 +95,25 @@ import { BellIcon, FunnelIcon } from '@heroicons/vue/24/outline'
           </button>
         </form>
 
-        <!-- Notifications + avatar -->
-        <div class="flex items-center space-x-4">
-          <button class="relative text-accent hover:text-primary transition" aria-label="Notifications" type="button">
-            <BellIcon class="h-6 w-6" />
-            <span class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
+        <!-- Bouton Compte (Desktop) -->
+        <div class="relative">
+          <button @click="toggleMenu"
+            class="flex items-center bg-neutral rounded-lg px-3 py-2 border border-primary text-accent font-medium hover:bg-primary hover:text-white transition">
+            <UserIcon class="h-5 w-auto mr-2" /> <!-- Ajout de l'icône UserIcon -->
+            Compte
           </button>
 
-          <a href="/profil" class="flex items-center bg-neutral rounded-lg px-3 py-1 space-x-2 border border-primary"
-            aria-label="Mon compte">
-            <img src="https://i.pravatar.cc/40" alt="Photo de profil" class="h-10 w-10 rounded-full object-cover" />
-            <span class="font-sans font-medium text-accent">Amine Benali</span>
-          </a>
+          <!-- Menu déroulant Desktop -->
+          <div v-if="openMenu"
+            class="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+            <button @click="handleLoginClick"
+              class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-neutral">Se connecter</button>
+            <a href="/register" class="block px-4 py-2 text-sm text-gray-700 hover:bg-neutral">S’inscrire</a>
+          </div>
         </div>
       </div>
     </div>
   </header>
-
 </template>
 
 <style scoped>
