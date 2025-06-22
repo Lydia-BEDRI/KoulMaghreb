@@ -23,7 +23,10 @@ import {
   HeartIcon,
   ShoppingCartIcon,
   ArchiveBoxIcon,
-} from '@heroicons/vue/24/outline'
+  CalendarDaysIcon,
+  TicketIcon,
+} from '@heroicons/vue/24/outline' // Ajout des icônes manquantes
+
 import { computed } from 'vue'
 
 const props = defineProps({
@@ -49,6 +52,8 @@ const iconMap = {
   heart: HeartIcon,
   'shopping-cart': ShoppingCartIcon,
   'archive-box': ArchiveBoxIcon,
+  'calendar-days': CalendarDaysIcon,
+  ticket: TicketIcon,
 }
 
 const iconComponent = iconMap[props.icon] || HomeIcon

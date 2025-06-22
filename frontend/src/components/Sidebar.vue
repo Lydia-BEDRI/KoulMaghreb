@@ -9,6 +9,7 @@
         <SidebarItem icon="globe-alt" label="Cuisine marocaine" to="/cuisine-marocaine" />
         <SidebarItem icon="globe-alt" label="Cuisine algérienne" to="/cuisine-algerienne" />
         <SidebarItem icon="globe-alt" label="Cuisine tunisienne" to="/cuisine-tunisienne" />
+        <SidebarItem icon="calendar-days" label="Événements" to="/evenements" />
         <SidebarItem icon="question-mark-circle" label="FAQ" to="/faq" />
         <SidebarItem icon="chat-bubble-left-ellipsis" label="Contact" to="/contact" />
         <SidebarItem icon="newspaper" label="Blog / Actus" to="/blog" />
@@ -25,6 +26,8 @@
         <SidebarItem icon="heart" label="Mes favoris" to="/mes-favoris" />
         <SidebarItem icon="shopping-cart" label="Mon panier" to="/mon-panier" />
         <SidebarItem icon="archive-box" label="Mes commandes" to="/mes-commandes" />
+        <SidebarItem icon="calendar-days" label="Événements" to="/evenements" />
+        <SidebarItem icon="ticket" label="Mes réservations" to="/mes-reservations" />
         <SidebarItem icon="chat-bubble-left-ellipsis" label="Contact" to="/contact" />
         <SidebarItem icon="question-mark-circle" label="FAQ" to="/faq" />
       </nav>

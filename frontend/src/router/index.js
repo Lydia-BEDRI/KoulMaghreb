@@ -14,6 +14,9 @@ import Commandes from '@/components/Commandes.vue'
 import NosPlatsCatalogue from '@/components/NosPlatsCatalogue.vue'
 import PlatDetail from '@/components/PlatDetail.vue'
 import Favoris from '@/components/Favoris.vue'
+import EvenementList from '@/components/EvenementList.vue'
+import MesReservations from '@/components/MesReservations.vue'
+import EvenementDetail from '@/components/EvenementDetail.vue'
 
 
 const routes = [
@@ -32,6 +35,9 @@ const routes = [
   { path:'/decouvrir-les-plats', name: 'Découvrir les plats', component: NosPlatsCatalogue },
   { path:'/plat/:id', name: 'Plat', component: PlatDetail },
   { path:'/mes-favoris', name: 'Mes favoris', component: Favoris },
+  { path: '/evenements', name: 'Événements', component: EvenementList },
+  { path: '/evenement/:id', name: 'Événement Détail', component: EvenementDetail, meta: { parent: 'Événements' } },
+  { path: '/mes-reservations', name: 'Mes réservations', component: MesReservations },
 ]
 
 const router = createRouter({
