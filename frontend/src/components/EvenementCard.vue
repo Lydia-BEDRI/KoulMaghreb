@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
 import { Icon } from '@iconify/vue'
 import { CalendarDaysIcon, MapPinIcon } from '@heroicons/vue/24/outline'
 
@@ -9,7 +10,7 @@ const props = defineProps({
 })
 
 const formattedDate = computed(() => {
-  return format(new Date(props.event.date), 'dd MMMM yyyy à HH:mm')
+  return format(new Date(props.event.date), 'dd MMMM yyyy à HH:mm', { locale: fr })
 })
 </script>
 

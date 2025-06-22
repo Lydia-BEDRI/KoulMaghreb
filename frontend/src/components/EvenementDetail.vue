@@ -2,17 +2,18 @@
 import { useRoute } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
 import { ref, computed } from 'vue'
 
 import { evenements } from '@/data/evenements.js'
-import ReservationForm from '@/components/ReservationForm.vue' // ton form stylé
+import ReservationForm from '@/components/ReservationForm.vue'
 
 const route = useRoute()
 const id = parseInt(route.params.id)
 const event = ref(evenements.find(e => e.id === id))
 
 const formattedDate = computed(() => {
-  return format(new Date(event.value.date), 'dd MMMM yyyy à HH:mm')
+  return format(new Date(event.value.date), 'dd MMMM yyyy à HH:mm', { locale: fr })
 })
 </script>
 
