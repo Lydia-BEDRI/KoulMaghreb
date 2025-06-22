@@ -20,6 +20,11 @@ watch(() => modal.showLoginModal, (isModalVisible) => {
     openMenu.value = false
   }
 })
+
+function handleSignupClick() {
+  modal.openSignup() 
+  openMenu.value = false
+}
 </script>
 
 <template>
@@ -55,7 +60,8 @@ watch(() => modal.showLoginModal, (isModalVisible) => {
               class="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
               <button @click="handleLoginClick"
                 class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-neutral">Se connecter</button>
-              <a href="/register" class="block px-4 py-2 text-sm text-gray-700 hover:bg-neutral">S’inscrire</a>
+              <button @click="handleSignupClick"
+                class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-neutral">S’inscrire</button>
             </div>
           </div>
         </div>
@@ -108,7 +114,8 @@ watch(() => modal.showLoginModal, (isModalVisible) => {
             class="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
             <button @click="handleLoginClick"
               class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-neutral">Se connecter</button>
-            <a href="/register" class="block px-4 py-2 text-sm text-gray-700 hover:bg-neutral">S’inscrire</a>
+            <button @click="handleSignupClick"
+              class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-neutral">S’inscrire</button>
           </div>
         </div>
       </div>
