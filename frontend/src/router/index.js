@@ -17,6 +17,7 @@ import Favoris from '@/components/Favoris.vue'
 import EvenementList from '@/components/EvenementList.vue'
 import MesReservations from '@/components/MesReservations.vue'
 import EvenementDetail from '@/components/EvenementDetail.vue'
+import ProfilUtilisateur from '@/components/ProfilUtilisateur.vue'
 
 
 const routes = [
@@ -38,6 +39,7 @@ const routes = [
   { path: '/evenements', name: 'Événements', component: EvenementList },
   { path: '/evenement/:id', name: 'Événement Détail', component: EvenementDetail, meta: { parent: 'Événements' } },
   { path: '/mes-reservations', name: 'Mes réservations', component: MesReservations },
+  { path: '/profil', name: 'Mon profil', component: ProfilUtilisateur },
 ]
 
 const router = createRouter({
