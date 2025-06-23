@@ -82,6 +82,8 @@
       <p class="text-gray-600">{{ plat.longDesc }}</p>
     </div>
 
+   <AvisCommentaires />
+
     <!-- Plats similaires -->
     <div class="mt-12">
       <h2 class="text-xl font-semibold text-primary mb-4">Plats similaires</h2>
@@ -130,6 +132,7 @@ import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { plats } from '@/data/plats.js'
 import { Icon } from '@iconify/vue'
+import AvisCommentaires from './AvisCommentaires.vue'
 
 const route = useRoute()
 const platId = route.params.id
