@@ -1,7 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import Home from '../components/Home.vue'
-import FAQ from '../components/Faq.vue'
+import MainLayout from '@/layouts/main/MainLayout.vue'
+import AdminLayout from '@/layouts/admin/AdminLayout.vue'
+import Home from '@/components/Home.vue'
+import FAQ from '@/components/Faq.vue'
 import MentionsLegales from '@/components/MentionsLegales.vue'
 import CuisineAlgerienne from '@/components/CuisineAlgerienne.vue'
 import CuisineMarocaine from '@/components/CuisineMarocaine.vue'
@@ -19,27 +21,40 @@ import MesReservations from '@/components/MesReservations.vue'
 import EvenementDetail from '@/components/EvenementDetail.vue'
 import ProfilUtilisateur from '@/components/ProfilUtilisateur.vue'
 
+import AdminDashboard from '@/components/admin/AdminDashboard.vue'
 
 const routes = [
-  { path: '/', name: 'Accueil', component: Home },
-  { path: '/faq', name: 'FAQ', component: FAQ },
-  { path:'/mentions-legales', name: 'Mentions légales', component: MentionsLegales },
-  { path:'/cuisine-algerienne', name: 'Cuisine algérienne', component: CuisineAlgerienne },
-  { path:'/cuisine-marocaine', name: 'Cuisine marocaine', component: CuisineMarocaine },
-  { path:'/cuisine-tunisienne', name: 'Cuisine tunisienne', component: CuisineTunisienne},
-  { path:'/contact', name: 'Contact', component: Contact},
-  { path: '/blog', name: 'Blog', component: BlogList },
-  { path: '/blog/:slug', name: 'Article', component: BlogDetail, meta: { parent: 'Blog' } },
-  { path:'/mon-panier', name: 'Panier', component: Panier },
-  { path:'/mes-commandes', name: 'Mes commandes', component: Commandes },
-  { path:'/nos-plats', name: 'Nos plats', component: NosPlatsCatalogue },
-  { path:'/decouvrir-les-plats', name: 'Découvrir les plats', component: NosPlatsCatalogue },
-  { path:'/plat/:id', name: 'Plat', component: PlatDetail },
-  { path:'/mes-favoris', name: 'Mes favoris', component: Favoris },
-  { path: '/evenements', name: 'Événements', component: EvenementList },
-  { path: '/evenement/:id', name: 'Événement Détail', component: EvenementDetail, meta: { parent: 'Événements' } },
-  { path: '/mes-reservations', name: 'Mes réservations', component: MesReservations },
-  { path: '/profil', name: 'Mon profil', component: ProfilUtilisateur },
+  {
+    path: '/',
+    component: MainLayout,
+    children: [
+      { path: '', name: 'Accueil', component: Home },
+      { path: 'faq', name: 'FAQ', component: FAQ },
+      { path: 'mentions-legales', name: 'Mentions légales', component: MentionsLegales },
+      { path: 'cuisine-algerienne', name: 'Cuisine algérienne', component: CuisineAlgerienne },
+      { path: 'cuisine-marocaine', name: 'Cuisine marocaine', component: CuisineMarocaine },
+      { path: 'cuisine-tunisienne', name: 'Cuisine tunisienne', component: CuisineTunisienne },
+      { path: 'contact', name: 'Contact', component: Contact },
+      { path: 'blog', name: 'Blog', component: BlogList },
+      { path: 'blog/:slug', name: 'Article', component: BlogDetail },
+      { path: 'mon-panier', name: 'Panier', component: Panier },
+      { path: 'mes-commandes', name: 'Mes commandes', component: Commandes },
+      { path: 'nos-plats', name: 'Nos plats', component: NosPlatsCatalogue },
+      { path: 'decouvrir-les-plats', name: 'Découvrir les plats', component: NosPlatsCatalogue },
+      { path: 'plat/:id', name: 'Plat', component: PlatDetail },
+      { path: 'mes-favoris', name: 'Mes favoris', component: Favoris },
+      { path: 'evenements', name: 'Événements', component: EvenementList },
+      { path: 'evenement/:id', name: 'Événement Détail', component: EvenementDetail },
+      { path: 'mes-reservations', name: 'Mes réservations', component: MesReservations },
+      { path: 'profil', name: 'Mon profil', component: ProfilUtilisateur },
+    ],
+  },
+
+  {
+    path: '/admin',
+    component: AdminLayout,
+    children: [{ path: 'dashboard', name: 'AdminDashboard', component: AdminDashboard }],
+  },
 ]
 
 const router = createRouter({

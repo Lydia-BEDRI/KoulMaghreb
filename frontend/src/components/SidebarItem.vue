@@ -25,7 +25,8 @@ import {
   ArchiveBoxIcon,
   CalendarDaysIcon,
   TicketIcon,
-} from '@heroicons/vue/24/outline' // Ajout des icônes manquantes
+  ShieldCheckIcon,
+} from '@heroicons/vue/24/outline'
 
 import { computed } from 'vue'
 
@@ -54,6 +55,7 @@ const iconMap = {
   'archive-box': ArchiveBoxIcon,
   'calendar-days': CalendarDaysIcon,
   ticket: TicketIcon,
+  'shield-check': ShieldCheckIcon,
 }
 
 const iconComponent = iconMap[props.icon] || HomeIcon
@@ -61,7 +63,7 @@ const iconComponent = iconMap[props.icon] || HomeIcon
 const activeClasses = computed(() => {
   const isActive =
     route.path === props.to ||
-    route.path.startsWith(props.to + '/') || // Actif pour les sous-pages
+    route.path.startsWith(props.to + '/') ||
     (props.to === '/decouvrir-les-plats' && route.path.startsWith('/plat')) ||
     (props.to === '/nos-plats' && route.path.startsWith('/plat')) 
   return isActive
