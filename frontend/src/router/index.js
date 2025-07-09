@@ -25,6 +25,7 @@ import AdminDashboard from '@/components/admin/AdminDashboard.vue'
 import AdminCommandesTable from '@/components/admin/AdminCommandesTable.vue'
 import AdminReservationsTable from '@/components/admin/AdminReservationsTable.vue'
 import AdminUtilisateursTable from '@/components/admin/AdminUtilisateursTable.vue'
+import AdminEvenementsTable from '@/components/admin/AdminEvenementsTable.vue'
 
 const routes = [
   {
@@ -60,6 +61,7 @@ const routes = [
       { path: 'commandes', name: 'AdminCommandes', component: AdminCommandesTable },
       { path: 'reservations', name: 'AdminReservations', component: AdminReservationsTable },
       { path: 'utilisateurs', name: 'AdminUtilisateurs', component: AdminUtilisateursTable },
+      { path: 'evenements', name: 'AdminEvenements', component: AdminEvenementsTable },
     ],
   },
 ]
