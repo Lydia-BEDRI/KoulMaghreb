@@ -9,10 +9,10 @@
         <p class="text-lg md:text-xl max-w-2xl mx-auto text-gray-900">
           Réservez vos plats préférés, une table ou un événement en un clic. Une expérience authentique vous attend !
         </p>
-        <a href="#reservation"
+        <RouterLink to="/evenements"
           class="inline-block mt-6 bg-accent text-white font-medium py-3 px-6 rounded-lg hover:bg-primary transition">
           Réservez maintenant
-        </a>
+        </RouterLink>
       </div>
     </section>
 
@@ -35,10 +35,10 @@
           <h2 class="text-xl font-semibold text-primary mb-2">Cuisine Marocaine</h2>
           <p class="text-gray-600 text-center flex-1">Savourez les tajines, couscous, pastillas et autres spécialités
             marocaines dans toute leur authenticité.</p>
-          <a href="#cuisine-marocaine"
+          <RouterLink to="/cuisine-marocaine"
             class="mt-6 bg-accent text-white font-medium py-2 px-4 rounded-lg hover:bg-primary transition self-stretch text-center">
             Découvrir
-          </a>
+          </RouterLink>
         </div>
         <div
           class="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition flex flex-col items-center h-full min-h-[380px]">
@@ -47,10 +47,10 @@
           <h2 class="text-xl font-semibold text-primary mb-2">Cuisine Algérienne</h2>
           <p class="text-gray-600 text-center flex-1">Dégustez les plats typiques comme la chorba, la rechta ou les
             boureks dans une ambiance chaleureuse.</p>
-          <a href="#cuisine-algerienne"
+          <RouterLink to="/cuisine-algerienne"
             class="mt-6 bg-accent text-white font-medium py-2 px-4 rounded-lg hover:bg-primary transition self-stretch text-center">
             Découvrir
-          </a>
+          </RouterLink>
         </div>
         <div
           class="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition flex flex-col items-center h-full min-h-[380px]">
@@ -59,10 +59,10 @@
           <h2 class="text-xl font-semibold text-primary mb-2">Cuisine Tunisienne</h2>
           <p class="text-gray-600 text-center flex-1">Laissez-vous tenter par les bricks, couscous tunisiens et plats
             épicés qui raviront vos papilles.</p>
-          <a href="#cuisine-tunisienne"
+          <RouterLink to="/cuisine-tunisienne"
             class="mt-6 bg-accent text-white font-medium py-2 px-4 rounded-lg hover:bg-primary transition self-stretch text-center">
             Découvrir
-          </a>
+          </RouterLink>
         </div>
       </div>
     </section>
@@ -75,7 +75,7 @@
         <SparklesIcon class="h-8 w-8 text-accent" />
       </h2>
       <p class="text-center text-gray-700 mb-8 max-w-2xl mx-auto">
-        Découvrez les talents de nos chefs passionnés, chacun expert dans la cuisine de son pays d’origine. Leur
+        Découvrez les talents de nos chefs passionnés, chacun expert dans la cuisine de son pays d'origine. Leur
         savoir-faire et leur créativité vous garantissent une expérience culinaire authentique et inoubliable.
       </p>
       <div class="grid md:grid-cols-3 gap-6">
@@ -110,7 +110,7 @@
           <UserGroupIcon class="h-8 w-8 text-accent" />
         </h2>
         <p class="text-gray-700 text-base md:text-lg">
-          Vous profitez de la meilleure qualité de plats maghrébins, d’un service rapide et d’une expérience
+          Vous profitez de la meilleure qualité de plats maghrébins, d'un service rapide et d'une expérience
           authentique.
         </p>
       </div>
@@ -133,7 +133,6 @@
       </div>
     </section>
 
-
     <!-- Section Actualités -->
     <section>
       <div class="max-w-4xl mx-auto text-center mb-10">
@@ -153,7 +152,7 @@
             Découvrez nos nouveaux plats inspirés des saveurs automnales, disponibles dès maintenant.
           </p>
           <div class="mt-auto">
-            <a href="#news1" class="text-accent font-medium hover:underline">Lire plus</a>
+            <RouterLink to="/nos-plats" class="text-accent font-medium hover:underline">Voir la carte</RouterLink>
           </div>
         </div>
         <div class="bg-white rounded-xl shadow-md p-6 flex flex-col hover:shadow-lg transition">
@@ -162,7 +161,7 @@
             Participez à notre soirée couscous avec musique live et ambiance maghrébine.
           </p>
           <div class="mt-auto">
-            <a href="#news2" class="text-accent font-medium hover:underline">Lire plus</a>
+            <RouterLink to="/evenements" class="text-accent font-medium hover:underline">Réserver</RouterLink>
           </div>
         </div>
         <div class="bg-white rounded-xl shadow-md p-6 flex flex-col hover:shadow-lg transition">
@@ -171,33 +170,31 @@
             Rejoignez notre atelier pour apprendre à préparer des pâtisseries maghrébines.
           </p>
           <div class="mt-auto">
-            <a href="#news3" class="text-accent font-medium hover:underline">Lire plus</a>
+            <RouterLink to="/evenements" class="text-accent font-medium hover:underline">S'inscrire</RouterLink>
           </div>
         </div>
       </div>
       <div class="text-center mt-8">
-        <a href="#all-news" class="bg-accent text-white font-medium py-3 px-6 rounded-lg hover:bg-primary transition">
+        <RouterLink to="/blog" class="bg-accent text-white font-medium py-3 px-6 rounded-lg hover:bg-primary transition">
           Voir toutes nos actualités
-        </a>
+        </RouterLink>
       </div>
     </section>
 
-
     <!-- Section Témoignages -->
-    <section class="py-12">
-      <h2 class="text-2xl md:text-3xl font-bold text-center text-primary mb-8 flex items-center justify-center gap-3">
+    <section class="text-center">
+      <h2 class="text-3xl md:text-4xl font-extrabold text-primary mb-10 flex items-center justify-center gap-3">
         <ChatBubbleLeftEllipsisIcon class="h-8 w-8 text-accent" />
-        <span>Ils parlent de nous avec le cœur</span>
-        <StarIcon class="h-8 w-8 text-accent" />
+        Ce que disent nos clients
+        <SparklesIcon class="h-8 w-8 text-accent" />
       </h2>
-      <div class="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto px-4">
+      <div class="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
         <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow text-center">
-          <p class="text-gray-600 italic">"Un véritable voyage culinaire ! Les plats sont délicieux et l'accueil
-            chaleureux."</p>
-          <h4 class="mt-4 font-semibold text-accent">Amine B.</h4>
+          <p class="text-gray-600 italic">"Un voyage culinaire exceptionnel ! Les saveurs sont authentiques."</p>
+          <h4 class="mt-4 font-semibold text-accent">Ahmed K.</h4>
         </div>
         <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow text-center">
-          <p class="text-gray-600 italic">"J’ai retrouvé les saveurs de mon enfance. Je recommande les yeux fermés."</p>
+          <p class="text-gray-600 italic">"J'ai retrouvé les saveurs de mon enfance. Je recommande les yeux fermés."</p>
           <h4 class="mt-4 font-semibold text-accent">Sonia M.</h4>
         </div>
         <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow text-center">
@@ -206,7 +203,6 @@
         </div>
       </div>
     </section>
-
 
     <!-- Section Notre histoire -->
     <section class="py-20 bg-white rounded-lg">
@@ -220,7 +216,7 @@
             <SparklesIcon class="w-8 h-8 text-accent" />
           </h2>
           <p class="text-gray-700 text-base md:text-lg mb-4">
-            KoulMaghreb est né de l’envie de partager les trésors culinaires du Maghreb avec le plus grand nombre.
+            KoulMaghreb est né de l'envie de partager les trésors culinaires du Maghreb avec le plus grand nombre.
             Fondé par une équipe passionnée, notre restaurant mêle tradition et innovation pour offrir une expérience
             unique à chaque client.
           </p>
@@ -232,7 +228,6 @@
         </div>
       </div>
     </section>
-
 
     <!-- Section Localisation -->
     <section class="py-16 bg-white rounded-lg">
@@ -283,18 +278,18 @@ let homeContainer = null
 
 const handleScroll = () => {
   if (homeContainer) {
-    showScrollTop.value = homeContainer.scrollTop > 200 // Affiche le bouton après 200px de scroll
+    showScrollTop.value = homeContainer.scrollTop > 200
   }
 }
 
 const scrollToTop = () => {
   if (homeContainer) {
-    homeContainer.scrollTo({ top: 0, behavior: 'smooth' }) // Remonte en haut avec un effet fluide
+    homeContainer.scrollTo({ top: 0, behavior: 'smooth' })
   }
 }
 
 onMounted(() => {
-  homeContainer = document.querySelector('main') // Sélectionne le conteneur de Home
+  homeContainer = document.querySelector('main')
   if (homeContainer) {
     homeContainer.addEventListener('scroll', handleScroll)
   }
@@ -307,8 +302,4 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
-button {
-  z-index: 50;
-}
-</style>
+<style scoped></style>
