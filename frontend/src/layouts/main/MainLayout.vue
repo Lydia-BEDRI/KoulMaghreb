@@ -5,27 +5,25 @@ import Sidebar from '@/components/Sidebar.vue';
 import SignupModal from '@/components/SignupModal.vue';
 import { useModalStore } from '@/stores/useModalStore';
 
-
-
 const modal = useModalStore();
 </script>
 
 <template>
-  <div class="h-screen flex flex-col overflow-hidden">
+  <div class="min-h-screen bg-background">
     <LoginModal v-if="modal.showLoginModal" />
-    <SignupModal v-if="modal.showSignupModal" /> 
+    <SignupModal v-if="modal.showSignupModal" />
 
-    <header class="h-20 flex-shrink-0">
-      <Header />
-    </header>
+    <Header />
 
-    <div class="flex flex-1 overflow-hidden">
-      <aside class="w-64 flex-shrink-0 overflow-y-auto border-r">
+    <div class="lg:flex">
+      <aside class="hidden lg:block lg:w-64 lg:min-h-screen lg:sticky lg:top-20 overflow-y-auto border-r bg-white">
         <Sidebar />
       </aside>
 
-      <main class="flex-1 overflow-y-auto p-4 bg-background">
-        <router-view />
+      <main class="flex-1 min-h-screen bg-background">
+        <div class="p-3 lg:p-4">
+          <router-view />
+        </div>
       </main>
     </div>
   </div>
