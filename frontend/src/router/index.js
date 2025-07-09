@@ -61,7 +61,9 @@ const routes = [
   {
     path: '/admin',
     component: AdminLayout,
-    children: [{ path: 'dashboard', name: 'AdminDashboard', component: AdminDashboard },
+    children: [
+      { path: '', redirect: { name: 'AdminDashboard' } },
+      { path: 'dashboard', name: 'AdminDashboard', component: AdminDashboard },
       { path: 'commandes', name: 'AdminCommandes', component: AdminCommandesTable },
       { path: 'reservations', name: 'AdminReservations', component: AdminReservationsTable },
       { path: 'utilisateurs', name: 'AdminUtilisateurs', component: AdminUtilisateursTable },
