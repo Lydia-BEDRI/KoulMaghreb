@@ -61,7 +61,7 @@ const emit = defineEmits(['close'])
 
 const menu = [
   { to: '/admin/dashboard', label: 'Dashboard' },
-  { to: '/admin/orders', label: 'Commandes' },
+  { to: '/admin/commandes', label: 'Commandes' },
   { to: '/admin/reservations', label: 'Réservations' },
   { to: '/admin/users', label: 'Utilisateurs' },
   { to: '/admin/evenements', label: 'Événements' },

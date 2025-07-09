@@ -22,6 +22,7 @@ import EvenementDetail from '@/components/EvenementDetail.vue'
 import ProfilUtilisateur from '@/components/ProfilUtilisateur.vue'
 
 import AdminDashboard from '@/components/admin/AdminDashboard.vue'
+import AdminCommandesTable from '@/components/admin/AdminCommandesTable.vue'
 
 const routes = [
   {
@@ -53,7 +54,9 @@ const routes = [
   {
     path: '/admin',
     component: AdminLayout,
-    children: [{ path: 'dashboard', name: 'AdminDashboard', component: AdminDashboard }],
+    children: [{ path: 'dashboard', name: 'AdminDashboard', component: AdminDashboard },
+      { path: 'commandes', name: 'AdminCommandes', component: AdminCommandesTable },
+    ],
   },
 ]
 
