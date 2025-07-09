@@ -9,18 +9,22 @@ const modal = useModalStore();
 </script>
 
 <template>
-  <div class="min-h-screen bg-background">
+  <div class="h-screen flex flex-col overflow-hidden">
     <LoginModal v-if="modal.showLoginModal" />
     <SignupModal v-if="modal.showSignupModal" />
 
-    <Header />
+    <header class="h-16 lg:h-20 flex-shrink-0 z-40">
+      <Header />
+    </header>
 
-    <div class="lg:flex">
-      <aside class="hidden lg:block lg:w-64 lg:min-h-screen lg:sticky lg:top-20 overflow-y-auto border-r bg-white">
-        <Sidebar />
+    <div class="flex flex-1 overflow-hidden">
+      <aside class="hidden lg:block lg:w-64 flex-shrink-0 bg-white border-r border-gray-200">
+        <div class="h-full overflow-y-auto">
+          <Sidebar />
+        </div>
       </aside>
 
-      <main class="flex-1 min-h-screen bg-background">
+      <main class="flex-1 overflow-y-auto bg-background">
         <div class="p-3 lg:p-4">
           <router-view />
         </div>
