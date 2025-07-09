@@ -63,7 +63,7 @@ const menu = [
   { to: '/admin/dashboard', label: 'Dashboard' },
   { to: '/admin/commandes', label: 'Commandes' },
   { to: '/admin/reservations', label: 'Réservations' },
-  { to: '/admin/users', label: 'Utilisateurs' },
+  { to: '/admin/utilisateurs', label: 'Utilisateurs' },
   { to: '/admin/evenements', label: 'Événements' },
   { to: '/admin/avis', label: 'Avis' },
   { to: '/admin/articles', label: 'Articles' },
