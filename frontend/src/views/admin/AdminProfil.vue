@@ -79,46 +79,6 @@
                             class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary"
                         />
                     </div>
-                    <div class="mt-6">
-                        <label for="poste" class="block text-base font-bold text-gray-700 mb-1">Poste / Fonction</label>
-                        <input
-                            id="poste"
-                            v-model="form.poste"
-                            type="text"
-                            placeholder="Ex: Administrateur principal"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary"
-                        />
-                    </div>
-                </div>
-
-                <div>
-                    <h3 class="text-lg font-semibold text-primary mb-4">Informations professionnelles</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="departement" class="block text-base font-bold text-gray-700 mb-1">Département</label>
-                            <select
-                                id="departement"
-                                v-model="form.departement"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary"
-                            >
-                                <option value="">Sélectionner un département</option>
-                                <option value="Direction">Direction</option>
-                                <option value="IT">IT / Informatique</option>
-                                <option value="Marketing">Marketing</option>
-                                <option value="Cuisine">Cuisine</option>
-                                <option value="Service Client">Service Client</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="dateEmbauche" class="block text-base font-bold text-gray-700 mb-1">Date d'embauche</label>
-                            <input
-                                id="dateEmbauche"
-                                v-model="form.dateEmbauche"
-                                type="date"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary"
-                            />
-                        </div>
-                    </div>
                 </div>
 
                 <button
@@ -239,24 +199,6 @@
                     </div>
                 </div>
 
-                <div class="bg-gray-50 rounded-xl p-6">
-                    <h4 class="font-semibold text-gray-800 mb-4">Statistiques personnelles</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="text-center">
-                            <div class="text-2xl font-bold text-primary">{{ stats.connexions }}</div>
-                            <div class="text-sm text-gray-600">Connexions ce mois</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-2xl font-bold text-primary">{{ stats.actionsEffectuees }}</div>
-                            <div class="text-sm text-gray-600">Actions effectuées</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-2xl font-bold text-primary">{{ stats.derniereConnexion }}</div>
-                            <div class="text-sm text-gray-600">Dernière connexion</div>
-                        </div>
-                    </div>
-                </div>
-
                 <button
                     @click="submitPreferences"
                     class="w-full bg-primary text-white py-2 rounded-xl hover:bg-accent transition"
@@ -277,59 +219,50 @@ const toast = useToast()
 const activeTab = ref('profile')
 
 const form = reactive({
-    prenom: 'Amine',
-    nom: 'Djerad',
-    email: 'amine.djerad@koulmaghreb.com',
-    telephone: '+33 1 23 45 67 89',
-    poste: 'Administrateur Principal',
-    departement: 'Direction',
-    dateEmbauche: '2024-01-15'
+  prenom: 'Amine',
+  nom: 'Djerad',
+  email: 'amine.djerad@koulmaghreb.com',
+  telephone: '+33 1 23 45 67 89'
 })
 
 const security = reactive({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: ''
 })
 
 const preferences = reactive({
-    emailCommandes: true,
-    emailAvis: false,
-    affichageCompact: true
-})
-
-const stats = reactive({
-    connexions: 47,
-    actionsEffectuees: 156,
-    derniereConnexion: '09/07/2025'
+  emailCommandes: true,
+  emailAvis: false,
+  affichageCompact: true
 })
 
 const submitProfile = () => {
-    toast.success('Profil administrateur mis à jour avec succès !')
+  toast.success('Profil administrateur mis à jour avec succès !')
 }
 
 const submitSecurity = () => {
-    if (security.newPassword !== security.confirmPassword) {
-        toast.error('Les mots de passe ne correspondent pas.')
-        return
-    }
-    
-    if (security.newPassword.length < 8) {
-        toast.error('Le mot de passe doit contenir au moins 8 caractères.')
-        return
-    }
-    
-    toast.success('Mot de passe administrateur mis à jour avec succès !')
-    security.currentPassword = ''
-    security.newPassword = ''
-    security.confirmPassword = ''
+  if (security.newPassword !== security.confirmPassword) {
+    toast.error('Les mots de passe ne correspondent pas.')
+    return
+  }
+  
+  if (security.newPassword.length < 8) {
+    toast.error('Le mot de passe doit contenir au moins 8 caractères.')
+    return
+  }
+  
+  toast.success('Mot de passe administrateur mis à jour avec succès !')
+  security.currentPassword = ''
+  security.newPassword = ''
+  security.confirmPassword = ''
 }
 
 const submitPreferences = () => {
-    toast.success('Préférences sauvegardées avec succès !')
+  toast.success('Préférences sauvegardées avec succès !')
 }
 
 const getInitiales = (prenom, nom) => {
-    return `${prenom?.[0] ?? ''}${nom?.[0] ?? ''}`.toUpperCase()
+  return `${prenom?.[0] ?? ''}${nom?.[0] ?? ''}`.toUpperCase()
 }
 </script>
