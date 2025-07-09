@@ -1,37 +1,44 @@
 <template>
-  <aside class="w-64 h-screen min-h-0 overflow-y-auto bg-white px-4 py-6 shadow-none border-none">
-    <!-- Visiteur -->
-    <div>
-      <h3 class="text-sm font-semibold text-gray-500 uppercase mb-2">Visiteur</h3>
-      <nav class="flex flex-col gap-2">
-        <SidebarItem icon="home" label="Accueil" to="/" />
-        <SidebarItem icon="fire" label="Découvrir les plats" to="/decouvrir-les-plats" />
-        <SidebarItem icon="globe-alt" label="Cuisine marocaine" to="/cuisine-marocaine" />
-        <SidebarItem icon="globe-alt" label="Cuisine algérienne" to="/cuisine-algerienne" />
-        <SidebarItem icon="globe-alt" label="Cuisine tunisienne" to="/cuisine-tunisienne" />
-        <SidebarItem icon="calendar-days" label="Événements" to="/evenements" />
-        <SidebarItem icon="question-mark-circle" label="FAQ" to="/faq" />
-        <SidebarItem icon="chat-bubble-left-ellipsis" label="Contact" to="/contact" />
-        <SidebarItem icon="newspaper" label="Blog / Actus" to="/blog" />
-        <SidebarItem icon="document-text" label="Mentions légales" to="/mentions-legales" />
-      </nav>
-    </div>
-
-    <!-- Client -->
-    <div>
-      <h3 class="text-sm font-semibold text-gray-500 uppercase mb-2">Utilisateur connecté</h3>
-      <nav class="flex flex-col gap-2">
-        <SidebarItem icon="home" label="Accueil" to="/" />
-        <SidebarItem icon="shield-check" label="Espace Administrateur" to="/admin/dashboard" />
-        <SidebarItem icon="list-bullet" label="Nos plats" to="/nos-plats" />
-        <SidebarItem icon="heart" label="Mes favoris" to="/mes-favoris" />
-        <SidebarItem icon="shopping-cart" label="Mon panier" to="/mon-panier" />
-        <SidebarItem icon="archive-box" label="Mes commandes" to="/mes-commandes" />
-        <SidebarItem icon="calendar-days" label="Événements" to="/evenements" />
-        <SidebarItem icon="ticket" label="Mes réservations" to="/mes-reservations" />
-        <SidebarItem icon="chat-bubble-left-ellipsis" label="Contact" to="/contact" />
-        <SidebarItem icon="question-mark-circle" label="FAQ" to="/faq" />
-      </nav>
+  <aside class="hidden lg:block w-64 h-screen min-h-0 overflow-y-auto bg-white border-r border-gray-200 sticky top-0">
+    <div class="p-6">
+      <div class="mb-8">
+        <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Navigation</h3>
+        <nav class="space-y-1">
+          <SidebarItem icon="home" label="Accueil" to="/" />
+          <SidebarItem icon="fire" label="Découvrir les plats" to="/decouvrir-les-plats" />
+          <SidebarItem icon="list-bullet" label="Nos plats" to="/nos-plats" />
+          <SidebarItem icon="calendar-days" label="Événements" to="/evenements" />
+          <SidebarItem icon="question-mark-circle" label="FAQ" to="/faq" />
+          <SidebarItem icon="chat-bubble-left-ellipsis" label="Contact" to="/contact" />
+          <SidebarItem icon="newspaper" label="Blog / Actus" to="/blog" />
+          <SidebarItem icon="document-text" label="Mentions légales" to="/mentions-legales" />
+        </nav>
+      </div>
+      <div class="mb-8">
+        <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Mon espace</h3>
+        <nav class="space-y-1">
+          <SidebarItem icon="shield-check" label="Espace Administrateur" to="/admin/dashboard" />
+          <SidebarItem icon="heart" label="Mes favoris" to="/mes-favoris" />
+          <SidebarItem icon="shopping-cart" label="Mon panier" to="/mon-panier" />
+          <SidebarItem icon="archive-box" label="Mes commandes" to="/mes-commandes" />
+          <SidebarItem icon="ticket" label="Mes réservations" to="/mes-reservations" />
+        </nav>
+      </div>
+      <div class="mb-8">
+        <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Cuisines</h3>
+        <nav class="space-y-1">
+          <SidebarItem icon="globe-alt" label="Cuisine marocaine" to="/cuisine-marocaine" />
+          <SidebarItem icon="globe-alt" label="Cuisine algérienne" to="/cuisine-algerienne" />
+          <SidebarItem icon="globe-alt" label="Cuisine tunisienne" to="/cuisine-tunisienne" />
+        </nav>
+      </div>
+      <div class="pt-6 border-t border-gray-200">
+        <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Aide & Support</h3>
+        <nav class="space-y-1">
+          <SidebarItem icon="question-mark-circle" label="FAQ" to="/faq" />
+          <SidebarItem icon="chat-bubble-left-ellipsis" label="Nous contacter" to="/contact" />
+        </nav>
+      </div>
     </div>
   </aside>
 </template>
@@ -41,8 +48,20 @@ import SidebarItem from './SidebarItem.vue'
 </script>
 
 <style scoped>
-aside {
-  box-shadow: none !important;
-  border-right: none !important;
+aside::-webkit-scrollbar {
+  width: 6px;
+}
+
+aside::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+aside::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+aside::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 </style>
