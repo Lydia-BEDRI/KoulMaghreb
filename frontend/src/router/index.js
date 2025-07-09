@@ -29,6 +29,7 @@ import AdminEvenementsTable from '@/components/admin/AdminEvenementsTable.vue'
 import AdminAvisTable from '@/components/admin/AdminAvisTable.vue'
 import AdminArticlesTable from '@/components/admin/AdminArticlesTable.vue'
 import AdminPlatsTable from '@/components/admin/AdminPlatsTable.vue'
+import AdminProfil from '@/views/admin/AdminProfil.vue'
 
 const routes = [
   {
@@ -68,6 +69,7 @@ const routes = [
       { path: 'avis', name: 'AdminAvis', component: AdminAvisTable },
       { path: 'articles', name: 'AdminArticles', component: AdminArticlesTable },
       { path: 'plats', name: 'AdminPlats', component: AdminPlatsTable},
+      { path: 'profil', name: 'AdminProfil', component: AdminProfil },
     ],
   },
 ]
