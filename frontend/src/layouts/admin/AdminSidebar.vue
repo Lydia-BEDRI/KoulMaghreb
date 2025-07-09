@@ -67,7 +67,7 @@ const menu = [
   { to: '/admin/evenements', label: 'Événements' },
   { to: '/admin/avis', label: 'Avis' },
   { to: '/admin/articles', label: 'Articles' },
-  { to: '/admin/dishes', label: 'Plats' },
+  { to: '/admin/plats', label: 'Plats' },
 ]
 
 watch(() => $route.path, () => emit('close'))
