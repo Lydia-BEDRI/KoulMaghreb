@@ -22,6 +22,7 @@
       <h3 class="text-sm font-semibold text-gray-500 uppercase mb-2">Utilisateur connecté</h3>
       <nav class="flex flex-col gap-2">
         <SidebarItem icon="home" label="Accueil" to="/" />
+        <SidebarItem icon="shield-check" label="Espace Administrateur" to="/admin/dashboard" />
         <SidebarItem icon="list-bullet" label="Nos plats" to="/nos-plats" />
         <SidebarItem icon="heart" label="Mes favoris" to="/mes-favoris" />
         <SidebarItem icon="shopping-cart" label="Mon panier" to="/mon-panier" />
