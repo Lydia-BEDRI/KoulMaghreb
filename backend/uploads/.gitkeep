@@ -1,0 +1,10 @@
+# Dossier pour les fichiers uploadés
+
+Ce dossier contient les fichiers uploadés par les utilisateurs (images de plats, événements, etc.).
+
+Structure recommandée :
+- images/
+  - plats/
+  - evenements/
+  - articles/
+  - avatars/
