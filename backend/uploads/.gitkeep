@@ -1,6 +1,6 @@
 # Dossier pour les fichiers uploadés
 
-Ce dossier contient les fichiers uploadés par les utilisateurs (images de plats, événements, etc.).
+Ce dossier contient les fichiers uploadés par les users et admins
 
 Structure recommandée :
 - images/
