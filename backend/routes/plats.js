@@ -5,7 +5,6 @@ const { auth, adminAuth, optionalAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-// GET /api/plats - Lister tous les plats (public)
 router.get('/', optionalAuth, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -19,7 +18,6 @@ router.get('/', optionalAuth, async (req, res) => {
     let whereClause = '';
     let queryParams = [];
 
-    // Construire la clause WHERE pour les filtres
     const conditions = [];
     
     if (search) {
@@ -46,12 +44,10 @@ router.get('/', optionalAuth, async (req, res) => {
       whereClause = 'WHERE ' + conditions.join(' AND ');
     }
 
-    // Compter le total
     const countQuery = `SELECT COUNT(*) as total FROM plats ${whereClause}`;
     const totalResult = await query(countQuery, queryParams);
     const total = totalResult[0].total;
 
-    // Récupérer les plats
     const platsQuery = `
       SELECT id, nom, prix, note, image, short_desc, pays, type, disponible, created_at
       FROM plats 
@@ -78,7 +74,6 @@ router.get('/', optionalAuth, async (req, res) => {
   }
 });
 
-// GET /api/plats/:id - Récupérer un plat par son ID (public)
 router.get('/:id', optionalAuth, async (req, res) => {
   try {
     const platId = parseInt(req.params.id);
@@ -92,7 +87,6 @@ router.get('/:id', optionalAuth, async (req, res) => {
       return res.status(404).json({ error: 'Plat non trouvé' });
     }
 
-    // Si l'utilisateur est connecté, récupérer ses avis sur ce plat
     let userAvis = null;
     if (req.user) {
       const avisResult = await query(
@@ -102,7 +96,6 @@ router.get('/:id', optionalAuth, async (req, res) => {
       userAvis = avisResult[0] || null;
     }
 
-    // Récupérer la moyenne des notes et le nombre d'avis
     const statsResult = await query(
       'SELECT AVG(note) as moyenne, COUNT(*) as nb_avis FROM avis WHERE plat_id = ? AND approuve = true',
       [platId]
@@ -123,7 +116,6 @@ router.get('/:id', optionalAuth, async (req, res) => {
   }
 });
 
-// POST /api/plats - Créer un nouveau plat (Admin seulement)
 const createValidation = [
   body('nom').notEmpty().trim().withMessage('Le nom du plat est requis'),
   body('prix').isFloat({ min: 0 }).withMessage('Le prix doit être un nombre positif'),
@@ -165,7 +157,6 @@ router.post('/', auth, adminAuth, createValidation, async (req, res) => {
   }
 });
 
-// PUT /api/plats/:id - Mettre à jour un plat (Admin seulement)
 const updateValidation = [
   body('nom').optional().notEmpty().trim().withMessage('Le nom du plat ne peut pas être vide'),
   body('prix').optional().isFloat({ min: 0 }).withMessage('Le prix doit être un nombre positif'),
@@ -187,13 +178,11 @@ router.put('/:id', auth, adminAuth, updateValidation, async (req, res) => {
     const platId = parseInt(req.params.id);
     const { nom, prix, short_desc, long_desc, pays, type, image, disponible } = req.body;
 
-    // Vérifier si le plat existe
     const existingPlat = await query('SELECT id FROM plats WHERE id = ?', [platId]);
     if (existingPlat.length === 0) {
       return res.status(404).json({ error: 'Plat non trouvé' });
     }
 
-    // Construire la requête de mise à jour
     const updates = [];
     const values = [];
 
@@ -231,7 +220,6 @@ router.put('/:id', auth, adminAuth, updateValidation, async (req, res) => {
   }
 });
 
-// DELETE /api/plats/:id - Supprimer un plat (Admin seulement)
 router.delete('/:id', auth, adminAuth, async (req, res) => {
   try {
     const platId = parseInt(req.params.id);
@@ -251,7 +239,6 @@ router.delete('/:id', auth, adminAuth, async (req, res) => {
   }
 });
 
-// GET /api/plats/pays/list - Lister tous les pays (public)
 router.get('/pays/list', async (req, res) => {
   try {
     const pays = await query(
@@ -268,7 +255,6 @@ router.get('/pays/list', async (req, res) => {
   }
 });
 
-// GET /api/plats/types/list - Lister tous les types (public)
 router.get('/types/list', async (req, res) => {
   try {
     const types = await query(

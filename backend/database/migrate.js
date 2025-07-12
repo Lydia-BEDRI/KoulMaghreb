@@ -2,7 +2,6 @@ const mysql = require('mysql2/promise');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
-// Script de migration pour créer les tables
 const createTables = async () => {
   const dbConfig = {
     host: process.env.DB_HOST || 'localhost',
@@ -15,25 +14,20 @@ const createTables = async () => {
   let connection;
 
   try {
-    // Connexion sans base de données spécifique
     connection = await mysql.createConnection(dbConfig);
     
-    // Créer la base de données si elle n'existe pas
     const dbName = process.env.DB_NAME || 'koulmaghreb_db';
     await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
     
-    // Fermer la connexion et se reconnecter avec la base de données
     await connection.end();
     
-    // Reconnecter avec la base de données spécifiée
     connection = await mysql.createConnection({
       ...dbConfig,
       database: dbName
     });
     
-    console.log(`✅ Base de données '${dbName}' créée/connectée avec succès`);
+    console.log(`Base de données '${dbName}' créée/connect ok!!!`);
 
-    // Table utilisateurs
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS utilisateurs (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -51,7 +45,6 @@ const createTables = async () => {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
 
-    // Table articles
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS articles (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -66,7 +59,6 @@ const createTables = async () => {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
 
-    // Table plats
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS plats (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -84,7 +76,6 @@ const createTables = async () => {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
 
-    // Table evenements
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS evenements (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -104,7 +95,6 @@ const createTables = async () => {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
 
-    // Table commandes
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS commandes (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -119,7 +109,6 @@ const createTables = async () => {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
 
-    // Table items_commande (pour les articles d'une commande)
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS items_commande (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -134,7 +123,6 @@ const createTables = async () => {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
 
-    // Table reservations
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS reservations (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -151,8 +139,6 @@ const createTables = async () => {
         FOREIGN KEY (evenement_id) REFERENCES evenements(id) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-
-    // Table avis (pour les commentaires et notes)
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS avis (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -170,10 +156,10 @@ const createTables = async () => {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
 
-    console.log('✅ Toutes les tables ont été créées avec succès !');
+    console.log('tables ont été crées ');
 
   } catch (error) {
-    console.error('❌ Erreur lors de la création des tables:', error.message);
+    console.error('erreur:', error.message);
     throw error;
   } finally {
     if (connection) {
@@ -182,7 +168,6 @@ const createTables = async () => {
   }
 };
 
-// Exécuter les migrations si ce fichier est appelé directement
 if (require.main === module) {
   createTables()
     .then(() => {

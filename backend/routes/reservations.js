@@ -5,14 +5,12 @@ const { auth, adminAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Fonction pour générer un numéro de réservation unique
 const generateReservationNumber = () => {
   const timestamp = Date.now().toString().slice(-6);
   const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
   return `RSV-${timestamp}${random}`;
 };
 
-// GET /api/reservations - Lister les réservations
 router.get('/', auth, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -23,13 +21,11 @@ router.get('/', auth, async (req, res) => {
     let whereClause = '';
     let queryParams = [];
 
-    // Pour les clients, seules leurs réservations
     if (req.user.role === 'Client') {
       whereClause = 'WHERE r.user_id = ?';
       queryParams.push(req.user.id);
     }
 
-    // Filtre par statut
     if (statut) {
       if (whereClause) {
         whereClause += ' AND r.statut = ?';
@@ -39,7 +35,6 @@ router.get('/', auth, async (req, res) => {
       queryParams.push(statut);
     }
 
-    // Compter le total
     const countQuery = `
       SELECT COUNT(*) as total 
       FROM reservations r 
@@ -48,7 +43,6 @@ router.get('/', auth, async (req, res) => {
     const totalResult = await query(countQuery, queryParams);
     const total = totalResult[0].total;
 
-    // Récupérer les réservations avec les infos utilisateur et événement
     const reservationsQuery = `
       SELECT 
         r.id, r.numero_reservation, r.user_id, r.evenement_id, r.nombre_places, 
@@ -65,7 +59,6 @@ router.get('/', auth, async (req, res) => {
     
     const reservations = await query(reservationsQuery, [...queryParams, limit, offset]);
 
-    // Formater les données
     reservations.forEach(reservation => {
       reservation.client = {
         nom: `${reservation.prenom} ${reservation.nom}`,
@@ -79,7 +72,6 @@ router.get('/', auth, async (req, res) => {
         lieu: reservation.evenement_lieu
       };
       
-      // Nettoyer les champs utilisateur et événement du niveau réservation
       delete reservation.prenom;
       delete reservation.nom;
       delete reservation.email;
@@ -105,12 +97,10 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-// GET /api/reservations/:id - Récupérer une réservation par son ID
 router.get('/:id', auth, async (req, res) => {
   try {
     const reservationId = parseInt(req.params.id);
     
-    // Récupérer la réservation avec les infos utilisateur et événement
     const reservationsQuery = `
       SELECT 
         r.*, 
@@ -130,12 +120,10 @@ router.get('/:id', auth, async (req, res) => {
 
     const reservation = reservations[0];
 
-    // Vérifier les permissions
     if (req.user.role === 'Client' && reservation.user_id !== req.user.id) {
       return res.status(403).json({ error: 'Accès refusé' });
     }
 
-    // Formater les données
     reservation.client = {
       nom: `${reservation.prenom} ${reservation.nom}`,
       email: reservation.email,
@@ -148,7 +136,6 @@ router.get('/:id', auth, async (req, res) => {
       lieu: reservation.evenement_lieu
     };
     
-    // Nettoyer les champs
     delete reservation.prenom;
     delete reservation.nom;
     delete reservation.email;
@@ -165,7 +152,6 @@ router.get('/:id', auth, async (req, res) => {
   }
 });
 
-// POST /api/reservations - Créer une nouvelle réservation
 const createValidation = [
   body('evenement_id').isInt().withMessage('ID de l\'événement requis'),
   body('nombre_places').isInt({ min: 1 }).withMessage('Nombre de places invalide')
@@ -180,34 +166,27 @@ router.post('/', auth, createValidation, async (req, res) => {
 
     const { evenement_id, nombre_places } = req.body;
 
-    // Vérifier que l'événement existe et est actif
     const evenements = await query(
       'SELECT * FROM evenements WHERE id = ? AND actif = true',
       [evenement_id]
     );
-
     if (evenements.length === 0) {
       return res.status(404).json({ error: 'Événement non trouvé ou inactif' });
     }
-
     const evenement = evenements[0];
 
-    // Vérifier qu'il y a assez de places disponibles
     if (evenement.places_restantes < nombre_places) {
       return res.status(400).json({ 
         error: `Pas assez de places disponibles (${evenement.places_restantes} restantes)` 
       });
     }
 
-    // Vérifier que l'événement n'est pas passé
     if (new Date(evenement.date) < new Date()) {
       return res.status(400).json({ error: 'Impossible de réserver pour un événement passé' });
     }
 
-    // Calculer le montant total
     const montant_total = evenement.prix_par_personne * nombre_places;
 
-    // Générer un numéro de réservation unique
     let numeroReservation;
     let attempts = 0;
     do {
@@ -221,19 +200,16 @@ router.post('/', auth, createValidation, async (req, res) => {
       return res.status(500).json({ error: 'Impossible de générer un numéro de réservation unique' });
     }
 
-    // Créer la réservation
     const result = await query(
       'INSERT INTO reservations (numero_reservation, user_id, evenement_id, nombre_places, montant_total, statut) VALUES (?, ?, ?, ?, ?, ?)',
       [numeroReservation, req.user.id, evenement_id, nombre_places, montant_total, 'En attente']
     );
 
-    // Mettre à jour les places restantes de l'événement
     await query(
       'UPDATE evenements SET places_restantes = places_restantes - ? WHERE id = ?',
       [nombre_places, evenement_id]
     );
 
-    // Récupérer la réservation créée
     const newReservation = await query(
       'SELECT * FROM reservations WHERE id = ?',
       [result.insertId]
@@ -250,7 +226,6 @@ router.post('/', auth, createValidation, async (req, res) => {
   }
 });
 
-// PUT /api/reservations/:id - Mettre à jour une réservation
 const updateValidation = [
   body('statut').optional().isIn(['En attente', 'Confirmée', 'Annulée']).withMessage('Statut invalide'),
   body('notes_admin').optional().trim()
@@ -266,7 +241,6 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
     const reservationId = parseInt(req.params.id);
     const { statut, notes_admin } = req.body;
 
-    // Vérifier si la réservation existe
     const existingReservation = await query('SELECT * FROM reservations WHERE id = ?', [reservationId]);
     if (existingReservation.length === 0) {
       return res.status(404).json({ error: 'Réservation non trouvée' });
@@ -274,12 +248,10 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
 
     const reservation = existingReservation[0];
 
-    // Vérifier les permissions
     if (req.user.role === 'Client') {
       if (reservation.user_id !== req.user.id) {
         return res.status(403).json({ error: 'Accès refusé' });
       }
-      // Les clients ne peuvent que annuler leurs réservations
       if (statut && statut !== 'Annulée') {
         return res.status(403).json({ error: 'Vous ne pouvez que annuler vos réservations' });
       }
@@ -293,7 +265,6 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
       );
     }
 
-    // Si on confirme une réservation en attente, vérifier qu'il y a encore des places
     if (statut === 'Confirmée' && reservation.statut === 'En attente') {
       const evenement = await query(
         'SELECT places_restantes FROM evenements WHERE id = ?',
@@ -307,7 +278,6 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
       }
     }
 
-    // Construire la requête de mise à jour
     const updates = [];
     const values = [];
 
@@ -342,7 +312,6 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
   }
 });
 
-// GET /api/reservations/stats/overview - Statistiques des réservations (Admin seulement)
 router.get('/stats/overview', auth, adminAuth, async (req, res) => {
   try {
     const stats = await query(`

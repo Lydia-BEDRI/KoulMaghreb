@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { query } = require('../database/connection');
 
-// Middleware d'authentification
 const auth = async (req, res, next) => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -12,7 +11,6 @@ const auth = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
-    // Vérifier que l'utilisateur existe toujours
     const user = await query(
       'SELECT id, email, role, statut FROM utilisateurs WHERE id = ?',
       [decoded.userId]
@@ -33,7 +31,6 @@ const auth = async (req, res, next) => {
   }
 };
 
-// Middleware pour vérifier le rôle admin
 const adminAuth = (req, res, next) => {
   if (req.user.role !== 'Admin') {
     return res.status(403).json({ error: 'Accès refusé - Droits administrateur requis' });
@@ -41,7 +38,6 @@ const adminAuth = (req, res, next) => {
   next();
 };
 
-// Middleware optionnel (pour les routes publiques qui peuvent bénéficier de l'auth)
 const optionalAuth = async (req, res, next) => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -60,7 +56,6 @@ const optionalAuth = async (req, res, next) => {
     
     next();
   } catch (error) {
-    // Ignorer les erreurs d'auth pour les routes optionnelles
     next();
   }
 };

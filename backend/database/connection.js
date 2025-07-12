@@ -2,7 +2,6 @@ const mysql = require('mysql2/promise');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
-// Configuration de la base de données
 const dbConfig = {
   host: process.env.DB_HOST || 'localhost',
   port: process.env.DB_PORT || 3306,
@@ -15,7 +14,6 @@ const dbConfig = {
   reconnect: true
 };
 
-// Pool de connexions
 let pool;
 
 const createPool = () => {
@@ -29,7 +27,6 @@ const createPool = () => {
   return pool;
 };
 
-// Fonction pour obtenir la connexion
 const getConnection = async () => {
   if (!pool) {
     pool = createPool();
@@ -37,7 +34,6 @@ const getConnection = async () => {
   return pool.getConnection();
 };
 
-// Fonction pour exécuter une requête
 const query = async (sql, params = []) => {
   const connection = await getConnection();
   try {
@@ -51,15 +47,14 @@ const query = async (sql, params = []) => {
   }
 };
 
-// Test de connexion
 const testConnection = async () => {
   try {
     const connection = await getConnection();
-    console.log('✅ Connexion à la base de données réussie');
+    console.log('Connexion à la base de données réussie');
     connection.release();
     return true;
   } catch (error) {
-    console.error('❌ Erreur de connexion à la base de données:', error.message);
+    console.error('Erreur de connexion à la base de données:', error.message);
     return false;
   }
 };

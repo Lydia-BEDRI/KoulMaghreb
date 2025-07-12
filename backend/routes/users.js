@@ -5,7 +5,6 @@ const { auth, adminAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-// GET /api/users - Lister tous les utilisateurs (Admin seulement)
 router.get('/', auth, adminAuth, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -17,7 +16,6 @@ router.get('/', auth, adminAuth, async (req, res) => {
     let whereClause = '';
     let queryParams = [];
 
-    // Construire la clause WHERE pour les filtres
     const conditions = [];
     
     if (search) {
@@ -34,12 +32,10 @@ router.get('/', auth, adminAuth, async (req, res) => {
       whereClause = 'WHERE ' + conditions.join(' AND ');
     }
 
-    // Compter le total
     const countQuery = `SELECT COUNT(*) as total FROM utilisateurs ${whereClause}`;
     const totalResult = await query(countQuery, queryParams);
     const total = totalResult[0].total;
 
-    // Récupérer les utilisateurs
     const usersQuery = `
       SELECT id, prenom, nom, email, telephone, adresse, statut, role, date_inscription, created_at
       FROM utilisateurs 
@@ -66,12 +62,10 @@ router.get('/', auth, adminAuth, async (req, res) => {
   }
 });
 
-// GET /api/users/:id - Récupérer un utilisateur par ID
 router.get('/:id', auth, async (req, res) => {
   try {
     const userId = parseInt(req.params.id);
     
-    // Vérifier les permissions
     if (req.user.role !== 'Admin' && req.user.id !== userId) {
       return res.status(403).json({ error: 'Accès refusé' });
     }
@@ -93,7 +87,6 @@ router.get('/:id', auth, async (req, res) => {
   }
 });
 
-// PUT /api/users/:id - Mettre à jour un utilisateur
 const updateValidation = [
   body('prenom').optional().notEmpty().trim().withMessage('Le prénom ne peut pas être vide'),
   body('nom').optional().notEmpty().trim().withMessage('Le nom ne peut pas être vide'),
@@ -113,23 +106,19 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
     const userId = parseInt(req.params.id);
     const { prenom, nom, email, telephone, adresse, statut, role } = req.body;
 
-    // Vérifier les permissions
     if (req.user.role !== 'Admin' && req.user.id !== userId) {
       return res.status(403).json({ error: 'Accès refusé' });
     }
 
-    // Les non-admins ne peuvent pas changer le statut ou le rôle
     if (req.user.role !== 'Admin' && (statut || role)) {
       return res.status(403).json({ error: 'Vous ne pouvez pas modifier le statut ou le rôle' });
     }
 
-    // Vérifier si l'utilisateur existe
     const existingUsers = await query('SELECT id FROM utilisateurs WHERE id = ?', [userId]);
     if (existingUsers.length === 0) {
       return res.status(404).json({ error: 'Utilisateur non trouvé' });
     }
 
-    // Vérifier l'unicité de l'email
     if (email) {
       const emailExists = await query(
         'SELECT id FROM utilisateurs WHERE email = ? AND id != ?',
@@ -140,7 +129,6 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
       }
     }
 
-    // Construire la requête de mise à jour
     const updates = [];
     const values = [];
 
@@ -164,7 +152,6 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
       values
     );
 
-    // Récupérer l'utilisateur mis à jour
     const updatedUsers = await query(
       'SELECT id, prenom, nom, email, telephone, adresse, statut, role, date_inscription FROM utilisateurs WHERE id = ?',
       [userId]
@@ -181,18 +168,15 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
   }
 });
 
-// DELETE /api/users/:id - Supprimer un utilisateur (Admin seulement)
 router.delete('/:id', auth, adminAuth, async (req, res) => {
   try {
     const userId = parseInt(req.params.id);
 
-    // Vérifier si l'utilisateur existe
     const existingUsers = await query('SELECT id FROM utilisateurs WHERE id = ?', [userId]);
     if (existingUsers.length === 0) {
       return res.status(404).json({ error: 'Utilisateur non trouvé' });
     }
 
-    // Empêcher la suppression de son propre compte
     if (req.user.id === userId) {
       return res.status(400).json({ error: 'Vous ne pouvez pas supprimer votre propre compte' });
     }
@@ -207,7 +191,7 @@ router.delete('/:id', auth, adminAuth, async (req, res) => {
   }
 });
 
-// GET /api/users/stats/overview - Statistiques utilisateurs (Admin seulement)
+// /api/users/stats/overview pour admin seulement 
 router.get('/stats/overview', auth, adminAuth, async (req, res) => {
   try {
     const stats = await query(`

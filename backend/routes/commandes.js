@@ -5,14 +5,12 @@ const { auth, adminAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Fonction pour générer un numéro de commande unique
 const generateCommandeNumber = () => {
   const timestamp = Date.now().toString().slice(-6);
   const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
   return `CMD-${timestamp}${random}`;
 };
 
-// GET /api/commandes - Lister les commandes
 router.get('/', auth, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -23,13 +21,11 @@ router.get('/', auth, async (req, res) => {
     let whereClause = '';
     let queryParams = [];
 
-    // Pour les clients, seules leurs commandes
     if (req.user.role === 'Client') {
       whereClause = 'WHERE c.user_id = ?';
       queryParams.push(req.user.id);
     }
 
-    // Filtre par statut
     if (statut) {
       if (whereClause) {
         whereClause += ' AND c.statut = ?';
@@ -39,7 +35,6 @@ router.get('/', auth, async (req, res) => {
       queryParams.push(statut);
     }
 
-    // Compter le total
     const countQuery = `
       SELECT COUNT(*) as total 
       FROM commandes c 
@@ -48,7 +43,6 @@ router.get('/', auth, async (req, res) => {
     const totalResult = await query(countQuery, queryParams);
     const total = totalResult[0].total;
 
-    // Récupérer les commandes avec les infos utilisateur
     const commandesQuery = `
       SELECT 
         c.id, c.numero_commande, c.user_id, c.total, c.statut, c.notes_admin, c.created_at,
@@ -62,7 +56,6 @@ router.get('/', auth, async (req, res) => {
     
     const commandes = await query(commandesQuery, [...queryParams, limit, offset]);
 
-    // Récupérer les items pour chaque commande
     for (const commande of commandes) {
       const items = await query(
         'SELECT nom_plat, prix, quantite FROM items_commande WHERE commande_id = ?',
@@ -74,7 +67,6 @@ router.get('/', auth, async (req, res) => {
         email: commande.email,
         telephone: commande.telephone
       };
-      // Nettoyer les champs utilisateur du niveau commande
       delete commande.prenom;
       delete commande.nom;
       delete commande.email;
@@ -97,12 +89,10 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-// GET /api/commandes/:id - Récupérer une commande par son ID
 router.get('/:id', auth, async (req, res) => {
   try {
     const commandeId = parseInt(req.params.id);
     
-    // Récupérer la commande avec les infos utilisateur
     const commandesQuery = `
       SELECT 
         c.*, 
@@ -120,12 +110,10 @@ router.get('/:id', auth, async (req, res) => {
 
     const commande = commandes[0];
 
-    // Vérifier les permissions
     if (req.user.role === 'Client' && commande.user_id !== req.user.id) {
       return res.status(403).json({ error: 'Accès refusé' });
     }
 
-    // Récupérer les items de la commande
     const items = await query(
       'SELECT nom_plat, prix, quantite FROM items_commande WHERE commande_id = ?',
       [commandeId]
@@ -138,7 +126,6 @@ router.get('/:id', auth, async (req, res) => {
       telephone: commande.telephone
     };
     
-    // Nettoyer les champs utilisateur
     delete commande.prenom;
     delete commande.nom;
     delete commande.email;
@@ -152,7 +139,6 @@ router.get('/:id', auth, async (req, res) => {
   }
 });
 
-// POST /api/commandes - Créer une nouvelle commande
 const createValidation = [
   body('items').isArray({ min: 1 }).withMessage('Au moins un item est requis'),
   body('items.*.plat_id').optional().isInt().withMessage('ID du plat invalide'),
@@ -170,10 +156,8 @@ router.post('/', auth, createValidation, async (req, res) => {
 
     const { items } = req.body;
 
-    // Calculer le total
     const total = items.reduce((sum, item) => sum + (item.prix * item.quantite), 0);
 
-    // Générer un numéro de commande unique
     let numeroCommande;
     let attempts = 0;
     do {
@@ -187,7 +171,6 @@ router.post('/', auth, createValidation, async (req, res) => {
       return res.status(500).json({ error: 'Impossible de générer un numéro de commande unique' });
     }
 
-    // Créer la commande
     const result = await query(
       'INSERT INTO commandes (numero_commande, user_id, total, statut) VALUES (?, ?, ?, ?)',
       [numeroCommande, req.user.id, total, 'En attente']
@@ -195,7 +178,6 @@ router.post('/', auth, createValidation, async (req, res) => {
 
     const commandeId = result.insertId;
 
-    // Ajouter les items
     for (const item of items) {
       await query(
         'INSERT INTO items_commande (commande_id, plat_id, nom_plat, prix, quantite) VALUES (?, ?, ?, ?, ?)',
@@ -203,7 +185,6 @@ router.post('/', auth, createValidation, async (req, res) => {
       );
     }
 
-    // Récupérer la commande créée
     const newCommande = await query(
       'SELECT * FROM commandes WHERE id = ?',
       [commandeId]
@@ -228,7 +209,6 @@ router.post('/', auth, createValidation, async (req, res) => {
   }
 });
 
-// PUT /api/commandes/:id - Mettre à jour une commande (Admin seulement pour le statut)
 const updateValidation = [
   body('statut').optional().isIn(['En attente', 'En préparation', 'Prête', 'Livrée', 'Annulée']).withMessage('Statut invalide'),
   body('notes_admin').optional().trim()
@@ -244,7 +224,6 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
     const commandeId = parseInt(req.params.id);
     const { statut, notes_admin } = req.body;
 
-    // Vérifier si la commande existe
     const existingCommande = await query('SELECT * FROM commandes WHERE id = ?', [commandeId]);
     if (existingCommande.length === 0) {
       return res.status(404).json({ error: 'Commande non trouvée' });
@@ -252,12 +231,10 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
 
     const commande = existingCommande[0];
 
-    // Vérifier les permissions
     if (req.user.role === 'Client') {
       if (commande.user_id !== req.user.id) {
         return res.status(403).json({ error: 'Accès refusé' });
       }
-      // Les clients ne peuvent que annuler leurs commandes (si pas encore en préparation)
       if (statut && statut !== 'Annulée') {
         return res.status(403).json({ error: 'Vous ne pouvez que annuler vos commandes' });
       }
@@ -266,7 +243,6 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
       }
     }
 
-    // Construire la requête de mise à jour
     const updates = [];
     const values = [];
 
@@ -301,7 +277,6 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
   }
 });
 
-// GET /api/commandes/stats/overview - Statistiques des commandes (Admin seulement)
 router.get('/stats/overview', auth, adminAuth, async (req, res) => {
   try {
     const stats = await query(`

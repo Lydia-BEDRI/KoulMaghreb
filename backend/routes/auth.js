@@ -7,7 +7,6 @@ const { auth } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Validation pour l'inscription
 const registerValidation = [
   body('email').isEmail().normalizeEmail().withMessage('Email invalide'),
   body('password').isLength({ min: 6 }).withMessage('Le mot de passe doit faire au moins 6 caractères'),
@@ -16,13 +15,11 @@ const registerValidation = [
   body('telephone').optional().isMobilePhone('fr-FR').withMessage('Numéro de téléphone invalide')
 ];
 
-// Validation pour la connexion
 const loginValidation = [
   body('email').isEmail().normalizeEmail().withMessage('Email invalide'),
   body('password').notEmpty().withMessage('Mot de passe requis')
 ];
 
-// Inscription
 router.post('/register', registerValidation, async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -32,7 +29,6 @@ router.post('/register', registerValidation, async (req, res) => {
 
     const { email, password, prenom, nom, telephone, adresse, role } = req.body;
 
-    // Vérifier si l'utilisateur existe déjà
     const existingUser = await query(
       'SELECT id FROM utilisateurs WHERE email = ?',
       [email]
@@ -42,19 +38,16 @@ router.post('/register', registerValidation, async (req, res) => {
       return res.status(400).json({ error: 'Un compte avec cet email existe déjà' });
     }
 
-    // Hasher le mot de passe
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Définir le rôle (Client par défaut, Admin si spécifié)
     const userRole = role === 'Admin' ? 'Admin' : 'Client';
 
-    // Insérer l'utilisateur
     const result = await query(
       'INSERT INTO utilisateurs (email, password, prenom, nom, telephone, adresse, statut, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
       [email, hashedPassword, prenom, nom, telephone || null, adresse || null, 'Actif', userRole]
     );
 
-    // Générer le token JWT
+    // Générer JWT
     const token = jwt.sign(
       { userId: result.insertId, email, role: userRole },
       process.env.JWT_SECRET,
@@ -90,7 +83,6 @@ router.post('/login', loginValidation, async (req, res) => {
 
     const { email, password } = req.body;
 
-    // Chercher l'utilisateur
     const users = await query(
       'SELECT id, email, password, prenom, nom, role, statut FROM utilisateurs WHERE email = ?',
       [email]
@@ -102,12 +94,9 @@ router.post('/login', loginValidation, async (req, res) => {
 
     const user = users[0];
 
-    // Vérifier le statut du compte
     if (user.statut !== 'Actif') {
       return res.status(401).json({ error: 'Compte suspendu ou inactif' });
     }
-
-    // Vérifier le mot de passe
     const isPasswordValid = await bcrypt.compare(password, user.password);
     
     if (!isPasswordValid) {
@@ -140,7 +129,6 @@ router.post('/login', loginValidation, async (req, res) => {
   }
 });
 
-// Vérification du token (route protégée)
 router.get('/me', auth, async (req, res) => {
   try {
     const users = await query(
@@ -160,7 +148,6 @@ router.get('/me', auth, async (req, res) => {
   }
 });
 
-// Logout (côté client principalement)
 router.post('/logout', (req, res) => {
   res.json({ message: 'Déconnexion réussie' });
 });

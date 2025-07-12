@@ -5,7 +5,6 @@ const { auth, adminAuth, optionalAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-// GET /api/articles - Lister tous les articles (public)
 router.get('/', optionalAuth, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -17,7 +16,6 @@ router.get('/', optionalAuth, async (req, res) => {
     let whereClause = '';
     let queryParams = [];
 
-    // Construire la clause WHERE pour les filtres
     const conditions = [];
     
     if (search) {
@@ -34,12 +32,10 @@ router.get('/', optionalAuth, async (req, res) => {
       whereClause = 'WHERE ' + conditions.join(' AND ');
     }
 
-    // Compter le total
     const countQuery = `SELECT COUNT(*) as total FROM articles ${whereClause}`;
     const totalResult = await query(countQuery, queryParams);
     const total = totalResult[0].total;
 
-    // Récupérer les articles
     const articlesQuery = `
       SELECT id, title, slug, excerpt, image, category, created_at
       FROM articles 
@@ -66,7 +62,6 @@ router.get('/', optionalAuth, async (req, res) => {
   }
 });
 
-// GET /api/articles/:slug - Récupérer un article par son slug (public)
 router.get('/:slug', optionalAuth, async (req, res) => {
   try {
     const articles = await query(
@@ -86,7 +81,6 @@ router.get('/:slug', optionalAuth, async (req, res) => {
   }
 });
 
-// POST /api/articles - Créer un nouvel article (Admin seulement)
 const createValidation = [
   body('title').notEmpty().trim().withMessage('Le titre est requis'),
   body('slug').notEmpty().trim().withMessage('Le slug est requis'),
@@ -105,7 +99,6 @@ router.post('/', auth, adminAuth, createValidation, async (req, res) => {
 
     const { title, slug, excerpt, content, image, category } = req.body;
 
-    // Vérifier l'unicité du slug
     const existingArticle = await query('SELECT id FROM articles WHERE slug = ?', [slug]);
     if (existingArticle.length > 0) {
       return res.status(400).json({ error: 'Ce slug existe déjà' });
@@ -132,7 +125,6 @@ router.post('/', auth, adminAuth, createValidation, async (req, res) => {
   }
 });
 
-// PUT /api/articles/:id - Mettre à jour un article (Admin seulement)
 const updateValidation = [
   body('title').optional().notEmpty().trim().withMessage('Le titre ne peut pas être vide'),
   body('slug').optional().notEmpty().trim().withMessage('Le slug ne peut pas être vide'),
@@ -152,13 +144,11 @@ router.put('/:id', auth, adminAuth, updateValidation, async (req, res) => {
     const articleId = parseInt(req.params.id);
     const { title, slug, excerpt, content, image, category } = req.body;
 
-    // Vérifier si l'article existe
     const existingArticle = await query('SELECT id FROM articles WHERE id = ?', [articleId]);
     if (existingArticle.length === 0) {
       return res.status(404).json({ error: 'Article non trouvé' });
     }
 
-    // Vérifier l'unicité du slug
     if (slug) {
       const slugExists = await query(
         'SELECT id FROM articles WHERE slug = ? AND id != ?',
@@ -169,7 +159,6 @@ router.put('/:id', auth, adminAuth, updateValidation, async (req, res) => {
       }
     }
 
-    // Construire la requête de mise à jour
     const updates = [];
     const values = [];
 
@@ -205,7 +194,7 @@ router.put('/:id', auth, adminAuth, updateValidation, async (req, res) => {
   }
 });
 
-// DELETE /api/articles/:id - Supprimer un article (Admin seulement)
+
 router.delete('/:id', auth, adminAuth, async (req, res) => {
   try {
     const articleId = parseInt(req.params.id);
@@ -225,7 +214,6 @@ router.delete('/:id', auth, adminAuth, async (req, res) => {
   }
 });
 
-// GET /api/articles/categories/list - Lister toutes les catégories (public)
 router.get('/categories/list', async (req, res) => {
   try {
     const categories = await query(

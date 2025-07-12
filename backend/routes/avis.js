@@ -5,7 +5,6 @@ const { auth, adminAuth, optionalAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-// GET /api/avis - Lister tous les avis
 router.get('/', optionalAuth, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -18,7 +17,6 @@ router.get('/', optionalAuth, async (req, res) => {
     let whereClause = '';
     let queryParams = [];
 
-    // Construire la clause WHERE pour les filtres
     const conditions = [];
     
     if (plat_id) {
@@ -31,7 +29,6 @@ router.get('/', optionalAuth, async (req, res) => {
       queryParams.push(evenement_id);
     }
     
-    // Pour les utilisateurs non-admin, ne montrer que les avis approuvés
     if (req.user?.role !== 'Admin') {
       conditions.push('a.approuve = true');
     } else if (approuve !== null) {
@@ -43,12 +40,10 @@ router.get('/', optionalAuth, async (req, res) => {
       whereClause = 'WHERE ' + conditions.join(' AND ');
     }
 
-    // Compter le total
     const countQuery = `SELECT COUNT(*) as total FROM avis a ${whereClause}`;
     const totalResult = await query(countQuery, queryParams);
     const total = totalResult[0].total;
 
-    // Récupérer les avis avec les infos utilisateur, plat et événement
     const avisQuery = `
       SELECT 
         a.id, a.user_id, a.plat_id, a.evenement_id, a.note, a.commentaire, a.approuve, a.created_at,
@@ -66,7 +61,6 @@ router.get('/', optionalAuth, async (req, res) => {
     
     const avis = await query(avisQuery, [...queryParams, limit, offset]);
 
-    // Formater les données
     avis.forEach(avisItem => {
       avisItem.utilisateur = {
         nom: `${avisItem.prenom} ${avisItem.nom}`
@@ -80,7 +74,6 @@ router.get('/', optionalAuth, async (req, res) => {
         avisItem.evenement = { titre: avisItem.evenement_titre };
       }
       
-      // Nettoyer les champs
       delete avisItem.prenom;
       delete avisItem.nom;
       delete avisItem.plat_nom;
@@ -103,7 +96,6 @@ router.get('/', optionalAuth, async (req, res) => {
   }
 });
 
-// GET /api/avis/:id - Récupérer un avis par son ID
 router.get('/:id', optionalAuth, async (req, res) => {
   try {
     const avisId = parseInt(req.params.id);
@@ -161,7 +153,6 @@ router.get('/:id', optionalAuth, async (req, res) => {
   }
 });
 
-// POST /api/avis - Créer un nouvel avis
 const createValidation = [
   body('plat_id').optional().isInt().withMessage('ID du plat invalide'),
   body('evenement_id').optional().isInt().withMessage('ID de l\'événement invalide'),
@@ -183,12 +174,10 @@ router.post('/', auth, createValidation, async (req, res) => {
       return res.status(400).json({ error: 'Un plat ou un événement doit être spécifié' });
     }
 
-    // Vérifier qu'on ne spécifie pas les deux
     if (plat_id && evenement_id) {
       return res.status(400).json({ error: 'Vous ne pouvez pas évaluer un plat et un événement en même temps' });
     }
 
-    // Vérifier que le plat ou l'événement existe
     if (plat_id) {
       const plats = await query('SELECT id FROM plats WHERE id = ?', [plat_id]);
       if (plats.length === 0) {
@@ -203,7 +192,6 @@ router.post('/', auth, createValidation, async (req, res) => {
       }
     }
 
-    // Vérifier si l'utilisateur a déjà donné un avis pour ce plat/événement
     let existingAvis;
     if (plat_id) {
       existingAvis = await query(
@@ -221,13 +209,11 @@ router.post('/', auth, createValidation, async (req, res) => {
       return res.status(400).json({ error: 'Vous avez déjà donné un avis pour cet élément' });
     }
 
-    // Créer l'avis
     const result = await query(
       'INSERT INTO avis (user_id, plat_id, evenement_id, note, commentaire, approuve) VALUES (?, ?, ?, ?, ?, ?)',
       [req.user.id, plat_id || null, evenement_id || null, note, commentaire || null, false]
     );
 
-    // Mettre à jour la note moyenne du plat si applicable
     if (plat_id) {
       const moyenneResult = await query(
         'SELECT AVG(note) as moyenne FROM avis WHERE plat_id = ? AND approuve = true',
@@ -256,7 +242,6 @@ router.post('/', auth, createValidation, async (req, res) => {
   }
 });
 
-// PUT /api/avis/:id - Mettre à jour un avis
 const updateValidation = [
   body('note').optional().isInt({ min: 1, max: 5 }).withMessage('La note doit être entre 1 et 5'),
   body('commentaire').optional().trim().isLength({ max: 1000 }).withMessage('Le commentaire ne peut pas dépasser 1000 caractères'),
@@ -273,7 +258,6 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
     const avisId = parseInt(req.params.id);
     const { note, commentaire, approuve } = req.body;
 
-    // Vérifier si l'avis existe
     const existingAvis = await query('SELECT * FROM avis WHERE id = ?', [avisId]);
     if (existingAvis.length === 0) {
       return res.status(404).json({ error: 'Avis non trouvé' });
@@ -281,7 +265,6 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
 
     const avis = existingAvis[0];
 
-    // Vérifier les permissions
     const isOwner = avis.user_id === req.user.id;
     const isAdmin = req.user.role === 'Admin';
 
@@ -289,12 +272,10 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
       return res.status(403).json({ error: 'Accès refusé' });
     }
 
-    // Les utilisateurs normaux ne peuvent pas changer le statut d'approbation
     if (!isAdmin && approuve !== undefined) {
       return res.status(403).json({ error: 'Vous ne pouvez pas modifier le statut d\'approbation' });
     }
 
-    // Construire la requête de mise à jour
     const updates = [];
     const values = [];
 
@@ -314,7 +295,6 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
       values
     );
 
-    // Mettre à jour la note moyenne du plat si applicable
     if ((note !== undefined || approuve !== undefined) && avis.plat_id) {
       const moyenneResult = await query(
         'SELECT AVG(note) as moyenne FROM avis WHERE plat_id = ? AND approuve = true',
@@ -341,7 +321,6 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
   }
 });
 
-// DELETE /api/avis/:id - Supprimer un avis
 router.delete('/:id', auth, async (req, res) => {
   try {
     const avisId = parseInt(req.params.id);
@@ -353,7 +332,6 @@ router.delete('/:id', auth, async (req, res) => {
 
     const avis = existingAvis[0];
 
-    // Vérifier les permissions
     const isOwner = avis.user_id === req.user.id;
     const isAdmin = req.user.role === 'Admin';
 
@@ -363,7 +341,6 @@ router.delete('/:id', auth, async (req, res) => {
 
     await query('DELETE FROM avis WHERE id = ?', [avisId]);
 
-    // Mettre à jour la note moyenne du plat si applicable
     if (avis.plat_id) {
       const moyenneResult = await query(
         'SELECT AVG(note) as moyenne FROM avis WHERE plat_id = ? AND approuve = true',
@@ -385,7 +362,6 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
-// GET /api/avis/stats/overview - Statistiques des avis (Admin seulement)
 router.get('/stats/overview', auth, adminAuth, async (req, res) => {
   try {
     const stats = await query(`

@@ -5,7 +5,6 @@ const { auth, adminAuth, optionalAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-// GET /api/evenements - Lister tous les événements (public)
 router.get('/', optionalAuth, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -19,7 +18,6 @@ router.get('/', optionalAuth, async (req, res) => {
     let whereClause = '';
     let queryParams = [];
 
-    // Construire la clause WHERE pour les filtres
     const conditions = [];
     
     if (search) {
@@ -45,12 +43,10 @@ router.get('/', optionalAuth, async (req, res) => {
       whereClause = 'WHERE ' + conditions.join(' AND ');
     }
 
-    // Compter le total
     const countQuery = `SELECT COUNT(*) as total FROM evenements ${whereClause}`;
     const totalResult = await query(countQuery, queryParams);
     const total = totalResult[0].total;
 
-    // Récupérer les événements
     const evenementsQuery = `
       SELECT id, title, date, lieu, image, description, short_desc, places_total, places_restantes, prix_par_personne, actif, created_at
       FROM evenements 
@@ -77,7 +73,6 @@ router.get('/', optionalAuth, async (req, res) => {
   }
 });
 
-// GET /api/evenements/:id - Récupérer un événement par son ID (public)
 router.get('/:id', optionalAuth, async (req, res) => {
   try {
     const evenementId = parseInt(req.params.id);
@@ -91,7 +86,6 @@ router.get('/:id', optionalAuth, async (req, res) => {
       return res.status(404).json({ error: 'Événement non trouvé' });
     }
 
-    // Récupérer le nombre de réservations pour cet événement
     const reservationsResult = await query(
       'SELECT COUNT(*) as nb_reservations, SUM(nombre_places) as places_reservees FROM reservations WHERE evenement_id = ? AND statut = ?',
       [evenementId, 'Confirmée']
@@ -109,7 +103,6 @@ router.get('/:id', optionalAuth, async (req, res) => {
   }
 });
 
-// POST /api/evenements - Créer un nouvel événement (Admin seulement)
 const createValidation = [
   body('title').notEmpty().trim().withMessage('Le titre est requis'),
   body('date').isISO8601().withMessage('Date invalide (format ISO8601 requis)'),
@@ -152,7 +145,6 @@ router.post('/', auth, adminAuth, createValidation, async (req, res) => {
   }
 });
 
-// PUT /api/evenements/:id - Mettre à jour un événement (Admin seulement)
 const updateValidation = [
   body('title').optional().notEmpty().trim().withMessage('Le titre ne peut pas être vide'),
   body('date').optional().isISO8601().withMessage('Date invalide (format ISO8601 requis)'),
@@ -177,13 +169,11 @@ router.put('/:id', auth, adminAuth, updateValidation, async (req, res) => {
     const evenementId = parseInt(req.params.id);
     const { title, date, lieu, description, short_desc, long_desc, places_total, places_restantes, prix_par_personne, image, actif } = req.body;
 
-    // Vérifier si l'événement existe
     const existingEvenement = await query('SELECT id FROM evenements WHERE id = ?', [evenementId]);
     if (existingEvenement.length === 0) {
       return res.status(404).json({ error: 'Événement non trouvé' });
     }
 
-    // Construire la requête de mise à jour
     const updates = [];
     const values = [];
 
@@ -224,7 +214,6 @@ router.put('/:id', auth, adminAuth, updateValidation, async (req, res) => {
   }
 });
 
-// DELETE /api/evenements/:id - Supprimer un événement (Admin seulement)
 router.delete('/:id', auth, adminAuth, async (req, res) => {
   try {
     const evenementId = parseInt(req.params.id);
@@ -234,7 +223,6 @@ router.delete('/:id', auth, adminAuth, async (req, res) => {
       return res.status(404).json({ error: 'Événement non trouvé' });
     }
 
-    // Vérifier s'il y a des réservations confirmées
     const reservations = await query(
       'SELECT COUNT(*) as count FROM reservations WHERE evenement_id = ? AND statut = ?',
       [evenementId, 'Confirmée']
@@ -256,7 +244,6 @@ router.delete('/:id', auth, adminAuth, async (req, res) => {
   }
 });
 
-// GET /api/evenements/lieux/list - Lister tous les lieux (public)
 router.get('/lieux/list', async (req, res) => {
   try {
     const lieux = await query(

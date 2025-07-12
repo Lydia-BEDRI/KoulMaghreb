@@ -1,7 +1,6 @@
 const bcrypt = require('bcryptjs');
 const { query } = require('./connection');
 
-// Données de test à insérer
 const seedData = {
   utilisateurs: [
     {
@@ -144,12 +143,10 @@ const seedData = {
   ]
 };
 
-// Fonction pour insérer les données
 const seedDatabase = async () => {
   try {
-    console.log('🌱 Début du seeding de la base de données...');
+    console.log('Début remplissage bdd');
 
-    // Vider les tables (ordre important à cause des clés étrangères)
     await query('SET FOREIGN_KEY_CHECKS = 0');
     await query('TRUNCATE TABLE avis');
     await query('TRUNCATE TABLE items_commande');
@@ -161,8 +158,7 @@ const seedDatabase = async () => {
     await query('TRUNCATE TABLE utilisateurs');
     await query('SET FOREIGN_KEY_CHECKS = 1');
 
-    // Insérer les utilisateurs
-    console.log('👥 Insertion des utilisateurs...');
+    console.log('Insertion des users');
     for (const user of seedData.utilisateurs) {
       const hashedPassword = await bcrypt.hash(user.password, 10);
       await query(
@@ -171,8 +167,7 @@ const seedDatabase = async () => {
       );
     }
 
-    // Insérer les articles
-    console.log('📝 Insertion des articles...');
+    console.log('Insertion des article');
     for (const article of seedData.articles) {
       await query(
         'INSERT INTO articles (title, slug, excerpt, content, image, category) VALUES (?, ?, ?, ?, ?, ?)',
@@ -180,8 +175,7 @@ const seedDatabase = async () => {
       );
     }
 
-    // Insérer les plats
-    console.log('🍽️ Insertion des plats...');
+    console.log('Insertion plats');
     for (const plat of seedData.plats) {
       await query(
         'INSERT INTO plats (nom, prix, note, image, short_desc, long_desc, pays, type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
@@ -189,8 +183,7 @@ const seedDatabase = async () => {
       );
     }
 
-    // Insérer les événements
-    console.log('🎉 Insertion des événements...');
+    console.log('Insertion events');
     for (const evenement of seedData.evenements) {
       await query(
         'INSERT INTO evenements (title, date, lieu, image, description, short_desc, long_desc, places_total, places_restantes, prix_par_personne) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
@@ -198,23 +191,22 @@ const seedDatabase = async () => {
       );
     }
 
-    console.log('✅ Seeding terminé avec succès !');
+    console.log('ok');
 
   } catch (error) {
-    console.error('❌ Erreur lors du seeding:', error.message);
+    console.error('erreur:', error.message);
     throw error;
   }
 };
 
-// Exécuter le seed si ce fichier est appelé directement
 if (require.main === module) {
   seedDatabase()
     .then(() => {
-      console.log('🎉 Base de données seedée !');
+      console.log('Base de données ok remplie !');
       process.exit(0);
     })
     .catch((error) => {
-      console.error('💥 Erreur de seeding:', error);
+      console.error('Erreur remplissage:', error);
       process.exit(1);
     });
 }
