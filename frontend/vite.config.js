@@ -19,4 +19,8 @@ export default defineConfig({
       usePolling: true,
     },
   },
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+  },
 })
