@@ -84,16 +84,28 @@ const router = createRouter({
   routes,
 })
 
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('auth_token')
+  const protectedRoutes = ['/profil', '/mes-commandes', '/mes-favoris', '/mes-reservations']
+  
+  if (protectedRoutes.includes(to.path) && !token) {
+    next('/')
+  } else if (to.matched.some(record => record.meta.requiresAuth) && !token) {
+    next('/')
+  } else {
+    next()
+  }
+})
 
 router.beforeEach((to, from, next) => {
   const user = authService.getCurrentUser()
   
-  if (user && user.role === 'admin' && !to.path.startsWith('/admin')) {
+  if (user && user.role === 'Admin' && !to.path.startsWith('/admin')) {
     next('/admin/dashboard')
     return
   }
   
-  if (to.path.startsWith('/admin') && (!user || user.role !== 'admin')) {
+  if (to.path.startsWith('/admin') && (!user || user.role !== 'Admin')) {
     next('/') 
     return
   }

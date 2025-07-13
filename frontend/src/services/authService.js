@@ -16,8 +16,8 @@ export const authService = {
       throw new Error(data.error || 'Erreur de connexion')
     }
     
-    localStorage.setItem('token', data.token)
-    localStorage.setItem('user', JSON.stringify(data.user))
+    localStorage.setItem('auth_token', data.token)
+    localStorage.setItem('user_data', JSON.stringify(data.user))
     
     return data
   },
@@ -37,23 +37,101 @@ export const authService = {
       throw new Error(data.error || 'Erreur d\'inscription')
     }
     
-    localStorage.setItem('token', data.token)
-    localStorage.setItem('user', JSON.stringify(data.user))
+    localStorage.setItem('auth_token', data.token)
+    localStorage.setItem('user_data', JSON.stringify(data.user))
     
     return data
   },
 
   logout() {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
+    localStorage.removeItem('auth_token')
+    localStorage.removeItem('user_data')
   },
 
   isAuthenticated() {
-    return !!localStorage.getItem('token')
+    return !!localStorage.getItem('auth_token')
+  },
+
+  async getCurrentUserProfile() {
+    try {
+      const token = localStorage.getItem('auth_token')
+      if (!token) {
+        throw new Error('Token manquant')
+      }
+
+      const response = await fetch(`${API_BASE_URL}/auth/me`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Token invalide ou expiré')
+        }
+        throw new Error('Erreur lors de la récupération du profil')
+      }
+
+      const data = await response.json()
+      
+      if (!data.user) {
+        throw new Error('Aucune donnée utilisateur dans la réponse')
+      }
+      
+      return data.user
+    } catch (error) {
+      console.error('Erreur getCurrentUserProfile:', error)
+      throw error
+    }
+  },
+
+  async updateUserProfile(userData) {
+    try {
+      const token = localStorage.getItem('auth_token')
+      if (!token) {
+        throw new Error('Token manquant')
+      }
+
+      const user = this.getCurrentUser()
+      if (!user) {
+        throw new Error('Utilisateur non connecté')
+      }
+
+      const response = await fetch(`${API_BASE_URL}/users/${user.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Erreur lors de la mise à jour')
+      }
+
+      const data = await response.json()
+      
+      localStorage.setItem('user_data', JSON.stringify(data.user))
+      
+      return data.user
+    } catch (error) {
+      console.error('Erreur updateUserProfile:', error)
+      throw error
+    }
   },
 
   getCurrentUser() {
-    const user = localStorage.getItem('user')
-    return user ? JSON.parse(user) : null
+    try {
+      const userData = localStorage.getItem('user_data')
+      return userData ? JSON.parse(userData) : null
+    } catch (error) {
+      console.error('Erreur parsing user data:', error)
+      localStorage.removeItem('user_data')
+      return null
+    }
   }
 }
