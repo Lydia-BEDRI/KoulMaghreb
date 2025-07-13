@@ -76,9 +76,9 @@
                   <input v-model="form.adresse" type="text" placeholder="Adresse complète"
                     class="w-1/2 px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
                     :disabled="loading" />
-                  <input v-model="form.codePostal" type="text" placeholder="Code postal"
+                  <input v-model="form.code_postal" type="text" placeholder="Code postal"
                     class="w-1/2 px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
-                    :disabled="loading" />
+                    :disabled="loading" required />
                 </div>
 
                 <input v-model="form.telephone" type="tel" placeholder="Numéro de téléphone"
@@ -137,7 +137,7 @@ const form = reactive({
   password: '',
   confirmPassword: '',
   adresse: '',
-  codePostal: '',
+  code_postal: '', 
   telephone: ''
 })
 
@@ -162,28 +162,60 @@ const submitForm = async () => {
     loading.value = true
     error.value = ''
     
+    // Validation étape 2
+    if (!form.code_postal || form.code_postal.length !== 5) {
+      error.value = 'Le code postal doit contenir exactement 5 chiffres'
+      return
+    }
+    
+    if (!/^\d{5}$/.test(form.code_postal)) {
+      error.value = 'Le code postal doit contenir uniquement des chiffres'
+      return
+    }
+    
+    console.log('Form data:', form)
+    
     const userData = {
-      nom: form.nom,
       prenom: form.prenom,
+      nom: form.nom,
       email: form.email,
       password: form.password,
       telephone: form.telephone || null,
-      adresse: form.adresse || null
+      adresse: form.adresse || null,
+      code_postal: form.code_postal
     }
     
-    const result = await register(userData)
+    console.log('Données à envoyer:', userData)
     
-    toast.success('Compte créé avec succès !')
+    const response = await fetch('http://localhost:3001/api/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData)
+    })
+    
+    const data = await response.json()
+    console.log('Réponse du serveur:', data)
+    
+    if (!response.ok) {
+      throw new Error(data.error || data.errors?.[0]?.msg || 'Erreur inscription')
+    }
+    
+    toast.success('Inscription réussie !')
+    
     close()
     
-    if (result.user.role === 'Admin') { 
-      window.location.href = '/admin/dashboard'
+    if (data.user?.role === 'Admin') {
+      router.push('/admin/dashboard')
     } else {
       router.push('/')
     }
     
   } catch (err) {
+    console.error('Erreur complète:', err)
     error.value = err.message
+    toast.error(err.message)
   } finally {
     loading.value = false
   }

@@ -37,7 +37,7 @@ router.get('/', auth, adminAuth, async (req, res) => {
     const total = totalResult[0].total;
 
     const usersQuery = `
-      SELECT id, prenom, nom, email, telephone, adresse, statut, role, date_inscription, created_at
+      SELECT id, prenom, nom, email, telephone, adresse, code_postal, statut, role, date_inscription, created_at
       FROM utilisateurs 
       ${whereClause}
       ORDER BY created_at DESC 
@@ -71,7 +71,7 @@ router.get('/:id', auth, async (req, res) => {
     }
 
     const users = await query(
-      'SELECT id, prenom, nom, email, telephone, adresse, statut, role, date_inscription, created_at FROM utilisateurs WHERE id = ?',
+      'SELECT id, prenom, nom, email, telephone, adresse, code_postal, statut, role, date_inscription, created_at FROM utilisateurs WHERE id = ?',
       [userId]
     );
 
@@ -92,6 +92,8 @@ const updateValidation = [
   body('nom').optional().notEmpty().trim().withMessage('Le nom ne peut pas être vide'),
   body('email').optional().isEmail().normalizeEmail().withMessage('Email invalide'),
   body('telephone').optional().isMobilePhone('fr-FR').withMessage('Numéro de téléphone invalide'),
+  body('adresse').optional().trim(),
+  body('code_postal').optional().isLength({ min: 5, max: 5 }).isNumeric().withMessage('Le code postal doit contenir exactement 5 chiffres'),
   body('statut').optional().isIn(['Actif', 'Inactif', 'Suspendu']).withMessage('Statut invalide'),
   body('role').optional().isIn(['Client', 'Admin', 'Chef']).withMessage('Rôle invalide')
 ];
@@ -104,7 +106,7 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
     }
 
     const userId = parseInt(req.params.id);
-    const { prenom, nom, email, telephone, adresse, statut, role } = req.body;
+    const { prenom, nom, email, telephone, adresse, code_postal, statut, role } = req.body;
 
     if (req.user.role !== 'Admin' && req.user.id !== userId) {
       return res.status(403).json({ error: 'Accès refusé' });
@@ -137,6 +139,7 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
     if (email !== undefined) { updates.push('email = ?'); values.push(email); }
     if (telephone !== undefined) { updates.push('telephone = ?'); values.push(telephone); }
     if (adresse !== undefined) { updates.push('adresse = ?'); values.push(adresse); }
+    if (code_postal !== undefined) { updates.push('code_postal = ?'); values.push(code_postal); }
     if (statut !== undefined && req.user.role === 'Admin') { updates.push('statut = ?'); values.push(statut); }
     if (role !== undefined && req.user.role === 'Admin') { updates.push('role = ?'); values.push(role); }
 
@@ -153,7 +156,7 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
     );
 
     const updatedUsers = await query(
-      'SELECT id, prenom, nom, email, telephone, adresse, statut, role, date_inscription FROM utilisateurs WHERE id = ?',
+      'SELECT id, prenom, nom, email, telephone, adresse, code_postal, statut, role, date_inscription FROM utilisateurs WHERE id = ?',
       [userId]
     );
 
