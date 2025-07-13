@@ -1,11 +1,23 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useToast } from 'vue-toastification'
 import { BellIcon, FunnelIcon, UserIcon, Bars3Icon, XMarkIcon } from '@heroicons/vue/24/outline'
+import { useAuth } from '../composables/useAuth'
 import { useModalStore } from '../stores/useModalStore'
+
+const { isAuthenticated, isAdmin, user, logout } = useAuth()
+const modal = useModalStore()
+const router = useRouter()
+const toast = useToast()
+
+if (isAuthenticated.value && isAdmin.value && router.currentRoute.value.path === '/') {
+  router.push('/admin/dashboard')
+}
 
 const openMenu = ref(false) 
 const openMobileMenu = ref(false)
-const modal = useModalStore()
+const logoutLoading = ref(false)
 
 function toggleMenu() {
   openMenu.value = !openMenu.value
@@ -21,25 +33,40 @@ function handleLoginClick() {
   openMobileMenu.value = false
 }
 
+function handleSignupClick() {
+  modal.openSignup() 
+  openMenu.value = false
+  openMobileMenu.value = false
+}
+
+const handleLogout = async () => {
+  try {
+    logoutLoading.value = true
+    await logout()
+    toast.success('Déconnexion réussie !')
+    router.push('/')
+    openMenu.value = false
+    openMobileMenu.value = false
+  } catch (error) {
+    console.error('Erreur lors de la déconnexion:', error)
+    toast.error('Erreur lors de la déconnexion')
+  } finally {
+    logoutLoading.value = false
+  }
+}
+
 watch(() => modal.showLoginModal, (isModalVisible) => {
   if (isModalVisible) {
     openMenu.value = false
     openMobileMenu.value = false
   }
 })
-
-function handleSignupClick() {
-  modal.openSignup() 
-  openMenu.value = false
-  openMobileMenu.value = false
-}
 </script>
 
 <template>
   <header class="w-full bg-white shadow-sm sticky top-0 z-40" role="banner">
     <div class="w-full px-4 py-3">
       <div class="flex items-center justify-between lg:hidden">
-        <!-- Menu burger -->
         <button 
           @click="toggleMobileMenu"
           class="p-2 text-accent hover:text-primary transition"
@@ -63,24 +90,58 @@ function handleSignupClick() {
           </button>
 
           <div class="relative">
-            <button 
-              @click="toggleMenu"
-              class="flex items-center justify-center w-8 h-8 bg-accent text-white rounded-full hover:bg-primary transition"
-              aria-label="Compte utilisateur"
-            >
-              <UserIcon class="h-4 w-4" />
-            </button>
+            <div v-if="isAuthenticated" class="flex items-center space-x-2">
+              <button 
+                @click="toggleMenu"
+                class="flex items-center space-x-1 p-1 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition"
+                aria-label="Compte utilisateur"
+              >
+                <div class="w-6 h-6 bg-accent text-white rounded-full flex items-center justify-center">
+                  <span class="font-semibold text-xs">
+                    {{ user?.prenom?.[0]?.toUpperCase() }}{{ user?.nom?.[0]?.toUpperCase() }}
+                  </span>
+                </div>
+                <svg class="h-3 w-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
 
-            <div v-if="openMenu"
-              class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-              <button @click="handleLoginClick"
-                class="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100">
-                Se connecter
+              <div v-if="openMenu"
+                class="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                <div class="px-4 py-3 border-b border-gray-100">
+                  <p class="text-sm font-medium text-gray-800">{{ user?.prenom }} {{ user?.nom }}</p>
+                  <p class="text-xs text-gray-500">{{ user?.email }}</p>
+                </div>
+                <button 
+                  @click="handleLogout"
+                  class="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition"
+                  :disabled="logoutLoading"
+                >
+                  {{ logoutLoading ? 'Déconnexion...' : 'Se déconnecter' }}
+                </button>
+              </div>
+            </div>
+
+            <div v-else>
+              <button 
+                @click="toggleMenu"
+                class="flex items-center justify-center w-6 h-6 bg-accent text-white rounded-full hover:bg-primary transition"
+                aria-label="Compte utilisateur"
+              >
+                <UserIcon class="h-3 w-3" />
               </button>
-              <button @click="handleSignupClick"
-                class="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">
-                S'inscrire
-              </button>
+
+              <div v-if="openMenu"
+                class="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                <button @click="handleLoginClick"
+                  class="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100">
+                  Se connecter
+                </button>
+                <button @click="handleSignupClick"
+                  class="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">
+                  S'inscrire
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -131,28 +192,85 @@ function handleSignupClick() {
           </button>
 
           <div class="relative">
-            <button 
-              @click="toggleMenu"
-              class="flex items-center px-3 lg:px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg lg:rounded-xl text-gray-700 hover:bg-gray-100 transition font-medium text-sm"
-            >
-              <UserIcon class="h-4 lg:h-5 w-4 lg:w-5 lg:mr-2" />
-              <span class="hidden lg:inline">Mon compte</span>
-              <svg class="ml-1 lg:ml-2 h-3 lg:h-4 w-3 lg:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
+            <div v-if="isAuthenticated" class="flex items-center space-x-3">
+              <div class="relative">
+                <button 
+                  @click="toggleMenu"
+                  class="flex items-center space-x-2 px-3 lg:px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg lg:rounded-xl text-gray-700 hover:bg-gray-100 transition font-medium text-sm"
+                >
+                  <div class="w-6 h-6 bg-accent text-white rounded-full flex items-center justify-center">
+                    <span class="font-semibold text-xs">
+                      {{ user?.prenom?.[0]?.toUpperCase() }}{{ user?.nom?.[0]?.toUpperCase() }}
+                    </span>
+                  </div>
+                  <div class="hidden lg:block text-left">
+                    <p class="text-sm font-medium">{{ user?.prenom }} {{ user?.nom }}</p>
+                  </div>
+                  <svg class="ml-1 lg:ml-2 h-3 lg:h-4 w-3 lg:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
 
-            <div v-if="openMenu"
-              class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg lg:rounded-xl shadow-lg z-50 py-2">
-              <button @click="handleLoginClick"
-                class="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition">
-                Se connecter
+                <div v-if="openMenu"
+                  class="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg lg:rounded-xl shadow-lg z-50 py-2">
+                  <div class="px-4 py-3 border-b border-gray-100">
+                    <p class="text-sm font-medium text-gray-800">{{ user?.prenom }} {{ user?.nom }}</p>
+                    <p class="text-xs text-gray-500">{{ user?.email }}</p>
+                    <p class="text-xs text-accent">{{ user?.role === 'Admin' ? 'Administrateur' : 'Mon Espace Client' }}</p>
+                  </div>
+                  <a href="/profil" @click="openMenu = false" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                    Mon profil
+                  </a>
+                  <a href="/mes-commandes" @click="openMenu = false" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                    Mes commandes
+                  </a>
+                  <a href="/mes-favoris" @click="openMenu = false" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                    Mes favoris
+                  </a>
+                  <div v-if="isAdmin" class="border-t border-gray-100 mt-2 pt-2">
+                    <a href="/admin/dashboard" @click="openMenu = false" class="block px-4 py-2 text-sm text-accent hover:bg-accent/10 transition">
+                      Espace administrateur
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <button 
+                @click="handleLogout"
+                class="p-2 text-gray-500 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50"
+                :disabled="logoutLoading"
+                title="Se déconnecter"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
               </button>
-              <hr class="my-1 border-gray-100">
-              <button @click="handleSignupClick"
-                class="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition">
-                S'inscrire
+            </div>
+
+            <div v-else class="relative">
+              <button 
+                @click="toggleMenu"
+                class="flex items-center px-3 lg:px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg lg:rounded-xl text-gray-700 hover:bg-gray-100 transition font-medium text-sm"
+              >
+                <UserIcon class="h-4 lg:h-5 w-4 lg:w-5 lg:mr-2" />
+                <span class="hidden lg:inline">Mon compte</span>
+                <svg class="ml-1 lg:ml-2 h-3 lg:h-4 w-3 lg:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
               </button>
+
+              <div v-if="openMenu"
+                class="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg lg:rounded-xl shadow-lg z-50 py-2">
+                <button @click="handleLoginClick"
+                  class="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition">
+                  Se connecter
+                </button>
+                <hr class="my-1 border-gray-100">
+                <button @click="handleSignupClick"
+                  class="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition">
+                  S'inscrire
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -196,6 +314,30 @@ function handleSignupClick() {
           </button>
         </div>
 
+        <div v-if="isAuthenticated" class="p-4 border-b border-gray-200">
+          <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 bg-accent text-white rounded-full flex items-center justify-center">
+              <span class="font-semibold text-xs">
+                {{ user?.prenom?.[0]?.toUpperCase() }}{{ user?.nom?.[0]?.toUpperCase() }}
+              </span>
+            </div>
+            <div class="flex-1">
+              <p class="text-sm font-medium text-gray-800">{{ user?.prenom }} {{ user?.nom }}</p>
+              <p class="text-xs text-gray-500">{{ user?.email }}</p>
+            </div>
+            <button 
+              @click="handleLogout"
+              class="p-2 text-red-500 hover:text-red-600 transition-colors"
+              :disabled="logoutLoading"
+              title="Se déconnecter"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
         <nav class="p-4 space-y-6">
           <div>
             <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Navigation</h3>
@@ -212,7 +354,7 @@ function handleSignupClick() {
                 </svg>
                 Nos plats
               </a>
-              <a href="/decouvrir-les-plats" @click="openMobileMenu = false" class="flex items-center px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition">
+              <a v-if="!isAuthenticated" href="/decouvrir-les-plats" @click="openMobileMenu = false" class="flex items-center px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition">
                 <svg class="h-5 w-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" />
                 </svg>
@@ -226,7 +368,7 @@ function handleSignupClick() {
               </a>
               <a href="/contact" @click="openMobileMenu = false" class="flex items-center px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition">
                 <svg class="h-5 w-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 Contact
               </a>
@@ -239,9 +381,16 @@ function handleSignupClick() {
             </div>
           </div>
 
-          <div>
+          <div v-if="isAuthenticated">
             <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Mon espace</h3>
             <div class="space-y-1">
+              <a v-if="isAdmin" href="/admin/dashboard" @click="openMobileMenu = false" class="flex items-center px-3 py-2 text-accent rounded-lg hover:bg-accent/10 transition">
+                <svg class="h-5 w-5 mr-3 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                Espace Administrateur
+              </a>
               <a href="/mes-commandes" @click="openMobileMenu = false" class="flex items-center px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition">
                 <svg class="h-5 w-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />

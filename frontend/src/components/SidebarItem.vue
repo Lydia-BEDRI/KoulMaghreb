@@ -26,6 +26,7 @@ import {
   CalendarDaysIcon,
   TicketIcon,
   ShieldCheckIcon,
+  UserCircleIcon,
 } from '@heroicons/vue/24/outline'
 
 import { computed } from 'vue'
@@ -56,6 +57,7 @@ const iconMap = {
   'calendar-days': CalendarDaysIcon,
   ticket: TicketIcon,
   'shield-check': ShieldCheckIcon,
+  'user-circle': UserCircleIcon,
 }
 
 const iconComponent = iconMap[props.icon] || HomeIcon

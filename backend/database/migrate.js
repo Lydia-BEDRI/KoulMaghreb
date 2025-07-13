@@ -37,6 +37,7 @@ const createTables = async () => {
         password VARCHAR(255) NOT NULL,
         telephone VARCHAR(20),
         adresse TEXT,
+        code_postal VARCHAR(10) NOT NULL,
         statut ENUM('Actif', 'Inactif', 'Suspendu') DEFAULT 'Actif',
         role ENUM('Client', 'Admin', 'Chef') DEFAULT 'Client',
         date_inscription TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
