@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { authService } from '@/services/authService'
 
 import MainLayout from '@/layouts/main/MainLayout.vue'
 import AdminLayout from '@/layouts/admin/AdminLayout.vue'
@@ -81,6 +82,23 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+})
+
+
+router.beforeEach((to, from, next) => {
+  const user = authService.getCurrentUser()
+  
+  if (user && user.role === 'admin' && !to.path.startsWith('/admin')) {
+    next('/admin/dashboard')
+    return
+  }
+  
+  if (to.path.startsWith('/admin') && (!user || user.role !== 'admin')) {
+    next('/') 
+    return
+  }
+  
+  next()
 })
 
 export default router
