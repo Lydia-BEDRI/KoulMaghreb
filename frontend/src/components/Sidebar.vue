@@ -46,18 +46,6 @@
     </div>
 
     <div v-if="isAuthenticated" class="mt-auto pt-6 border-t border-gray-200">
-      <div class="mb-4">
-        <div class="flex items-center gap-3 px-3 py-2 text-sm text-gray-600">
-          <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-            <span class="text-white font-semibold text-xs">{{ user?.prenom?.[0] }}{{ user?.nom?.[0] }}</span>
-          </div>
-          <div class="flex-1">
-            <p class="font-medium">{{ user?.prenom }} {{ user?.nom }}</p>
-            <p class="text-xs text-gray-500">{{ user?.email }}</p>
-          </div>
-        </div>
-      </div>
-      
       <button 
         @click="handleLogout" 
         class="w-full flex items-center gap-3 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 text-sm font-medium"
