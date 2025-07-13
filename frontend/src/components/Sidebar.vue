@@ -18,6 +18,7 @@
         <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Mon espace</h3>
         <nav class="space-y-1">
           <SidebarItem v-if="isAdmin" icon="shield-check" label="Espace Administrateur" to="/admin/dashboard" />
+          <SidebarItem icon="user-circle" label="Mon Profil" to="/profil" />
           <SidebarItem icon="heart" label="Mes favoris" to="/mes-favoris" />
           <SidebarItem icon="shopping-cart" label="Mon panier" to="/mon-panier" />
           <SidebarItem icon="archive-box" label="Mes commandes" to="/mes-commandes" />
