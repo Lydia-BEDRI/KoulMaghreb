@@ -77,7 +77,9 @@
 
     <!-- Liste filtrée -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div v-for="plat in filteredPlats" :key="plat.id"
+      <div v-if="loading" class="text-center py-8">Chargement...</div>
+      <div v-else-if="error" class="text-red-600 text-center py-8">{{ error }}</div>
+      <div v-else v-for="plat in filteredPlats" :key="plat.id"
         class="relative bg-white rounded-2xl shadow border border-gray-200 p-6 transition hover:shadow-lg">
         <div class="aspect-video bg-gray-100 rounded-lg overflow-hidden mb-4 relative">
           <img :src="plat.image" :alt="plat.nom" class="w-full h-full object-cover" />
@@ -104,8 +106,7 @@
               <path
                 d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.454a1 1 0 00-1.175 0l-3.38 2.454c-.784.57-1.838-.196-1.539-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z" />
             </svg>
-            <span class="text-sm text-gray-600 font-medium">{{ plat.note }}</span>
-          </div>
+            <span class="text-lg text-gray-700 font-semibold">{{ Number(plat.note).toFixed(1) }}</span>          </div>
         </div>
         <div class="flex justify-between items-center gap-2">
           <button class="bg-accent text-white px-4 py-2 rounded-xl hover:bg-primary transition flex-1"
@@ -137,9 +138,9 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { plats as platsData } from '@/data/plats.js'
+import { platsService } from '@/services/platsService.js'
 import { ShoppingCartIcon } from '@heroicons/vue/24/outline'
 import { Icon } from '@iconify/vue'
 
@@ -154,9 +155,21 @@ const selectedPays = ref('')
 const selectedNote = ref(0)
 const selectedOrder = ref('default')
 
-const plats = ref(platsData)
+const plats = ref([])
+const loading = ref(true)
+const error = ref(null)
 const panier = ref([])
 const favoris = ref([])
+
+onMounted(async () => {
+  try {
+    plats.value = await platsService.getAll()
+  } catch (e) {
+    error.value = 'Erreur lors du chargement des plats'
+  } finally {
+    loading.value = false
+  }
+})
 
 const getTypeIcon = (type) => {
   switch (type.toLowerCase()) {
