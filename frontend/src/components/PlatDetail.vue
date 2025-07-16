@@ -1,5 +1,7 @@
 <template>
-  <div class="p-6 min-h-screen">
+  <div v-if="loading" class="text-center py-8">Chargement...</div>
+  <div v-else-if="error" class="text-red-600 text-center py-8">{{ error }}</div>
+  <div v-else class="p-6 min-h-screen">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <!-- Image du plat -->
       <div>
@@ -22,12 +24,12 @@
             <Icon icon="mdi:star-half-full" class="text-xl" />
               </template>
             </span>
-            <span class="text-lg text-gray-700 font-semibold">{{ plat.note }}</span>
+            <span class="text-lg text-gray-700 font-semibold">{{ Number(plat.note).toFixed(1) }}</span>
           </div>
         </div>
         <p class="text-2xl font-semibold text-accent">{{ plat.prix }} €</p>
 
-        <p class="text-gray-600">{{ plat.shortDesc }}</p>
+        <p class="text-gray-600">{{ plat.short_desc }}</p>
 
         <!-- Boutons d'action -->
         <div class="flex items-center gap-4">
@@ -79,7 +81,7 @@
     <!-- Description longue -->
     <div class="mt-8 mb-12">
       <h2 class="text-xl font-semibold text-primary mb-4">Description</h2>
-      <p class="text-gray-600">{{ plat.longDesc }}</p>
+      <p class="text-gray-600">{{ plat.long_desc }}</p>
     </div>
 
    <AvisCommentaires />
@@ -110,8 +112,7 @@
                   <Icon icon="mdi:star-half-full" class="text-sm" />
                 </template>
               </span>
-              <span class="text-sm text-gray-700 font-semibold">{{ similarPlat.note }}</span>
-            </div>
+              <span class="text-sm text-gray-700 font-semibold">{{ Number(similarPlat.note).toFixed(1) }}</span>            </div>
             <p class="text-lg font-semibold text-primary">{{ similarPlat.prix }} €</p>
             <button
               class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-accent transition flex items-center gap-2"
@@ -128,17 +129,31 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
-import { plats } from '@/data/plats.js'
-import { Icon } from '@iconify/vue'
-import AvisCommentaires from './AvisCommentaires.vue'
+  import { ref, computed, onMounted } from 'vue'
+  import { useRoute } from 'vue-router'
+  import { platsService } from '@/services/platsService.js'
+  import { Icon } from '@iconify/vue'
+  import AvisCommentaires from './AvisCommentaires.vue'
 
-const route = useRoute()
-const platId = route.params.id
-const plat = ref(plats.find(p => p.id === parseInt(platId)))
+  const route = useRoute()
+  const plat = ref(null)
+  const loading = ref(true)
+  const error = ref(null)
+  const quantity = ref(1)
+  const isFavori = ref(false)
+  const plats = ref([])
 
-const quantity = ref(1)
+  onMounted(async () => {
+    try {
+      const allPlats = await platsService.getAll()
+      plats.value = allPlats
+      plat.value = await platsService.getById(route.params.id)
+    } catch (e) {
+      error.value = e.message || 'Error loading dish'
+    } finally {
+      loading.value = false
+    }
+  })
 
 const incrementQuantity = () => {
   quantity.value++
@@ -154,14 +169,16 @@ const ajouterAuPanier = (platToAdd = plat.value) => {
   alert(`Ajouté "${platToAdd.nom}" au panier.`)
 }
 
-const isFavori = ref(false)
 const toggleFavori = () => {
   isFavori.value = !isFavori.value
 }
 
-const similarPlats = computed(() => {
-  return plats.filter(p => p.id !== plat.value.id && p.type === plat.value.type)
-})
+  const similarPlats = computed(() => {
+    if (!plat.value || !plats.value.length) return []
+    return plats.value
+        .filter(p => p.type === plat.value.type && p.id !== plat.value.id)
+        .slice(0, 3)
+  })
 </script>
 
 <style scoped>
