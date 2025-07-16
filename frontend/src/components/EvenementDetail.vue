@@ -1,24 +1,32 @@
 <script setup>
 import { useRoute } from 'vue-router'
-import { Icon } from '@iconify/vue'
+import { ref, computed, onMounted } from 'vue'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { ref, computed } from 'vue'
-
-import { evenements } from '@/data/evenements.js'
+import { evenementsService } from '@/services/evenementsService.js'
 import ReservationForm from '@/components/ReservationForm.vue'
+import { Icon } from '@iconify/vue'
 
 const route = useRoute()
-const id = parseInt(route.params.id)
-const event = ref(evenements.find(e => e.id === id))
+const event = ref(null)
+const error = ref(null)
+
+onMounted(async () => {
+  try {
+    event.value = await evenementsService.getById(route.params.id)
+  } catch (e) {
+    error.value = 'Événement non trouvé'
+  }
+})
 
 const formattedDate = computed(() => {
+  if (!event.value) return ''
   return format(new Date(event.value.date), 'dd MMMM yyyy à HH:mm', { locale: fr })
 })
 </script>
 
 <template>
-  <div class="p-6 min-h-screen max-w-6xl mx-auto">
+  <div v-if="event" class="p-6 min-h-screen max-w-6xl mx-auto">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
       <div class="space-y-6">
         <img
@@ -29,7 +37,7 @@ const formattedDate = computed(() => {
 
         <div>
           <h2 class="text-xl font-semibold text-primary mb-3">À propos de l'événement</h2>
-          <p class="text-gray-700 leading-relaxed whitespace-pre-line">{{ event.longDesc }}</p>
+          <p class="text-gray-700 leading-relaxed whitespace-pre-line">{{ event.long_desc }}</p>
         </div>
       </div>
 
@@ -64,5 +72,7 @@ const formattedDate = computed(() => {
       </div>
     </div>
   </div>
+  <div v-else-if="error" class="text-red-600 text-center py-8">{{ error }}</div>
+  <div v-else class="text-center py-8">Chargement...</div>
 </template>
 
