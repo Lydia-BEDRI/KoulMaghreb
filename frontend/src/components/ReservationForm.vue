@@ -1,27 +1,59 @@
 <script setup>
-import { reactive } from 'vue'
+import { reactive, toRefs } from 'vue'
 import { useToast } from 'vue-toastification'
+import { reservationsService } from '@/services/reservationsService'
+
+const props = defineProps({
+    eventId: {
+        type: Number,
+        required: true
+    }
+})
 
 const toast = useToast()
 
 const form = reactive({
+    prenom: '',
     nom: '',
     email: '',
     nombrePlaces: 1,
     message: ''
 })
 
-function submit() {
+const loading = reactive({ value: false })
+
+async function submit() {
     if (!form.prenom || !form.nom || !form.email) {
         toast.error('Veuillez remplir tous les champs obligatoires.')
         return
     }
-    toast.success(`Merci ${form.prenom}, votre réservation est bien enregistrée !`);
 
-    form.nom = ''
-    form.email = ''
-    form.nombrePlaces = 1
-    form.message = ''
+    loading.value = true
+    try {
+        const token = localStorage.getItem('auth_token')
+        if (!token) {
+            toast.error('Vous devez être connecté pour réserver.')
+            loading.value = false
+            return
+        }
+
+        await reservationsService.createReservation({
+            evenement_id: props.eventId,
+            nombre_places: form.nombrePlaces
+        }, token)
+
+        toast.success(`Merci ${form.prenom}, votre réservation est bien enregistrée !`)
+
+        form.prenom = ''
+        form.nom = ''
+        form.email = ''
+        form.nombrePlaces = 1
+        form.message = ''
+    } catch (e) {
+        toast.error(e.message || 'Erreur lors de la réservation')
+    } finally {
+        loading.value = false
+    }
 }
 </script>
 
@@ -40,7 +72,6 @@ function submit() {
                     required />
             </div>
 
-
             <input v-model="form.email" type="email" placeholder="Email"
                 class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary" required />
 
@@ -50,8 +81,9 @@ function submit() {
             <textarea v-model="form.message" placeholder="Message (optionnel)" rows="3"
                 class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary resize-none"></textarea>
 
-            <button type="submit" class="w-full bg-primary text-white py-2 rounded-xl hover:bg-accent transition">
-                Valider la réservation
+            <button type="submit" :disabled="loading.value" class="w-full bg-primary text-white py-2 rounded-xl hover:bg-accent transition">
+                <span v-if="loading.value">Réservation en cours...</span>
+                <span v-else>Valider la réservation</span>
             </button>
         </form>
     </section>

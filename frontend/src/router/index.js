@@ -54,7 +54,7 @@ const routes = [
       { path: 'plat/:id', name: 'Plat', component: PlatDetail },
       { path: 'mes-favoris', name: 'Mes favoris', component: Favoris },
       { path: 'evenements', name: 'Événements', component: EvenementList },
-      { path: 'evenement/:id', name: 'Événement Détail', component: EvenementDetail },
+      { path: 'evenements/:id', name: 'Événement Détail', component: EvenementDetail },
       { path: 'mes-reservations', name: 'Mes réservations', component: MesReservations },
       { path: 'profil', name: 'Mon profil', component: ProfilUtilisateur },
       { path: 'test-backend', name: 'Test Backend', component: TestBackend },

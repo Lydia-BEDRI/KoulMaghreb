@@ -38,12 +38,12 @@
           >
             {{ reservation.statut }}
           </span>
-          <RouterLink
-            :to="{ name: 'Événement Détail', params: { id: reservation.id } }"
-            class=" bg-accent text-white px-4 py-2 rounded-xl hover:bg-primary transition flex items-center gap-2"
-          >
-            <Icon icon="mdi:eye" class="text-white text-base" /> Voir
-          </RouterLink>
+         <RouterLink
+  :to="{ name: 'Événement Détail', params: { id: reservation.evenement_id } }"
+  class=" bg-accent text-white px-4 py-2 rounded-xl hover:bg-primary transition flex items-center gap-2"
+>
+  <Icon icon="mdi:eye" class="text-white text-base" /> Voir
+</RouterLink>
         </div>
       </div>
     </div>
@@ -55,32 +55,48 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { format } from 'date-fns'
 import fr from 'date-fns/locale/fr'
 import { Icon } from '@iconify/vue'
+import { reservationsService } from '@/services/reservationsService'
 
-const reservations = ref([
-  {
-    id: 1,
-    titre: 'Soirée Couscous & Musique Andalouse',
-    image: '/img/events/couscous-iftar.jpeg',
-    date: '2025-07-10T20:00:00',
-    lieu: 'Paris',
-    nbPlaces: 2,
-    statut: 'confirmée',
-  },
-  {
-    id: 2,
-    titre: 'Buffet spécial Ramadan',
-    image: '/img/events/ramadan-event.jpeg',
-    date: '2025-07-15T18:00:00',
-    lieu: 'Paris',
-    nbPlaces: 3,
-    statut: 'en attente',
-  },
-])
+const reservations = ref([])
+const loading = ref(true)
+const error = ref('')
 
 const formatDate = (date) => format(new Date(date), 'dd MMMM yyyy', { locale: fr })
 const formatHour = (date) => format(new Date(date), 'HH:mm')
+
+function mapReservation(r) {
+  return {
+    id: r.id,
+    evenement_id: r.evenement_id,
+    titre: r.evenement_titre || (r.evenement && r.evenement.titre) || 'Événement',
+    image: r.evenement_image || '/img/events/default.jpg',
+    date: r.evenement_date,
+    lieu: r.evenement_lieu,
+    nbPlaces: r.nombre_places,
+    statut: (r.statut || '').toLowerCase(),
+  }
+}
+
+onMounted(async () => {
+  loading.value = true
+  try {
+    const token = localStorage.getItem('auth_token')
+    if (!token) {
+      error.value = 'Vous devez être connecté pour voir vos réservations.'
+      reservations.value = []
+      return
+    }
+    const apiReservations = await reservationsService.getMesReservations(token)
+    reservations.value = apiReservations.map(mapReservation)
+  } catch (e) {
+    error.value = e.message || 'Erreur lors du chargement des réservations.'
+    reservations.value = []
+  } finally {
+    loading.value = false
+  }
+})
 </script>

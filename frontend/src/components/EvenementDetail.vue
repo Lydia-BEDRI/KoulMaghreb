@@ -23,6 +23,11 @@ const formattedDate = computed(() => {
   if (!event.value) return ''
   return format(new Date(event.value.date), 'dd MMMM yyyy à HH:mm', { locale: fr })
 })
+
+const formattedPrice = computed(() => {
+  if (!event.value || !event.value.prix_par_personne) return 'Gratuit'
+  return `${event.value.prix_par_personne} €`
+})
 </script>
 
 <template>
@@ -55,20 +60,37 @@ const formattedDate = computed(() => {
             <span class="text-sm">{{ event.lieu }}</span>
           </div>
 
+          <!-- Affichage du prix -->
+          <div class="flex items-center gap-2 text-gray-700">
+            <Icon icon="mdi:currency-eur" class="text-xl text-accent" />
+            <span class="text-sm">
+              Prix par personne : <span class="font-semibold text-primary">{{ formattedPrice }}</span>
+            </span>
+          </div>
+
+          <!-- Affichage des places restantes -->
           <div class="flex items-center gap-2 text-gray-700">
             <Icon icon="mdi:account-group-outline" class="text-xl text-accent" />
             <span class="text-sm">
               Places restantes :
-              <span :class="event.placesRestantes > 0 ? 'text-green-600' : 'text-red-600 font-semibold'">
-                {{ event.placesRestantes }}
+              <span :class="event.places_restantes > 0 ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'">
+                {{ event.places_restantes }} / {{ event.places_total }}
               </span>
             </span>
           </div>
 
-          <p class="text-gray-600 text-sm">{{ event.shortDesc }}</p>
+          <p class="text-gray-600 text-sm">{{ event.short_desc }}</p>
         </div>
 
-        <ReservationForm :event-id="event.id" />
+        <!-- Affichage conditionnel du formulaire de réservation -->
+        <div v-if="event.places_restantes > 0">
+          <ReservationForm :event-id="event.id" />
+        </div>
+        <div v-else class="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
+          <Icon icon="mdi:alert-circle" class="text-red-500 text-2xl mb-2" />
+          <p class="text-red-700 font-semibold">Événement complet</p>
+          <p class="text-red-600 text-sm">Plus de places disponibles pour cet événement.</p>
+        </div>
       </div>
     </div>
   </div>
