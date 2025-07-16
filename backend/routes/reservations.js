@@ -11,6 +11,39 @@ const generateReservationNumber = () => {
   return `RSV-${timestamp}${random}`;
 };
 
+function mapReservation(r) {
+  return {
+    id: r.id,
+    evenement_id: r.evenement_id,
+    titre: r.evenement_titre || (r.evenement && r.evenement.titre) || 'Événement',
+    image: r.evenement_image || '/img/events/default.jpg',
+    date: r.evenement_date,
+    lieu: r.evenement_lieu,
+    nbPlaces: r.nombre_places,
+    statut: (r.statut || '').toLowerCase(),
+  }
+}
+
+router.get('/user', auth, async (req, res) => {
+  try {
+    const reservations = await query(
+      `SELECT r.*, 
+              e.title as evenement_titre, 
+              e.date as evenement_date, 
+              e.lieu as evenement_lieu,
+              e.image as evenement_image
+       FROM reservations r
+       LEFT JOIN evenements e ON r.evenement_id = e.id
+       WHERE r.user_id = ?
+       ORDER BY r.created_at DESC`,
+      [req.user.id] 
+    );
+    res.json({ reservations });
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur lors de la récupération des réservations' });
+  }
+});
+
 router.get('/', auth, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
