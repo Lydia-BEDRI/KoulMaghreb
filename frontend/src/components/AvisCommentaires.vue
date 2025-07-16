@@ -4,7 +4,12 @@
 
             <div>
                 <h2 class="text-2xl font-semibold text-primary mb-4">Avis récents</h2>
-                <div class="overflow-y-auto max-h-80 pr-2 space-y-6">
+                <div v-if="loading" class="text-center py-4">Chargement des avis...</div>
+                <div v-else-if="error" class="text-red-600 text-center py-4">{{ error }}</div>
+                <div v-if="commentaires.length === 0" class="text-gray-500 text-center py-4">
+                    Aucun avis pour ce plat pour le moment.
+                </div>
+              <div class="overflow-y-auto max-h-80 pr-2 space-y-6">
                     <div v-for="commentaire in commentaires" :key="commentaire.id"
                         class="flex items-start gap-4 bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow transition">
                         <div
@@ -54,52 +59,69 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { Icon } from '@iconify/vue'
 import { format } from 'date-fns'
 import fr from 'date-fns/locale/fr'
 import { useToast } from 'vue-toastification'
+import { useRoute } from 'vue-router'
+import { avisService } from '@/services/avisService.js'
 
 const toast = useToast()
+const route = useRoute()
+const commentaires = ref([])
+const loading = ref(true)
+const error = ref(null)
 
-const commentaires = ref([
-    {
-        id: 1,
-        nom: 'Amel B.',
-        note: 5,
-        texte: 'Délicieux couscous, bien épicé et très généreux ! Je recommande vivement.',
-        date: '2025-06-20T14:30:00',
-    },
-    {
-        id: 2,
-        nom: 'Karim D.',
-        note: 4,
-        texte: 'Très bon plat, un peu salé pour moi mais le goût est authentique.',
-        date: '2025-06-18T10:15:00',
-    },
-])
+onMounted(async () => {
+  try {
+    const platId = route.params.id
+    const data = await avisService.getByPlatId(platId, 10)
+    commentaires.value = data.avis.map(a => ({
+      id: a.id,
+      nom: a.utilisateur?.nom || 'Utilisateur',
+      note: a.note,
+      texte: a.commentaire,
+      date: a.created_at,
+    }))
+  } catch (e) {
+    error.value = e.message
+  } finally {
+    loading.value = false
+  }
+})
 
 const nouvelleNote = ref(0)
 const nouveauCommentaire = ref('')
+const token = localStorage.getItem('token')
 
-const soumettreAvis = () => {
-    if (!nouvelleNote.value || !nouveauCommentaire.value.trim()) {
-        toast.error('Veuillez remplir tous les champs obligatoires.')
-        return
-    }
+const soumettreAvis = async () => {
+  if(!token) {
+    toast.error('Vous devez être connecté pour laisser un avis.')
+    return
+  }
+  if (!nouvelleNote.value || !nouveauCommentaire.value.trim()) {
+    toast.error('Veuillez remplir tous les champs obligatoires.')
+    return
+  }
 
-    commentaires.value.unshift({
-        id: Date.now(),
-        nom: 'Utilisateur Mystère',
-        note: nouvelleNote.value,
-        texte: nouveauCommentaire.value,
-        date: new Date().toISOString(),
-    })
+  try {
+    const platId = route.params.id
+    // If you use authentication, get the token from your store or localStorage
+    const token = localStorage.getItem('token') // adjust as needed
+    await avisService.postAvis({
+      plat_id: platId,
+      note: nouvelleNote.value,
+      commentaire: nouveauCommentaire.value
+    }, token)
 
-    toast.success('Merci pour votre avis !')
-
+    toast.success('Merci pour votre avis ! Il sera visible après modération.')
     nouvelleNote.value = 0
     nouveauCommentaire.value = ''
+    // Optionally reload comments here
+  } catch (e) {
+    toast.error(e.message)
+  }
 }
 
 const getInitiales = (nomComplet) => {

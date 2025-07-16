@@ -10,25 +10,29 @@ router.get('/', optionalAuth, async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
-    const plat_id = req.query.plat_id;
-    const evenement_id = req.query.evenement_id;
-    const approuve = req.query.approuve === 'true' ? true : req.query.approuve === 'false' ? false : null;
+
+    const platId = req.query.plat_id || '';
+    const evenementId = req.query.evenement_id || '';
+    const approuve =
+        req.query.approuve === 'true'
+            ? true
+            : req.query.approuve === 'false'
+                ? false
+                : null;
 
     let whereClause = '';
-    let queryParams = [];
-
     const conditions = [];
-    
-    if (plat_id) {
+    const queryParams = [];
+
+    if (platId) {
       conditions.push('a.plat_id = ?');
-      queryParams.push(plat_id);
+      queryParams.push(platId);
     }
-    
-    if (evenement_id) {
+    if (evenementId) {
       conditions.push('a.evenement_id = ?');
-      queryParams.push(evenement_id);
+      queryParams.push(evenementId);
     }
-    
+
     if (req.user?.role !== 'Admin') {
       conditions.push('a.approuve = true');
     } else if (approuve !== null) {
@@ -40,44 +44,36 @@ router.get('/', optionalAuth, async (req, res) => {
       whereClause = 'WHERE ' + conditions.join(' AND ');
     }
 
-    const countQuery = `SELECT COUNT(*) as total FROM avis a ${whereClause}`;
+    const countQuery = `SELECT COUNT(*) AS total FROM avis a ${whereClause}`;
     const totalResult = await query(countQuery, queryParams);
-    const total = totalResult[0].total;
+    const total = totalResult[0]?.total || 0;
 
     const avisQuery = `
-      SELECT 
+      SELECT
         a.id, a.user_id, a.plat_id, a.evenement_id, a.note, a.commentaire, a.approuve, a.created_at,
         u.prenom, u.nom,
-        p.nom as plat_nom,
-        e.title as evenement_titre
+        p.nom AS plat_nom,
+        e.title AS evenement_titre
       FROM avis a
       LEFT JOIN utilisateurs u ON a.user_id = u.id
       LEFT JOIN plats p ON a.plat_id = p.id
       LEFT JOIN evenements e ON a.evenement_id = e.id
       ${whereClause}
-      ORDER BY a.created_at DESC 
-      LIMIT ? OFFSET ?
+      ORDER BY a.created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
     `;
-    
-    const avis = await query(avisQuery, [...queryParams, limit, offset]);
 
-    avis.forEach(avisItem => {
-      avisItem.utilisateur = {
-        nom: `${avisItem.prenom} ${avisItem.nom}`
-      };
-      
-      if (avisItem.plat_nom) {
-        avisItem.plat = { nom: avisItem.plat_nom };
-      }
-      
-      if (avisItem.evenement_titre) {
-        avisItem.evenement = { titre: avisItem.evenement_titre };
-      }
-      
-      delete avisItem.prenom;
-      delete avisItem.nom;
-      delete avisItem.plat_nom;
-      delete avisItem.evenement_titre;
+    const avis = await query(avisQuery, queryParams);
+
+    avis.forEach(item => {
+      item.utilisateur = { nom: `${item.prenom} ${item.nom}` };
+      if (item.plat_nom) item.plat = { nom: item.plat_nom };
+      if (item.evenement_titre) item.evenement = { titre: item.evenement_titre };
+
+      delete item.prenom;
+      delete item.nom;
+      delete item.plat_nom;
+      delete item.evenement_titre;
     });
 
     res.json({
@@ -86,8 +82,8 @@ router.get('/', optionalAuth, async (req, res) => {
         page,
         limit,
         total,
-        pages: Math.ceil(total / limit)
-      }
+        pages: Math.ceil(total / limit),
+      },
     });
 
   } catch (error) {
