@@ -74,45 +74,20 @@ router.get('/', optionalAuth, async (req, res) => {
   }
 });
 
-router.get('/:id', optionalAuth, async (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
-    const platId = parseInt(req.params.id);
+    const platId = req.params.id;
     
-    const plats = await query(
-      'SELECT * FROM plats WHERE id = ?',
-      [platId]
-    );
-
+    const plats = await query('SELECT * FROM plats WHERE id = ?', [platId]);
+    
     if (plats.length === 0) {
       return res.status(404).json({ error: 'Plat non trouvé' });
     }
-
-    let userAvis = null;
-    if (req.user) {
-      const avisResult = await query(
-        'SELECT note, commentaire FROM avis WHERE user_id = ? AND plat_id = ?',
-        [req.user.id, platId]
-      );
-      userAvis = avisResult[0] || null;
-    }
-
-    const statsResult = await query(
-      'SELECT AVG(note) as moyenne, COUNT(*) as nb_avis FROM avis WHERE plat_id = ? AND approuve = true',
-      [platId]
-    );
     
-    const stats = statsResult[0];
-    const plat = plats[0];
+    res.json(plats[0]);
     
-    plat.note_moyenne = stats.moyenne ? parseFloat(stats.moyenne).toFixed(1) : null;
-    plat.nb_avis = stats.nb_avis;
-    plat.user_avis = userAvis;
-
-    res.json({ plat });
-
   } catch (error) {
-    console.error('Erreur récupération plat:', error);
-    res.status(500).json({ error: 'Erreur lors de la récupération du plat' });
+    res.status(500).json({ error: 'Erreur serveur' });
   }
 });
 

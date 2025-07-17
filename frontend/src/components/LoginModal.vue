@@ -148,11 +148,18 @@ const submit = async () => {
     if (result.user.role === 'Admin') { 
       window.location.href = '/admin/dashboard'
     } else {
-      router.push('/')
+      const panierLocal = JSON.parse(localStorage.getItem('panier') || '[]')
+      if (panierLocal.length > 0) {
+        setTimeout(() => {
+          router.push('/mon-panier')
+        }, 1000) 
+      } else {
+        router.push('/')
+      }
     }
     
-  } catch (err) {
-    error.value = err.message
+  } catch (e) {
+    error.value = e.message
   } finally {
     loading.value = false
   }

@@ -169,6 +169,30 @@ const createTables = async () => {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
 
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS panier (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        type ENUM('plat', 'reservation') NOT NULL DEFAULT 'plat',
+        plat_id INT NULL,
+        evenement_id INT NULL,
+        quantite INT NOT NULL DEFAULT 1,
+        prix_unitaire DECIMAL(10,2) NOT NULL,
+        sous_total DECIMAL(10,2) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES utilisateurs(id) ON DELETE CASCADE,
+        FOREIGN KEY (plat_id) REFERENCES plats(id) ON DELETE CASCADE,
+        FOREIGN KEY (evenement_id) REFERENCES evenements(id) ON DELETE CASCADE,
+        UNIQUE KEY unique_user_plat (user_id, plat_id),
+        UNIQUE KEY unique_user_evenement (user_id, evenement_id),
+        CHECK (
+          (type = 'plat' AND plat_id IS NOT NULL AND evenement_id IS NULL) OR
+          (type = 'reservation' AND evenement_id IS NOT NULL AND plat_id IS NULL)
+        )
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
     console.log('tables ont été crées ');
 
   } catch (error) {
