@@ -2,13 +2,25 @@
     <div class="p-6 min-h-screen bg-background">
         <h1 class="text-2xl font-semibold mb-6 text-primary">Mes Favoris</h1>
 
-        <div v-if="favoris.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div v-if="loading" class="text-center py-8">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <p class="mt-2 text-gray-600">Chargement de vos favoris...</p>
+        </div>
+
+        <div v-else-if="error" class="text-center py-8 text-red-600">
+            <p>{{ error }}</p>
+            <button @click="chargerFavoris" class="mt-4 bg-primary text-white px-4 py-2 rounded-lg hover:bg-accent">
+                Réessayer
+            </button>
+        </div>
+
+        <div v-else-if="favoris.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <div v-for="plat in favoris" :key="plat.id"
                 class="relative bg-white rounded-2xl shadow border border-gray-200 p-6 transition hover:shadow-lg">
 
 
                 <div class="aspect-video bg-gray-100 rounded-lg overflow-hidden mb-4 relative">
-                    <div class="absolute top-2 right-2 z-10 cursor-pointer group" @click="toggleFavoris(plat.id)">
+                    <div class="absolute top-2 right-2 z-10 cursor-pointer group" @click="supprimerFavori(plat.plat_id)">
                         <div
                             class="w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-md hover:shadow-lg transition">
                             <Icon icon="mdi:heart"
@@ -49,36 +61,58 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { plats } from '@/data/plats.js'
+import { ref, onMounted } from 'vue'
 import { Icon } from '@iconify/vue'
 import { useRouter } from 'vue-router'
+import { useToast } from 'vue-toastification'
+import { favorisService } from '@/services/favorisService'
 
 const router = useRouter()
+const toast = useToast()
 
-const favoris = ref(plats)
+const favoris = ref([])
+const loading = ref(true)
+const error = ref('')
 
-const toggleFavoris = (id) => {
-    const index = favoris.value.findIndex(plat => plat.id === id)
-    if (index !== -1) {
-        favoris.value.splice(index, 1)
-    } else {
-        const plat = plats.find(plat => plat.id === id)
-        if (plat) favoris.value.push(plat) 
+const chargerFavoris = async () => {
+    loading.value = true
+    error.value = ''
+    try {
+        const token = localStorage.getItem('auth_token')
+        if (!token) {
+            error.value = 'Vous devez être connecté pour voir vos favoris.'
+            return
+        }
+        favoris.value = await favorisService.getMesFavoris(token)
+    } catch (e) {
+        error.value = e.message || 'Erreur lors du chargement des favoris'
+    } finally {
+        loading.value = false
+    }
+}
+
+const supprimerFavori = async (platId) => {
+    try {
+        const token = localStorage.getItem('auth_token')
+        if (!token) {
+            toast.error('Vous devez être connecté')
+            return
+        }
+        await favorisService.supprimerFavori(platId, token)
+        favoris.value = favoris.value.filter(f => f.plat_id !== platId)
+        toast.success('Plat supprimé de vos favoris')
+    } catch (e) {
+        toast.error(e.message || 'Erreur lors de la suppression')
     }
 }
 
 const ajouterAuPanier = (plat) => {
-    alert(`Ajouté "${plat.nom}" au panier.`)
+    toast.success(`"${plat.nom}" ajouté au panier`)
 }
 
 const voirDetails = (plat) => {
-    router.push({ name: 'Plat', params: { id: plat.id } })
+    router.push({ name: 'Plat', params: { id: plat.plat_id } })
 }
-</script>
 
-<style scoped>
-.group:hover .group-hover\:opacity-100 {
-    opacity: 1;
-}
-</style>
+onMounted(chargerFavoris)
+</script>

@@ -3,7 +3,6 @@
     <h1 class="text-2xl font-semibold mb-6 text-primary">Catalogue des Plats</h1>
 
     <div class="filters space-y-8 mb-8">
-      <!-- Type de plat -->
       <div>
         <h3 class="text-lg font-semibold mb-2">Type de plat</h3>
         <div class="grid grid-cols-4 gap-4">
@@ -22,7 +21,6 @@
         </div>
       </div>
 
-      <!-- Pays d'origine -->
       <div>
         <h3 class="text-lg font-semibold mb-2">Pays</h3>
         <div class="grid grid-cols-3 gap-4">
@@ -41,7 +39,6 @@
         </div>
       </div>
 
-      <!-- Note et tri -->
       <div class="grid grid-cols-2 gap-6">
         <div>
           <label class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
@@ -75,7 +72,6 @@
       </div>
     </div>
 
-    <!-- Liste filtrée -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <div v-if="loading" class="text-center py-8">Chargement...</div>
       <div v-else-if="error" class="text-red-600 text-center py-8">{{ error }}</div>
@@ -91,8 +87,8 @@
               class="w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-md hover:shadow-lg transition"
             >
               <Icon
-                :icon="favoris.some(f => f.id === plat.id) ? 'mdi:heart' : 'mdi:heart-outline'"
-                :class="favoris.some(f => f.id === plat.id) ? 'text-red-500' : 'text-gray-400'"
+                :icon="favoris.some(f => f.plat_id === plat.id) ? 'mdi:heart' : 'mdi:heart-outline'"
+                :class="favoris.some(f => f.plat_id === plat.id) ? 'text-red-500' : 'text-gray-400'"
                 class="text-xl group-hover:scale-110 transform transition-transform duration-200"
               />
             </div>
@@ -121,7 +117,6 @@
       </div>
     </div>
 
-    <!-- Panier flottant -->
     <div
       class="fixed bottom-4 right-4 bg-primary text-white rounded-full shadow-lg w-16 h-16 flex items-center justify-center cursor-pointer transition transform hover:scale-110 hover:shadow-2xl"
       @click="redirectToPanier">
@@ -141,6 +136,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { platsService } from '@/services/platsService.js'
+import { favorisService } from '@/services/favorisService.js'
+import { useAuth } from '@/composables/useAuth'
+import { useToast } from 'vue-toastification'
 import { ShoppingCartIcon } from '@heroicons/vue/24/outline'
 import { Icon } from '@iconify/vue'
 
@@ -161,15 +159,54 @@ const error = ref(null)
 const panier = ref([])
 const favoris = ref([])
 
+const authData = useAuth()
+const toast = useToast()
+
+const getToken = () => {
+  return authData?.token?.value || localStorage.getItem('auth_token')
+}
+
+const isUserAuthenticated = () => {
+  return authData?.isAuthenticated?.value || !!getToken()
+}
+
 onMounted(async () => {
   try {
+    console.log('Chargement des plats...') 
     plats.value = await platsService.getAll()
+    console.log('Plats chargés:', plats.value.length)
+    
+    if (isUserAuthenticated()) {
+      try {
+        await chargerFavoris()
+      } catch (favorisError) {
+        console.error('Erreur favoris (non bloquante):', favorisError)
+      }
+    }
   } catch (e) {
+    console.error('Erreur détaillée:', e)
     error.value = 'Erreur lors du chargement des plats'
   } finally {
     loading.value = false
   }
 })
+
+const chargerFavoris = async () => {
+  try {
+    const token = getToken()
+    if (!token) {
+      console.log('Pas de token, favoris non chargés')
+      return
+    }
+    
+    console.log('Chargement des favoris...') // Debug
+    const mesFavoris = await favorisService.getMesFavoris(token)
+    favoris.value = mesFavoris || []
+    console.log('Favoris chargés:', favoris.value) // Debug
+  } catch (e) {
+    console.error('Erreur lors du chargement des favoris:', e)
+  }
+}
 
 const getTypeIcon = (type) => {
   switch (type.toLowerCase()) {
@@ -237,13 +274,35 @@ const redirectToPanier = () => {
   router.push('/mon-panier')
 }
 
-const toggleFavoris = (id) => {
-  const index = favoris.value.findIndex(plat => plat.id === id)
-  if (index !== -1) {
-    favoris.value.splice(index, 1) // Retirer des favoris
-  } else {
-    const plat = plats.value.find(plat => plat.id === id)
-    if (plat) favoris.value.push(plat) // Ajouter aux favoris
+const toggleFavoris = async (id) => {
+  if (!isUserAuthenticated()) {
+    toast.error('Vous devez être connecté pour gérer vos favoris')
+    return
+  }
+
+  try {
+    const token = getToken()
+    if (!token) {
+      toast.error('Token d\'authentification manquant')
+      return
+    }
+
+    const isFavoris = favoris.value.some(f => f.plat_id === id)
+    
+    if (isFavoris) {
+      await favorisService.supprimerFavori(id, token)
+      favoris.value = favoris.value.filter(f => f.plat_id !== id)
+      toast.success('Plat supprimé de vos favoris')
+    } else {
+      await favorisService.ajouterFavori(id, token)
+      const plat = plats.value.find(p => p.id === id)
+      if (plat) {
+        favoris.value.push({ plat_id: id, ...plat })
+      }
+      toast.success('Plat ajouté à vos favoris')
+    }
+  } catch (e) {
+    toast.error(e.message || 'Erreur lors de la gestion des favoris')
   }
 }
 </script>

@@ -44,6 +44,8 @@ app.use('/api/commandes', require('./routes/commandes'));
 app.use('/api/reservations', require('./routes/reservations'));
 app.use('/api/avis', require('./routes/avis'));
 app.use('/api/test', require('./routes/test'));
+const favorisRouter = require('./routes/favoris');
+app.use('/api/favoris', favorisRouter);
 
 // Route de test
 app.get('/api/health', (req, res) => {
