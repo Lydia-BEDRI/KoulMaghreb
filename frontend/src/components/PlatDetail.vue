@@ -3,7 +3,6 @@
   <div v-else-if="error" class="text-red-600 text-center py-8">{{ error }}</div>
   <div v-else class="p-6 min-h-screen">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <!-- Image du plat -->
       <div>
         <img
           :src="plat.image"
@@ -31,7 +30,6 @@
 
         <p class="text-gray-600">{{ plat.short_desc }}</p>
 
-        <!-- Boutons d'action -->
         <div class="flex items-center gap-4">
           <button
             class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
@@ -54,23 +52,18 @@
             Ajouter au panier
           </button>
           <button
-            :class="[
-              'px-4 py-2 rounded-lg transition flex items-center justify-center border',
-              isFavori
-                ? ' border-accent text-accent'
-                : ' border-accent text-accent'
-            ]"
-            @click="toggleFavori"
+            @click="toggleFavoris(plat.id)"
+            class="flex items-center gap-2 px-4 py-2 rounded-lg border transition"
+            :class="isFavoris ? 'bg-red-50 border-red-200 text-red-600' : 'bg-gray-50 border-gray-200 text-gray-600'"
           >
             <Icon
-              :icon="isFavori ? 'mdi:heart' : 'mdi:heart-outline'"
-              :class="isFavori ? 'text-accent' : 'text-accent'"
+              :icon="isFavoris ? 'mdi:heart' : 'mdi:heart-outline'"
+              :class="isFavoris ? 'text-red-500' : 'text-gray-400'"
               class="text-xl"
             />
           </button>
         </div>
 
-        <!-- pays et type -->
         <div class="space-y-1">
           <p class="text-gray-700"><strong>Pays :</strong> {{ plat.pays }}</p>
           <p class="text-gray-700"><strong>Type :</strong> {{ plat.type }}</p>
@@ -78,7 +71,6 @@
       </div>
     </div>
 
-    <!-- Description longue -->
     <div class="mt-8 mb-12">
       <h2 class="text-xl font-semibold text-primary mb-4">Description</h2>
       <p class="text-gray-600">{{ plat.long_desc }}</p>
@@ -86,7 +78,6 @@
 
    <AvisCommentaires />
 
-    <!-- Plats similaires -->
     <div class="mt-12">
       <h2 class="text-xl font-semibold text-primary mb-4">Plats similaires</h2>
       <div class="flex flex-wrap gap-4">
@@ -134,6 +125,9 @@
   import { platsService } from '@/services/platsService.js'
   import { Icon } from '@iconify/vue'
   import AvisCommentaires from './AvisCommentaires.vue'
+  import { favorisService } from '@/services/favorisService.js'
+  import { useAuth } from '@/composables/useAuth'
+  import { useToast } from 'vue-toastification'
 
   const route = useRoute()
   const plat = ref(null)
@@ -142,6 +136,64 @@
   const quantity = ref(1)
   const isFavori = ref(false)
   const plats = ref([])
+  const favoris = ref([])
+  const authData = useAuth()
+  const toast = useToast()
+
+  const getToken = () => {
+    return authData?.token?.value || localStorage.getItem('auth_token')
+  }
+
+  const isUserAuthenticated = () => {
+    return authData?.isAuthenticated?.value || !!getToken()
+  }
+
+  const isFavoris = computed(() => {
+    return favoris.value.some(f => f.plat_id === plat.value?.id)
+  })
+
+  const chargerFavoris = async () => {
+    try {
+      const token = getToken()
+      if (!token) return
+      
+      const mesFavoris = await favorisService.getMesFavoris(token)
+      favoris.value = mesFavoris || []
+    } catch (e) {
+      console.error('Erreur lors du chargement des favoris:', e)
+    }
+  }
+
+  const toggleFavoris = async (id) => {
+    if (!isUserAuthenticated()) {
+      toast.error('Vous devez être connecté pour gérer vos favoris')
+      return
+    }
+
+    try {
+      const token = getToken()
+      if (!token) {
+        toast.error('Token d\'authentification manquant')
+        return
+      }
+
+      const isFavorisActuel = favoris.value.some(f => f.plat_id === id)
+      
+      if (isFavorisActuel) {
+        await favorisService.supprimerFavori(id, token)
+        favoris.value = favoris.value.filter(f => f.plat_id !== id)
+        toast.success('Plat supprimé de vos favoris')
+      } else {
+        await favorisService.ajouterFavori(id, token)
+        if (plat.value) {
+          favoris.value.push({ plat_id: id, ...plat.value })
+        }
+        toast.success('Plat ajouté à vos favoris')
+      }
+    } catch (e) {
+      toast.error(e.message || 'Erreur lors de la gestion des favoris')
+    }
+  }
 
   onMounted(async () => {
     try {
@@ -152,6 +204,10 @@
       error.value = e.message || 'Error loading dish'
     } finally {
       loading.value = false
+    }
+
+    if (isUserAuthenticated()) {
+      await chargerFavoris()
     }
   })
 

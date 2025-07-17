@@ -157,6 +157,18 @@ const createTables = async () => {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
 
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS favoris (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        plat_id INT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES utilisateurs(id) ON DELETE CASCADE,
+        FOREIGN KEY (plat_id) REFERENCES plats(id) ON DELETE CASCADE,
+        UNIQUE KEY unique_user_plat (user_id, plat_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
     console.log('tables ont été crées ');
 
   } catch (error) {
