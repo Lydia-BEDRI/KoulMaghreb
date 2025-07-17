@@ -103,10 +103,12 @@
         </div>
         
         <button 
-          @click="passerCommande"
-          class="w-full py-2 bg-accent text-white rounded-xl hover:bg-primary transition"
+          @click="confirmerCommande"
+          :disabled="commandeLoading || isEmpty"
+          class="w-full py-2 bg-accent text-white rounded-xl hover:bg-primary transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          Passer la commande
+          <div v-if="commandeLoading" class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+          <span>{{ commandeLoading ? 'Traitement en cours...' : 'Passer la commande' }}</span>
         </button>
       </section>
     </div>
@@ -115,13 +117,15 @@
 
 <script setup>
 import { TrashIcon } from '@heroicons/vue/24/outline'
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePanier } from '@/composables/usePanier'
 import { useToast } from 'vue-toastification'
+import { useAuth } from '@/composables/useAuth'
 
 const router = useRouter()
 const toast = useToast()
+const { isAuthenticated } = useAuth()
 
 const { 
   panier, 
@@ -132,8 +136,11 @@ const {
   chargerPanier,
   modifierQuantite,
   supprimerItem,
-  viderPanier
+  viderPanier,
+  passerCommande
 } = usePanier()
+
+const commandeLoading = ref(false)
 
 const getItemName = (item) => {
   const details = getItemDetails(item)
@@ -151,7 +158,6 @@ const getItemDetails = (item) => {
       ? JSON.parse(item.item_details) 
       : item.item_details || {}
   } catch (e) {
-    console.error('Erreur parsing item_details:', e)
     return {}
   }
 }
@@ -174,10 +180,73 @@ const formatDate = (dateString) => {
 const tax = computed(() => totalPrix.value * 0.05)
 const totalAvecTaxe = computed(() => totalPrix.value + tax.value)
 
-const passerCommande = () => {
-  // TODO: Implémenter le processus de commande
-  toast.info('Fonctionnalité de commande en cours de développement')
-  // router.push('/commande')
+const confirmerCommande = async () => {
+  try {
+    if (!isAuthenticated.value) {
+      toast.error('Vous devez être connecté pour passer une commande')
+      router.push('/')
+      return
+    }
+
+    if (isEmpty.value) {
+      toast.error('Votre panier est vide')
+      return
+    }
+
+    const confirmation = confirm(`
+🛒 Confirmation de commande
+
+📋 Récapitulatif :
+• Articles : ${totalItems.value}
+• Sous-total : ${totalPrix.value.toFixed(2)}€
+• Taxe : ${tax.value.toFixed(2)}€
+• Total : ${totalAvecTaxe.value.toFixed(2)}€
+
+Êtes-vous sûr de vouloir passer cette commande ?
+    `)
+
+    if (!confirmation) {
+      return
+    }
+
+    commandeLoading.value = true
+
+    const response = await passerCommande()
+
+    const numeroCommande = response.commande?.numero_commande || 'N/A'
+    
+    toast.success(`
+🎉 Commande passée avec succès !
+
+📦 Numéro : ${numeroCommande}
+💰 Total : ${totalAvecTaxe.value.toFixed(2)}€
+
+Vous allez être redirigé vers vos commandes...
+    `, {
+      timeout: 5000
+    })
+
+    setTimeout(() => {
+      router.push('/mes-commandes')
+    }, 2000)
+
+  } catch (error) {
+    if (error.message.includes('connecté')) {
+      toast.error('Session expirée, veuillez vous reconnecter')
+      router.push('/')
+    } else if (error.message.includes('vide')) {
+      toast.error('🛒Votre panier est vide')
+    } else if (error.message.includes('détails')) {
+      toast.error('Erreur avec les articles du panier. Veuillez réessayer.')
+    } else if (error.message.includes('token') || error.message.includes('Token')) {
+      toast.error('Session expirée, veuillez vous reconnecter')
+      router.push('/')
+    } else {
+      toast.error(`${error.message || 'Erreur lors de la commande'}`)
+    }
+  } finally {
+    commandeLoading.value = false
+  }
 }
 
 onMounted(() => {

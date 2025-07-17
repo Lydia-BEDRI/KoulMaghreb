@@ -13,35 +13,20 @@ const generateCommandeNumber = () => {
 
 router.get('/', auth, async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const offset = (page - 1) * limit;
     const statut = req.query.statut || '';
+    const userId = req.user.id || req.user.userId;
 
-    let whereClause = '';
-    let queryParams = [];
-
-    if (req.user.role === 'Client') {
-      whereClause = 'WHERE c.user_id = ?';
-      queryParams.push(req.user.id);
+    if (!userId || typeof userId !== 'number') {
+      return res.status(400).json({ error: 'ID utilisateur invalide' });
     }
+
+    let whereClause = 'WHERE c.user_id = ?';
+    let params = [userId];
 
     if (statut) {
-      if (whereClause) {
-        whereClause += ' AND c.statut = ?';
-      } else {
-        whereClause = 'WHERE c.statut = ?';
-      }
-      queryParams.push(statut);
+      whereClause += ' AND c.statut = ?';
+      params.push(statut);
     }
-
-    const countQuery = `
-      SELECT COUNT(*) as total 
-      FROM commandes c 
-      ${whereClause}
-    `;
-    const totalResult = await query(countQuery, queryParams);
-    const total = totalResult[0].total;
 
     const commandesQuery = `
       SELECT 
@@ -50,42 +35,60 @@ router.get('/', auth, async (req, res) => {
       FROM commandes c
       LEFT JOIN utilisateurs u ON c.user_id = u.id
       ${whereClause}
-      ORDER BY c.created_at DESC 
-      LIMIT ? OFFSET ?
+      ORDER BY c.created_at DESC
     `;
     
-    const commandes = await query(commandesQuery, [...queryParams, limit, offset]);
+    const commandes = await query(commandesQuery, params);
 
     for (const commande of commandes) {
-      const items = await query(
-        'SELECT nom_plat, prix, quantite FROM items_commande WHERE commande_id = ?',
-        [commande.id]
-      );
-      commande.items = items;
-      commande.client = {
-        nom: `${commande.prenom} ${commande.nom}`,
-        email: commande.email,
-        telephone: commande.telephone
-      };
+      try {
+        const items = await query(
+          'SELECT nom_plat, prix, quantite FROM items_commande WHERE commande_id = ?',
+          [commande.id]
+        );
+        commande.items = items;
+      } catch (itemError) {
+        commande.items = [];
+      }
+      
+      if (commande.prenom && commande.nom) {
+        commande.client = {
+          nom: `${commande.prenom} ${commande.nom}`,
+          email: commande.email,
+          telephone: commande.telephone
+        };
+      }
+      
       delete commande.prenom;
       delete commande.nom;
       delete commande.email;
       delete commande.telephone;
     }
 
-    res.json({
-      commandes,
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const total = commandes.length;
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedCommandes = commandes.slice(startIndex, endIndex);
+
+    const response = {
+      commandes: paginatedCommandes,
       pagination: {
         page,
         limit,
         total,
         pages: Math.ceil(total / limit)
       }
-    });
+    };
+
+    res.json(response);
 
   } catch (error) {
-    console.error('Erreur récupération commandes:', error);
-    res.status(500).json({ error: 'Erreur lors de la récupération des commandes' });
+    res.status(500).json({ 
+      error: 'Erreur lors de la récupération des commandes',
+      details: error.message
+    });
   }
 });
 
@@ -93,7 +96,11 @@ router.get('/:id', auth, async (req, res) => {
   try {
     const commandeId = parseInt(req.params.id);
     
-    const commandesQuery = `
+    if (!commandeId || isNaN(commandeId)) {
+      return res.status(400).json({ error: 'ID de commande invalide' });
+    }
+    
+    let commandesQuery = `
       SELECT 
         c.*, 
         u.prenom, u.nom, u.email, u.telephone
@@ -102,17 +109,20 @@ router.get('/:id', auth, async (req, res) => {
       WHERE c.id = ?
     `;
     
-    const commandes = await query(commandesQuery, [commandeId]);
+    let queryParams = [commandeId];
+    
+    if (req.user.role === 'Client') {
+      commandesQuery += ' AND c.user_id = ?';
+      queryParams.push(req.user.id);
+    }
+    
+    const commandes = await query(commandesQuery, queryParams);
 
     if (commandes.length === 0) {
       return res.status(404).json({ error: 'Commande non trouvée' });
     }
 
     const commande = commandes[0];
-
-    if (req.user.role === 'Client' && commande.user_id !== req.user.id) {
-      return res.status(403).json({ error: 'Accès refusé' });
-    }
 
     const items = await query(
       'SELECT nom_plat, prix, quantite FROM items_commande WHERE commande_id = ?',
@@ -134,7 +144,6 @@ router.get('/:id', auth, async (req, res) => {
     res.json({ commande });
 
   } catch (error) {
-    console.error('Erreur récupération commande:', error);
     res.status(500).json({ error: 'Erreur lors de la récupération de la commande' });
   }
 });
@@ -151,20 +160,62 @@ router.post('/', auth, createValidation, async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ 
+        error: 'Données invalides',
+        details: errors.array()
+      });
     }
 
     const { items } = req.body;
 
-    const total = items.reduce((sum, item) => sum + (item.prix * item.quantite), 0);
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      
+      if (!item.nom_plat || !item.prix || !item.quantite) {
+        return res.status(400).json({ 
+          error: `Item ${i + 1} invalide`,
+          details: 'nom_plat, prix et quantite sont requis'
+        });
+      }
+      
+      if (item.plat_id) {
+        const platExiste = await query('SELECT id FROM plats WHERE id = ?', [item.plat_id]);
+        
+        if (platExiste.length === 0) {
+          item.plat_id = null;
+        }
+      }
+      
+      if (isNaN(parseFloat(item.prix)) || parseFloat(item.prix) <= 0) {
+        return res.status(400).json({ 
+          error: `Prix invalide pour l'article "${item.nom_plat}"`,
+          details: 'Le prix doit être un nombre positif'
+        });
+      }
+      
+      if (isNaN(parseInt(item.quantite)) || parseInt(item.quantite) <= 0) {
+        return res.status(400).json({ 
+          error: `Quantité invalide pour l'article "${item.nom_plat}"`,
+          details: 'La quantité doit être un nombre entier positif'
+        });
+      }
+    }
+
+    const total = items.reduce((sum, item) => {
+      const prix = parseFloat(item.prix);
+      const quantite = parseInt(item.quantite);
+      return sum + (prix * quantite);
+    }, 0);
 
     let numeroCommande;
     let attempts = 0;
     do {
       numeroCommande = generateCommandeNumber();
+      
       const existing = await query('SELECT id FROM commandes WHERE numero_commande = ?', [numeroCommande]);
       if (existing.length === 0) break;
       attempts++;
+      
     } while (attempts < 10);
 
     if (attempts >= 10) {
@@ -178,11 +229,18 @@ router.post('/', auth, createValidation, async (req, res) => {
 
     const commandeId = result.insertId;
 
-    for (const item of items) {
-      await query(
-        'INSERT INTO items_commande (commande_id, plat_id, nom_plat, prix, quantite) VALUES (?, ?, ?, ?, ?)',
-        [commandeId, item.plat_id || null, item.nom_plat, item.prix, item.quantite]
-      );
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      const platId = item.plat_id || null;
+
+      try {
+        await query(
+          'INSERT INTO items_commande (commande_id, plat_id, nom_plat, prix, quantite) VALUES (?, ?, ?, ?, ?)',
+          [commandeId, platId, item.nom_plat, parseFloat(item.prix), parseInt(item.quantite)]
+        );
+      } catch (itemError) {
+        throw itemError;
+      }
     }
 
     const newCommande = await query(
@@ -204,8 +262,22 @@ router.post('/', auth, createValidation, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Erreur création commande:', error);
-    res.status(500).json({ error: 'Erreur lors de la création de la commande' });
+    let errorMessage = 'Erreur lors de la création de la commande';
+    
+    if (error.code === 'ER_NO_SUCH_TABLE') {
+      errorMessage = 'Table de base de données manquante';
+    } else if (error.code === 'ER_BAD_FIELD_ERROR') {
+      errorMessage = 'Erreur de structure de base de données';
+    } else if (error.code === 'ER_DUP_ENTRY') {
+      errorMessage = 'Numéro de commande en conflit';
+    } else if (error.code === 'ER_NO_REFERENCED_ROW_2') {
+      errorMessage = 'Erreur de référence de données - plat inexistant';
+    }
+    
+    res.status(500).json({ 
+      error: errorMessage,
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
@@ -272,7 +344,6 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Erreur mise à jour commande:', error);
     res.status(500).json({ error: 'Erreur lors de la mise à jour de la commande' });
   }
 });
@@ -296,7 +367,6 @@ router.get('/stats/overview', auth, adminAuth, async (req, res) => {
     res.json(stats[0]);
 
   } catch (error) {
-    console.error('Erreur stats commandes:', error);
     res.status(500).json({ error: 'Erreur lors de la récupération des statistiques' });
   }
 });
