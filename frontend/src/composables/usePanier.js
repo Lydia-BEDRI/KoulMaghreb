@@ -2,6 +2,9 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { panierService } from '@/services/panierService.js'
 import { useAuth } from '@/composables/useAuth'
 import { useToast } from 'vue-toastification'
+import { commandesService } from '@/services/commandesService'
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api'
 
 const panier = ref([])
 const loading = ref(false)
@@ -61,7 +64,6 @@ export const usePanier = () => {
       }
     } catch (err) {
       error.value = err.message
-      console.error('Erreur lors du chargement du panier:', err)
       panier.value = panierService.reparerPanierLocal()
     } finally {
       loading.value = false
@@ -227,7 +229,6 @@ export const usePanier = () => {
       })
       
     } catch (err) {
-      console.error('Erreur lors de la synchronisation:', err)
       toast.warning('Erreur lors de la synchronisation du panier. Vos articles locaux sont préservés.')
     } finally {
       loading.value = false
@@ -235,7 +236,6 @@ export const usePanier = () => {
   }
 
   const obtenirDetailsPlat = async (platId) => {
-    
     const apiUrl = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api'}/plats/${platId}`;
     
     const response = await fetch(apiUrl);
@@ -250,7 +250,6 @@ export const usePanier = () => {
   }
 
   const obtenirDetailsEvenement = async (evenementId) => {
-    
     const apiUrl = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api'}/evenements/${evenementId}`;
     
     const response = await fetch(apiUrl);
@@ -262,6 +261,71 @@ export const usePanier = () => {
     const data = await response.json();
     
     return data;
+  }
+
+  const passerCommande = async () => {
+    try {
+      if (!isAuthenticated.value) {
+        throw new Error('Vous devez être connecté pour passer une commande')
+      }
+
+      if (panier.value.length === 0) {
+        throw new Error('Votre panier est vide')
+      }
+
+      const currentToken = token?.value || localStorage.getItem('auth_token')
+      if (!currentToken) {
+        throw new Error('Session expirée, veuillez vous reconnecter')
+      }
+
+      const items = []
+      
+      for (const item of panier.value) {
+        if (item.type === 'plat') {
+          const itemDetails = getItemDetails(item)
+          const platId = item.plat_id || item.id
+          const nomPlat = itemDetails.nom || item.nom || 'Article'
+          const prix = parseFloat(item.prix_unitaire || itemDetails.prix || 0)
+          
+          if (prix <= 0) {
+            continue
+          }
+          
+          items.push({
+            plat_id: platId,
+            nom_plat: nomPlat,
+            prix: prix,
+            quantite: parseInt(item.quantite || 1)
+          })
+        }
+      }
+
+      if (items.length === 0) {
+        throw new Error('Aucun article valide dans le panier')
+      }
+
+      const response = await commandesService.creerCommande(items, currentToken)
+      
+      await viderPanier()
+
+      return response
+
+    } catch (error) {
+      throw error
+    }
+  }
+
+  const getItemDetails = (item) => {
+    try {
+      if (typeof item.item_details === 'string') {
+        return JSON.parse(item.item_details)
+      } else if (typeof item.item_details === 'object') {
+        return item.item_details || {}
+      }
+      return {}
+    } catch (e) {
+      return {}
+    }
   }
 
   watch(isAuthenticated, (newVal, oldVal) => {
@@ -291,6 +355,7 @@ export const usePanier = () => {
     supprimerItem,
     viderPanier,
     synchroniserPanier,
-    peutAccederAuPanier
+    peutAccederAuPanier,
+    passerCommande
   }
 }
