@@ -64,9 +64,9 @@
             class="w-full bg-white text-gray-700 rounded-xl p-2 shadow border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
           >
             <option value="default">Par défaut</option>
-            <option value="prix-asc">Prix croissant</option>
-            <option value="prix-desc">Prix décroissant</option>
-            <option value="note-desc">Note décroissante</option>
+            <option value="prix_asc">Prix croissant</option>
+            <option value="prix_desc">Prix décroissant</option>
+            <option value="note_desc">Note décroissante</option>
           </select>
         </div>
       </div>
@@ -105,13 +105,18 @@
             <span class="text-lg text-gray-700 font-semibold">{{ Number(plat.note).toFixed(1) }}</span>          </div>
         </div>
         <div class="flex justify-between items-center gap-2">
-          <button class="bg-accent text-white px-4 py-2 rounded-xl hover:bg-primary transition flex-1"
-            @click="voirDetails(plat)">
+          <button 
+            class="bg-accent text-white px-4 py-2 rounded-xl hover:bg-primary transition flex-1"
+            @click="voirDetails(plat.id)"
+          >
             Détails
           </button>
-          <button class="bg-primary text-white px-4 py-2 rounded-xl hover:bg-accent transition flex-1"
-            @click="ajouterAuPanier(plat)">
-            Commander
+          <button 
+            @click="ajouterAuPanierPlat(plat)"
+            :disabled="isPlatLoading(plat.id)"
+            class="bg-primary text-white px-4 py-2 rounded-xl hover:bg-accent transition flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{ isPlatLoading(plat.id) ? 'Ajout...' : 'Commander' }}
           </button>
         </div>
       </div>
@@ -119,12 +124,15 @@
 
     <div
       class="fixed bottom-4 right-4 bg-primary text-white rounded-full shadow-lg w-16 h-16 flex items-center justify-center cursor-pointer transition transform hover:scale-110 hover:shadow-2xl"
-      @click="redirectToPanier">
+      @click="redirectToPanier"
+    >
       <div class="relative">
         <ShoppingCartIcon class="w-8 h-8 text-white" />
         <span
-          class="absolute -top-2 -right-2 bg-accent text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">
-          {{ panier.length }}
+          v-if="totalItems > 0"
+          class="absolute -top-2 -right-2 bg-accent text-white rounded-full text-xs w-5 h-5 flex items-center justify-center"
+        >
+          {{ totalItems }}
         </span>
       </div>
     </div>
@@ -138,11 +146,15 @@ import { useRouter } from 'vue-router'
 import { platsService } from '@/services/platsService.js'
 import { favorisService } from '@/services/favorisService.js'
 import { useAuth } from '@/composables/useAuth'
+import { usePanier } from '@/composables/usePanier'
 import { useToast } from 'vue-toastification'
 import { ShoppingCartIcon } from '@heroicons/vue/24/outline'
 import { Icon } from '@iconify/vue'
+import { useModalStore } from '@/stores/useModalStore'
 
 const router = useRouter()
+const toast = useToast()
+const modal = useModalStore()
 
 const types = ['Entrée', 'Plat principal', 'Dessert', 'Accompagnement']
 const paysList = ['Maroc', 'Algérie', 'Tunisie']
@@ -156,11 +168,20 @@ const selectedOrder = ref('default')
 const plats = ref([])
 const loading = ref(true)
 const error = ref(null)
-const panier = ref([])
 const favoris = ref([])
 
+const platsLoading = ref(new Set()) 
+
+const { 
+  panier, 
+  totalItems, 
+  totalPrix, 
+  ajouterAuPanier, 
+  chargerPanier,
+  peutAccederAuPanier
+} = usePanier()
+
 const authData = useAuth()
-const toast = useToast()
 
 const getToken = () => {
   return authData?.token?.value || localStorage.getItem('auth_token')
@@ -172,7 +193,7 @@ const isUserAuthenticated = () => {
 
 onMounted(async () => {
   try {
-    console.log('Chargement des plats...') 
+    console.log('Chargement des plats...')
     plats.value = await platsService.getAll()
     console.log('Plats chargés:', plats.value.length)
     
@@ -183,6 +204,9 @@ onMounted(async () => {
         console.error('Erreur favoris (non bloquante):', favorisError)
       }
     }
+    
+    await chargerPanier()
+    
   } catch (e) {
     console.error('Erreur détaillée:', e)
     error.value = 'Erreur lors du chargement des plats'
@@ -199,79 +223,81 @@ const chargerFavoris = async () => {
       return
     }
     
-    console.log('Chargement des favoris...') // Debug
+    console.log('Chargement des favoris...')
     const mesFavoris = await favorisService.getMesFavoris(token)
     favoris.value = mesFavoris || []
-    console.log('Favoris chargés:', favoris.value) // Debug
+    console.log('Favoris chargés:', favoris.value)
   } catch (e) {
     console.error('Erreur lors du chargement des favoris:', e)
   }
 }
 
 const getTypeIcon = (type) => {
-  switch (type.toLowerCase()) {
-    case 'entrée':
-      return 'map:food'
-    case 'plat principal':
-      return 'emojione-monotone:pot-of-food'
-    case 'dessert':
-      return 'mdi:ice-cream'
-    case 'boisson':
-      return 'mdi:cup-water'
-    case 'accompagnement':
-      return 'fluent:food-toast-16-filled'
-    default:
-      return 'mdi:food'
+  const icons = {
+    'Entrée': 'mdi:silverware-fork-knife',
+    'Plat principal': 'mdi:food',
+    'Dessert': 'mdi:cake',
+    'Accompagnement': 'mdi:food-variant'
   }
+  return icons[type] || 'mdi:food'
 }
 
 const getPaysIcon = (pays) => {
-  switch (pays.toLowerCase()) {
-    case 'maroc':
-      return 'twemoji:flag-morocco'
-    case 'algérie':
-      return 'twemoji:flag-algeria'
-    case 'tunisie':
-      return 'twemoji:flag-tunisia'
-    default:
-      return 'mdi:earth'
+  const icons = {
+    'Maroc': 'twemoji:flag-morocco',
+    'Algérie': 'twemoji:flag-algeria',
+    'Tunisie': 'twemoji:flag-tunisia'
   }
+  return icons[pays] || 'mdi:flag'
 }
 
 const filteredPlats = computed(() => {
-  let result = plats.value.filter(plat => {
-    const matchType = selectedType.value ? plat.type === selectedType.value : true
-    const matchPays = selectedPays.value ? plat.pays === selectedPays.value : true
-    const matchNote = selectedNote.value ? plat.note >= selectedNote.value : true
-    return matchType && matchPays && matchNote
-  })
+  let filtered = plats.value
 
-  if (selectedOrder.value === 'prix-asc') {
-    result = result.sort((a, b) => a.prix - b.prix)
-  } else if (selectedOrder.value === 'prix-desc') {
-    result = result.sort((a, b) => b.prix - a.prix)
-  } else if (selectedOrder.value === 'note-desc') {
-    result = result.sort((a, b) => b.note - a.note)
+  if (selectedType.value) {
+    filtered = filtered.filter(plat => plat.type === selectedType.value)
   }
 
-  return result
+  if (selectedPays.value) {
+    filtered = filtered.filter(plat => plat.pays === selectedPays.value)
+  }
+
+  if (selectedNote.value > 0) {
+    filtered = filtered.filter(plat => Math.floor(plat.note) >= selectedNote.value)
+  }
+
+  if (selectedOrder.value === 'prix_asc') {
+    filtered.sort((a, b) => parseFloat(a.prix) - parseFloat(b.prix))
+  } else if (selectedOrder.value === 'prix_desc') {
+    filtered.sort((a, b) => parseFloat(b.prix) - parseFloat(a.prix))
+  } else if (selectedOrder.value === 'note_desc') {
+    filtered.sort((a, b) => parseFloat(b.note) - parseFloat(a.note))
+  } else if (selectedOrder.value === 'nom_asc') {
+    filtered.sort((a, b) => a.nom.localeCompare(b.nom))
+  }
+
+  return filtered
 })
 
-const ajouterAuPanier = (plat) => {
-  const item = panier.value.find(p => p.id === plat.id)
-  if (item) {
-    item.quantite++
-  } else {
-    panier.value.push({ ...plat, quantite: 1 })
+const ajouterAuPanierPlat = async (plat) => {
+  try {
+    platsLoading.value.add(plat.id)
+    
+    await ajouterAuPanier({
+      type: 'plat',
+      plat_id: plat.id,
+      quantite: 1
+    })
+    
+  } catch (error) {
+    console.error('Erreur lors de l\'ajout au panier:', error)
+  } finally {
+    platsLoading.value.delete(plat.id)
   }
 }
 
-const voirDetails = (plat) => {
-  router.push({ name: 'Plat', params: { id: plat.id } })
-}
-
-const redirectToPanier = () => {
-  router.push('/mon-panier')
+const isPlatLoading = (platId) => {
+  return platsLoading.value.has(platId)
 }
 
 const toggleFavoris = async (id) => {
@@ -303,6 +329,25 @@ const toggleFavoris = async (id) => {
     }
   } catch (e) {
     toast.error(e.message || 'Erreur lors de la gestion des favoris')
+  }
+}
+
+const voirDetails = (id) => {
+  router.push(`/plat/${id}`)
+}
+
+const redirectToPanier = () => {
+  if (peutAccederAuPanier()) {
+    router.push('/mon-panier')
+  } else {
+    if (totalItems.value > 0) {
+      toast.info(`Vous avez ${totalItems.value} article${totalItems.value > 1 ? 's' : ''} dans votre panier. Connectez-vous pour finaliser votre commande !`, {
+        timeout: 4000
+      })
+      modal.openLogin()
+    } else {
+      toast.info('Votre panier est vide. Ajoutez des plats pour commencer !')
+    }
   }
 }
 </script>

@@ -1,34 +1,85 @@
 <template>
   <div class="p-6 bg-background min-h-screen">
-    <h1 class="text-2xl font-semibold mb-4 text-primary">Validez votre panier et passez votre commande</h1>
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-2xl font-semibold text-primary">Validez votre panier et passez votre commande</h1>
+      <button 
+        v-if="!isEmpty && !loading"
+        @click="viderPanier" 
+        class="flex items-center gap-2 py-2 px-4 bg-red-500 text-white rounded-xl hover:bg-red-600 transition"
+      >
+        <TrashIcon class="w-5 h-5" />
+        Vider le panier
+      </button>
+    </div>
 
-    <div class="bg-white p-6 rounded-2xl shadow border border-gray-200">
+    <div v-if="loading" class="text-center py-8">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <p class="mt-2 text-gray-600">Chargement du panier...</p>
+    </div>
+
+    <div v-else-if="isEmpty" class="bg-white p-6 rounded-2xl shadow border border-gray-200 text-center">
+      <p class="text-gray-500 mb-4">Votre panier est vide</p>
+      <router-link 
+        to="/nos-plats" 
+        class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-accent transition"
+      >
+        Découvrir nos plats
+      </router-link>
+    </div>
+
+    <div v-else class="bg-white p-6 rounded-2xl shadow border border-gray-200">
       <section class="mb-6">
         <h2 class="text-xl font-medium mb-3">Récapitulatif de commande</h2>
         <div
-          v-for="(item, index) in cartItems"
-          :key="index"
+          v-for="item in panier"
+          :key="item.id"
           class="bg-white p-4 rounded-2xl mb-4 flex justify-between items-center shadow hover:shadow-lg hover:-translate-y-1 transition border border-gray-200"
         >
           <div class="flex items-center gap-4">
             <div class="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">
-              <img :src="item.image" alt="Image du produit" class="w-full h-full object-cover" />
+              <img :src="getItemImage(item)" :alt="getItemName(item)" class="w-full h-full object-cover" />
             </div>
             <div>
-              <p class="text-lg font-semibold text-primary">{{ item.name }}</p>
-              <p class="text-sm text-gray-600">{{ item.price }}€ x {{ item.quantity }} = <span class="font-bold">{{ item.price * item.quantity }}€</span></p>
+              <div class="flex items-center gap-2 mb-1">
+                <p class="text-lg font-semibold text-primary">{{ getItemName(item) }}</p>
+                <span 
+                  :class="item.type === 'plat' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'"
+                  class="px-2 py-1 rounded-full text-xs font-medium"
+                >
+                  {{ item.type === 'plat' ? 'Plat' : 'Événement' }}
+                </span>
+              </div>
+              <p class="text-sm text-gray-600">
+                {{ parseFloat(item.prix_unitaire).toFixed(2) }}€ x {{ item.quantite }} = 
+                <span class="font-bold">{{ parseFloat(item.sous_total).toFixed(2) }}€</span>
+              </p>
+              <div v-if="item.type === 'reservation'" class="text-xs text-gray-500 mt-1">
+                <span v-if="getItemDetails(item).date">
+                  📅 {{ formatDate(getItemDetails(item).date) }}
+                </span>
+                <span v-if="getItemDetails(item).lieu" class="ml-2">
+                  📍 {{ getItemDetails(item).lieu }}
+                </span>
+              </div>
             </div>
           </div>
 
           <div class="flex items-center gap-2">
-            <button @click="decrement(index)" class="bg-gray-200 text-gray-700 px-3 py-1 rounded-lg hover:bg-gray-300 transition">
+            <button 
+              @click="modifierQuantite(item.id, item.quantite - 1)" 
+              :disabled="item.quantite <= 1"
+              class="bg-gray-200 text-gray-700 px-3 py-1 rounded-lg hover:bg-gray-300 transition disabled:opacity-50"
+            >
               -
             </button>
-            <span class="text-lg font-semibold">{{ item.quantity }}</span>
-            <button @click="increment(index)" class="bg-gray-200 text-gray-700 px-3 py-1 rounded-lg hover:bg-gray-300 transition">
+            <span class="text-lg font-semibold">{{ item.quantite }}</span>
+            <button 
+              @click="modifierQuantite(item.id, item.quantite + 1)" 
+              class="bg-gray-200 text-gray-700 px-3 py-1 rounded-lg hover:bg-gray-300 transition"
+            >
               +
             </button>
-            <button @click="removeItem(index)" class="ml-4">
+            <button @click="supprimerItem(item.id)" class="ml-4">
               <TrashIcon class="w-6 h-6 text-red-500 hover:text-red-700 transition" />
             </button>
           </div>
@@ -39,56 +90,99 @@
         <h2 class="text-xl font-medium mb-4">Résumé du paiement</h2>
         <div class="mb-2 flex justify-between">
           <span>Sous-total</span>
-          <span>{{ subtotal }}€</span>
+          <span>{{ totalPrix.toFixed(2) }}€</span>
         </div>
         <div class="mb-2 flex justify-between">
           <span>Taxe</span>
-          <span>{{ tax }}€</span>
+          <span>{{ tax.toFixed(2) }}€</span>
         </div>
         <hr class="my-4 border-primary h-2" />
         <div class="mb-4 flex justify-between font-bold">
           <span>Total</span>
-          <span>{{ total }}€</span>
+          <span>{{ totalAvecTaxe.toFixed(2) }}€</span>
         </div>
-        <button class="w-full py-2 bg-accent text-white rounded-xl hover:bg-primary transition">Passer la commande</button>
+        
+        <button 
+          @click="passerCommande"
+          class="w-full py-2 bg-accent text-white rounded-xl hover:bg-primary transition"
+        >
+          Passer la commande
+        </button>
       </section>
     </div>
   </div>
 </template>
 
 <script setup>
-import { TrashIcon} from '@heroicons/vue/24/outline'
-import { ref, computed } from 'vue'
+import { TrashIcon } from '@heroicons/vue/24/outline'
+import { computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { usePanier } from '@/composables/usePanier'
+import { useToast } from 'vue-toastification'
 
-const cartItems = ref([
-    { name: 'Couscous Royal', price: 18, quantity: 2, image: '/src/assets/img/cuisine-alg/couscous-algerien.jpeg' },
-    { name: 'Tajine de Poulet', price: 16, quantity: 1, image: '/src/assets/img/cuisine-mar/tajine-poulet-citron.jpeg' },
-    { name: 'Bricks à l\'œuf', price: 7, quantity: 3, image: '/src/assets/img/cuisine-tun/brik-oeuf.jpeg' },
-    { name: 'Chorba', price: 8, quantity: 1, image: '/src/assets/img/cuisine-alg/chorba-algerienne.jpeg' },
-    { name: 'Makroud', price: 5, quantity: 2, image: '/src/assets/img/cuisine-tun/makroudh.jpeg' },
-])
+const router = useRouter()
+const toast = useToast()
 
-const increment = (index) => {
-  cartItems.value[index].quantity++
+const { 
+  panier, 
+  loading, 
+  totalItems, 
+  totalPrix, 
+  isEmpty,
+  chargerPanier,
+  modifierQuantite,
+  supprimerItem,
+  viderPanier
+} = usePanier()
+
+const getItemName = (item) => {
+  const details = getItemDetails(item)
+  return item.type === 'plat' ? details.nom : details.title
 }
 
-const decrement = (index) => {
-  if (cartItems.value[index].quantity > 1) {
-    cartItems.value[index].quantity--
+const getItemImage = (item) => {
+  const details = getItemDetails(item)
+  return details.image || '/default-image.jpg'
+}
+
+const getItemDetails = (item) => {
+  try {
+    return typeof item.item_details === 'string' 
+      ? JSON.parse(item.item_details) 
+      : item.item_details || {}
+  } catch (e) {
+    console.error('Erreur parsing item_details:', e)
+    return {}
   }
 }
 
-const removeItem = (index) => {
-  cartItems.value.splice(index, 1)
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  try {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  } catch (e) {
+    return dateString
+  }
 }
 
-const subtotal = computed(() =>
-  cartItems.value.reduce((acc, item) => acc + item.price * item.quantity, 0)
-)
+const tax = computed(() => totalPrix.value * 0.05)
+const totalAvecTaxe = computed(() => totalPrix.value + tax.value)
 
-const tax = computed(() => parseFloat((subtotal.value * 0.05).toFixed(2)))
+const passerCommande = () => {
+  // TODO: Implémenter le processus de commande
+  toast.info('Fonctionnalité de commande en cours de développement')
+  // router.push('/commande')
+}
 
-const total = computed(() => parseFloat((subtotal.value + tax.value).toFixed(2)))
+onMounted(() => {
+  chargerPanier()
+})
 </script>
 
 <style scoped>
