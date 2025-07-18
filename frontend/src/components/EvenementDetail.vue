@@ -4,8 +4,9 @@ import { ref, computed, onMounted } from 'vue'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { evenementsService } from '@/services/evenementsService.js'
-import ReservationForm from '@/components/ReservationForm.vue'
 import { Icon } from '@iconify/vue'
+import { usePanier } from '@/composables/usePanier'
+import { useToast } from 'vue-toastification'
 
 const route = useRoute()
 const event = ref(null)
@@ -27,6 +28,42 @@ const formattedDate = computed(() => {
 const formattedPrice = computed(() => {
   if (!event.value || !event.value.prix_par_personne) return 'Gratuit'
   return `${event.value.prix_par_personne} €`
+})
+
+const { ajouterAuPanier } = usePanier()
+const toast = useToast()
+
+const nombrePlaces = ref(1)
+const ajoutLoading = ref(false)
+
+const ajouterReservationAuPanier = async () => {
+  try {
+    if (!event.value?.id) {
+      toast.error('ID de l\'événement manquant')
+      return
+    }
+    
+    ajoutLoading.value = true
+
+    await ajouterAuPanier({
+      type: 'reservation',
+      evenement_id: event.value.id,
+      quantite: nombrePlaces.value
+    })
+
+    toast.success(`${nombrePlaces.value} place(s) ajoutée(s) au panier !`)
+    
+  } catch (error) {
+    console.error('Erreur ajout panier:', error)
+    toast.error(error.message || 'Erreur lors de l\'ajout au panier')
+  } finally {
+    ajoutLoading.value = false
+  }
+}
+
+const placesDisponibles = computed(() => {
+  if (!event.value?.places_restantes) return 0
+  return Math.min(event.value.places_restantes, 10) 
 })
 </script>
 
@@ -60,7 +97,6 @@ const formattedPrice = computed(() => {
             <span class="text-sm">{{ event.lieu }}</span>
           </div>
 
-          <!-- Affichage du prix -->
           <div class="flex items-center gap-2 text-gray-700">
             <Icon icon="mdi:currency-eur" class="text-xl text-accent" />
             <span class="text-sm">
@@ -68,7 +104,6 @@ const formattedPrice = computed(() => {
             </span>
           </div>
 
-          <!-- Affichage des places restantes -->
           <div class="flex items-center gap-2 text-gray-700">
             <Icon icon="mdi:account-group-outline" class="text-xl text-accent" />
             <span class="text-sm">
@@ -82,19 +117,53 @@ const formattedPrice = computed(() => {
           <p class="text-gray-600 text-sm">{{ event.short_desc }}</p>
         </div>
 
-        <!-- Affichage conditionnel du formulaire de réservation -->
-        <div v-if="event.places_restantes > 0">
-          <ReservationForm :event-id="event.id" />
-        </div>
-        <div v-else class="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
-          <Icon icon="mdi:alert-circle" class="text-red-500 text-2xl mb-2" />
-          <p class="text-red-700 font-semibold">Événement complet</p>
-          <p class="text-red-600 text-sm">Plus de places disponibles pour cet événement.</p>
+        <div class="bg-white p-6 rounded-2xl shadow">
+          <h3 class="text-xl font-semibold mb-4">Réservation</h3>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Nombre de places
+              </label>
+              <select 
+                v-model="nombrePlaces" 
+                class="w-full p-3 border border-gray-300 rounded-lg"
+                :disabled="placesDisponibles === 0"
+              >
+                <option v-if="placesDisponibles === 0" value="0">Aucune place disponible</option>
+                <option v-else v-for="n in placesDisponibles" :key="n" :value="n">
+                  {{ n }} place{{ n > 1 ? 's' : '' }}
+                </option>
+              </select>
+            </div>
+
+            <div v-if="event.prix_par_personne" class="text-sm text-gray-600">
+              <p>Prix par personne : {{ event.prix_par_personne }}€</p>
+              <p class="font-semibold">
+                Total : {{ (nombrePlaces * parseFloat(event.prix_par_personne || 0)).toFixed(2) }}€
+              </p>
+            </div>
+
+            <button
+              @click="ajouterReservationAuPanier"
+              :disabled="nombrePlaces === 0 || ajoutLoading || placesDisponibles === 0"
+              class="w-full bg-primary text-white py-3 px-6 rounded-xl hover:bg-accent transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              <div v-if="ajoutLoading" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              <Icon v-else icon="mdi:cart-plus" class="w-5 h-5" />
+              <span v-if="placesDisponibles === 0">Plus de places disponibles</span>
+              <span v-else-if="ajoutLoading">Ajout en cours...</span>
+              <span v-else>Ajouter au panier</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
   </div>
   <div v-else-if="error" class="text-red-600 text-center py-8">{{ error }}</div>
-  <div v-else class="text-center py-8">Chargement...</div>
+  <div v-else class="text-center py-8">
+    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    <p class="mt-2 text-gray-600">Chargement de l'événement...</p>
+  </div>
 </template>
 
