@@ -20,6 +20,37 @@
       </div>
     </div>
 
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+      <div class="flex items-start gap-3">
+        <Icon icon="mdi:information" class="w-5 h-5 text-blue-600 mt-0.5" />
+        <div>
+          <h3 class="font-semibold text-blue-800 mb-2">Conditions d'annulation des commandes</h3>
+          <div class="text-sm text-blue-700 space-y-1">
+            <div class="flex items-center gap-2">
+              <Icon icon="mdi:clock" class="w-4 h-4" />
+              <span><strong>0-15 minutes :</strong> Remboursement intégral (100%)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <Icon icon="mdi:clock-alert" class="w-4 h-4" />
+              <span><strong>15-30 minutes :</strong> Remboursement partiel (50% - frais de traitement)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <Icon icon="mdi:close-circle" class="w-4 h-4" />
+              <span><strong>Après 30 minutes :</strong> Aucun remboursement possible</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <Icon icon="mdi:chef-hat" class="w-4 h-4" />
+              <span><strong>En préparation/livrée :</strong> Annulation impossible</span>
+            </div>
+          </div>
+          <p class="text-xs text-blue-600 mt-2">
+            <Icon icon="mdi:gavel" class="w-3 h-3 inline mr-1" />
+            Conformément à nos conditions générales de vente et à la réglementation sur les denrées périssables
+          </p>
+        </div>
+      </div>
+    </div>
+
     <div v-if="loading" class="text-center py-8">
       <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       <p class="mt-2 text-gray-600">Chargement de vos commandes...</p>
@@ -42,7 +73,7 @@
         class="bg-white rounded-2xl shadow border border-gray-200 p-6 transition hover:shadow-lg"
       >
         <div class="flex justify-between items-center">
-          <div>
+          <div class="flex-1">
             <p class="text-lg font-semibold text-primary">
               Commande {{ commande.numero_commande }}
             </p>
@@ -52,6 +83,18 @@
             <p class="text-sm mt-1" :class="getStatutColor(commande.statut)">
               Statut : {{ commande.statut }}
             </p>
+            
+            <div v-if="commande.statut === 'En attente'" class="mt-2">
+              <div class="inline-flex items-center gap-2 px-3 py-1 bg-yellow-50 border border-yellow-200 rounded-lg text-xs">
+                <Icon icon="mdi:timer" class="w-3 h-3 text-yellow-600" />
+                <span class="text-yellow-700">
+                  <strong>{{ getConditionsRemboursement(commande).message }}</strong>
+                  <span v-if="getConditionsRemboursement(commande).remboursement > 0">
+                    - {{ getConditionsRemboursement(commande).remboursement }}% remboursé
+                  </span>
+                </span>
+              </div>
+            </div>
           </div>
           
           <div class="flex gap-2">
@@ -63,16 +106,16 @@
             </button>
             
             <button
-              v-if="commande.statut === 'En attente'"
-              class="group relative w-10 h-10 flex items-center justify-center bg-red-50 hover:bg-red-500 text-red-500 hover:text-white rounded-full transition-all duration-300 border border-red-200 hover:border-red-500 hover:shadow-lg"
+              v-if="commande.statut === 'En attente' && getConditionsRemboursement(commande).remboursement > 0"
               @click="annulerCommande(commande)"
               :disabled="annulationLoading"
-              :title="'Annuler la commande'"
+              class="group relative w-10 h-10 flex items-center justify-center bg-red-50 hover:bg-red-500 text-red-500 hover:text-white rounded-full transition-all duration-300 border border-red-200 hover:border-red-500 hover:shadow-lg transform hover:scale-105"
+              :title="`Annuler la commande (${getConditionsRemboursement(commande).remboursement}% remboursé)`"
             >
               <Icon 
                 v-if="!annulationLoading" 
                 icon="mdi:close" 
-                class="w-4 h-4"
+                class="w-4 h-4 transition-transform group-hover:rotate-90"
               />
               <Icon 
                 v-else 
@@ -80,6 +123,44 @@
                 class="w-4 h-4 animate-spin"
               />
             </button>
+            
+            <div
+              v-else-if="commande.statut === 'En attente' && getConditionsRemboursement(commande).remboursement === 0"
+              class="w-10 h-10 flex items-center justify-center bg-gray-100 text-gray-400 rounded-full border border-gray-200"
+              :title="getConditionsRemboursement(commande).message"
+            >
+              <Icon icon="mdi:lock" class="w-4 h-4" />
+            </div>
+          </div>
+        </div>
+
+        <div v-if="commande.statut === 'En attente'" class="mt-4 pt-4 border-t border-gray-100">
+          <div class="bg-gray-50 rounded-lg p-3">
+            <div class="flex items-center gap-2 mb-2">
+              <Icon icon="mdi:information-outline" class="w-4 h-4 text-gray-600" />
+              <span class="text-sm font-medium text-gray-700">Temps restant pour annulation</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="text-sm text-gray-600">
+                <span>Commandé il y a {{ getTempsEcoule(commande.created_at) }}</span>
+              </div>
+              <div class="text-sm font-medium" :class="getConditionsRemboursement(commande).remboursement > 0 ? 'text-green-600' : 'text-red-600'">
+                {{ getConditionsRemboursement(commande).message }}
+              </div>
+            </div>
+            
+            <div class="mt-2 w-full bg-gray-200 rounded-full h-2">
+              <div 
+                class="h-2 rounded-full transition-all duration-1000"
+                :class="getProgressBarColor(commande)"
+                :style="{ width: getProgressPercentage(commande) + '%' }"
+              ></div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-500 mt-1">
+              <span>0 min</span>
+              <span>15 min</span>
+              <span>30 min</span>
+            </div>
           </div>
         </div>
 
@@ -309,20 +390,17 @@ const annulerCommande = async (commande) => {
     return
   }
   
+  const montantRemboursement = (parseFloat(commande.total) * conditions.remboursement / 100).toFixed(2)
+  
   const confirmation = confirm(`
-🚫 Annulation de commande
+Annuler la commande ${commande.numero_commande} ?
 
-📦 Commande : ${commande.numero_commande}
-💰 Montant : ${parseFloat(commande.total).toFixed(2)}€
-🔄 Remboursement : ${conditions.remboursement}% (${(parseFloat(commande.total) * conditions.remboursement / 100).toFixed(2)}€)
+Montant : ${parseFloat(commande.total).toFixed(2)}€
+Remboursement : ${montantRemboursement}€ (${conditions.remboursement}%)
 
-📋 Conditions :
 ${conditions.message}
 
-⚖️ Conformément à l'article L221-28 du Code de la consommation
-
-Confirmer l'annulation ?
-  `)
+Confirmer l'annulation ?`)
   
   if (!confirmation) return
   
@@ -340,11 +418,7 @@ Confirmer l'annulation ?
       raison: conditions.message
     })
     
-    toast.success(`
-✅ Commande annulée
-💰 Remboursement de ${(parseFloat(commande.total) * conditions.remboursement / 100).toFixed(2)}€ 
-⏱️ Délai : 3-5 jours ouvrés
-    `)
+    toast.success(`Commande annulée - Remboursement de ${montantRemboursement}€ sous 3-5 jours ouvrés`)
     
     await chargerCommandes(pagination.value?.page || 1)
     
@@ -353,6 +427,34 @@ Confirmer l'annulation ?
   } finally {
     annulationLoading.value = false
   }
+}
+
+const getTempsEcoule = (dateCommande) => {
+  const maintenant = new Date()
+  const date = new Date(dateCommande)
+  const minutesEcoulees = Math.floor((maintenant - date) / (1000 * 60))
+  
+  if (minutesEcoulees < 1) return 'moins d\'une minute'
+  if (minutesEcoulees === 1) return '1 minute'
+  return `${minutesEcoulees} minutes`
+}
+
+const getProgressPercentage = (commande) => {
+  const maintenant = new Date()
+  const dateCommande = new Date(commande.created_at)
+  const minutesEcoulees = (maintenant - dateCommande) / (1000 * 60)
+  
+  // Calcul du pourcentage sur 30 minutes maximum
+  const pourcentage = Math.min((minutesEcoulees / 30) * 100, 100)
+  return pourcentage
+}
+
+const getProgressBarColor = (commande) => {
+  const conditions = getConditionsRemboursement(commande)
+  
+  if (conditions.remboursement === 100) return 'bg-green-500'
+  if (conditions.remboursement === 50) return 'bg-yellow-500'
+  return 'bg-red-500'
 }
 
 onMounted(() => {

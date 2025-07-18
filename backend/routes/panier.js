@@ -66,10 +66,8 @@ router.get('/', auth, async (req, res) => {
 
 router.post('/', auth, async (req, res) => {
   try {
-    const userId = req.user.id || req.user.userId;
-    const { type, plat_id, evenement_id, quantite = 1 } = req.body;
-
-    console.log('🔍 Données reçues:', { userId, type, plat_id, evenement_id, quantite }); // Debug
+    const { type, plat_id, evenement_id, quantite } = req.body;
+    const userId = req.user.id;
 
     if (!userId) {
       return res.status(400).json({ error: 'ID utilisateur manquant' });
@@ -83,8 +81,43 @@ router.post('/', auth, async (req, res) => {
       return res.status(400).json({ error: 'ID du plat manquant' });
     }
 
-    if (type === 'reservation' && !evenement_id) {
-      return res.status(400).json({ error: 'ID de l\'événement manquant' });
+    if (type === 'reservation') {
+      if (!evenement_id) {
+        return res.status(400).json({ error: 'ID événement requis pour une réservation' });
+      }
+
+      const evenement = await query('SELECT * FROM evenements WHERE id = ?', [evenement_id]);
+      if (evenement.length === 0) {
+        return res.status(404).json({ error: 'Événement non trouvé' });
+      }
+
+      const prix_unitaire = parseFloat(evenement[0].prix_par_personne);
+      const sous_total = prix_unitaire * quantite;
+
+      const result = await query(
+        `INSERT INTO panier (user_id, type, evenement_id, quantite, prix_unitaire, sous_total) 
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          userId, 
+          type, 
+          evenement_id, 
+          quantite, 
+          prix_unitaire, 
+          sous_total
+        ]
+      );
+
+      return res.status(201).json({
+        message: 'Réservation ajoutée au panier',
+        item: {
+          id: result.insertId,
+          type,
+          evenement_id,
+          quantite,
+          prix_unitaire,
+          sous_total
+        }
+      });
     }
 
     let prix_unitaire = 0;
@@ -97,17 +130,7 @@ router.post('/', auth, async (req, res) => {
       }
       prix_unitaire = plats[0].prix;
       itemDetails = plats[0];
-    } else if (type === 'reservation') {
-      const evenements = await query('SELECT * FROM evenements WHERE id = ? AND actif = true', [evenement_id]);
-      if (evenements.length === 0) {
-        return res.status(404).json({ error: 'Événement non trouvé ou inactif' });
-      }
-      if (evenements[0].places_restantes < quantite) {
-        return res.status(400).json({ error: 'Pas assez de places disponibles' });
-      }
-      prix_unitaire = evenements[0].prix_par_personne;
-      itemDetails = evenements[0];
-    }
+    } 
 
     const sous_total = prix_unitaire * quantite;
 
@@ -168,7 +191,8 @@ router.post('/', auth, async (req, res) => {
     }
 
   } catch (error) {
-    res.status(500).json({ error: 'Erreur serveur: ' + error.message });
+    console.error('Erreur ajout panier:', error);
+    res.status(500).json({ error: 'Erreur lors de l\'ajout au panier' });
   }
 });
 

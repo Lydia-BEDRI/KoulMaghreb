@@ -3,6 +3,7 @@ import { panierService } from '@/services/panierService.js'
 import { useAuth } from '@/composables/useAuth'
 import { useToast } from 'vue-toastification'
 import { commandesService } from '@/services/commandesService'
+import { reservationsService } from '@/services/reservationsService'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api'
 
@@ -49,7 +50,6 @@ export const usePanier = () => {
   const chargerPanier = async () => {
     loading.value = true
     error.value = null
-    
     try {
       if (isAuthenticated.value) {
         const currentToken = getToken()
@@ -77,13 +77,14 @@ export const usePanier = () => {
   const ajouterAuPanier = async (item) => {
     loading.value = true
     error.value = null
-
     try {
       if (isAuthenticated.value) {
         const currentToken = getToken()
-        
         if (currentToken) {
-          const result = await panierService.ajouterAuPanier(item, currentToken)
+          if (item.type === 'reservation' && !item.evenement_id) {
+            throw new Error('ID événement manquant pour la réservation')
+          }
+          await panierService.ajouterAuPanier(item, currentToken)
           toast.success('Article ajouté au panier')
         } else {
           throw new Error('Token manquant')
@@ -97,6 +98,9 @@ export const usePanier = () => {
             details: { plat }
           })
         } else if (item.type === 'reservation') {
+          if (!item.evenement_id) {
+            throw new Error('ID événement manquant')
+          }
           const evenement = await obtenirDetailsEvenement(item.evenement_id)
           panierService.ajouterAuPanierLocal({
             ...item,
@@ -106,9 +110,7 @@ export const usePanier = () => {
         }
         toast.success('Article ajouté au panier')
       }
-      
       await chargerPanier()
-      
     } catch (err) {
       error.value = err.message
       toast.error(err.message || 'Erreur lors de l\'ajout au panier')
@@ -119,10 +121,8 @@ export const usePanier = () => {
 
   const modifierQuantite = async (itemId, quantite) => {
     if (quantite < 1) return
-
     loading.value = true
     error.value = null
-
     try {
       if (isAuthenticated.value) {
         const currentToken = getToken()
@@ -134,9 +134,7 @@ export const usePanier = () => {
       } else {
         panierService.modifierQuantiteLocal(itemId, quantite)
       }
-      
       await chargerPanier()
-      
     } catch (err) {
       error.value = err.message
       toast.error(err.message || 'Erreur lors de la modification')
@@ -148,7 +146,6 @@ export const usePanier = () => {
   const supprimerItem = async (itemId) => {
     loading.value = true
     error.value = null
-
     try {
       if (isAuthenticated.value) {
         const currentToken = getToken()
@@ -160,10 +157,8 @@ export const usePanier = () => {
       } else {
         panierService.supprimerItemLocal(itemId)
       }
-      
       await chargerPanier()
       toast.success('Article supprimé du panier')
-      
     } catch (err) {
       error.value = err.message
       toast.error(err.message || 'Erreur lors de la suppression')
@@ -175,7 +170,6 @@ export const usePanier = () => {
   const viderPanier = async () => {
     loading.value = true
     error.value = null
-
     try {
       if (isAuthenticated.value) {
         const currentToken = getToken()
@@ -187,10 +181,8 @@ export const usePanier = () => {
       } else {
         panierService.viderPanierLocal()
       }
-      
       panier.value = []
       toast.success('Panier vidé')
-      
     } catch (err) {
       error.value = err.message
       toast.error(err.message || 'Erreur lors du vidage du panier')
@@ -201,16 +193,12 @@ export const usePanier = () => {
 
   const synchroniserPanier = async () => {
     if (!isAuthenticated.value) return
-
     const panierLocal = panierService.getPanierLocal()
     if (panierLocal.length === 0) return
-
     loading.value = true
-    
     try {
       const currentToken = getToken()
       if (!currentToken) return
-
       for (const item of panierLocal) {
         await panierService.ajouterAuPanier({
           type: item.type,
@@ -219,15 +207,11 @@ export const usePanier = () => {
           quantite: item.quantite
         }, currentToken)
       }
-      
       panierService.viderPanierLocal()
-      
       await chargerPanier()
-      
       toast.success(`🛒 Parfait ! Votre panier (${panierLocal.length} article${panierLocal.length > 1 ? 's' : ''}) a été synchronisé !`, {
         timeout: 4000
       })
-      
     } catch (err) {
       toast.warning('Erreur lors de la synchronisation du panier. Vos articles locaux sont préservés.')
     } finally {
@@ -237,29 +221,21 @@ export const usePanier = () => {
 
   const obtenirDetailsPlat = async (platId) => {
     const apiUrl = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api'}/plats/${platId}`;
-    
     const response = await fetch(apiUrl);
-    
     if (!response.ok) {
       throw new Error(`Plat non trouvé (${response.status})`);
     }
-    
     const data = await response.json();
-    
     return data;
   }
 
   const obtenirDetailsEvenement = async (evenementId) => {
     const apiUrl = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api'}/evenements/${evenementId}`;
-    
     const response = await fetch(apiUrl);
-    
     if (!response.ok) {
       throw new Error(`Événement non trouvé (${response.status})`);
     }
-    
     const data = await response.json();
-    
     return data;
   }
 
@@ -268,51 +244,93 @@ export const usePanier = () => {
       if (!isAuthenticated.value) {
         throw new Error('Vous devez être connecté pour passer une commande')
       }
-
       if (panier.value.length === 0) {
         throw new Error('Votre panier est vide')
       }
-
       const currentToken = token?.value || localStorage.getItem('auth_token')
       if (!currentToken) {
         throw new Error('Session expirée, veuillez vous reconnecter')
       }
-
-      const items = []
-      
+      const itemsCommande = []
+      const itemsReservation = []
+      let erreurs = []
       for (const item of panier.value) {
         if (item.type === 'plat') {
           const itemDetails = getItemDetails(item)
           const platId = item.plat_id || item.id
           const nomPlat = itemDetails.nom || item.nom || 'Article'
           const prix = parseFloat(item.prix_unitaire || itemDetails.prix || 0)
-          
-          if (prix <= 0) {
+          if (prix > 0) {
+            itemsCommande.push({
+              plat_id: platId,
+              nom_plat: nomPlat,
+              prix: prix,
+              quantite: parseInt(item.quantite || 1)
+            })
+          }
+        } else if (item.type === 'reservation') {
+          const itemDetails = getItemDetails(item)
+          const evenementId = item.evenement_id || itemDetails.id || itemDetails.evenement_id
+          const nombrePlaces = parseInt(item.quantite || 1)
+          if (!evenementId) {
+            erreurs.push('Réservation: ID événement manquant')
             continue
           }
-          
-          items.push({
-            plat_id: platId,
-            nom_plat: nomPlat,
-            prix: prix,
-            quantite: parseInt(item.quantite || 1)
+          itemsReservation.push({
+            evenement_id: evenementId,
+            nombre_places: nombrePlaces
           })
         }
       }
-
-      if (items.length === 0) {
-        throw new Error('Aucun article valide dans le panier')
+      let responseCommande = null
+      let responseReservations = []
+      if (itemsCommande.length > 0) {
+        try {
+          responseCommande = await commandesService.creerCommande(itemsCommande, currentToken)
+        } catch (commandeError) {
+          erreurs.push(`Commande: ${commandeError.message}`)
+        }
       }
-
-      const response = await commandesService.creerCommande(items, currentToken)
-      
+      if (itemsReservation.length > 0) {
+        for (const reservation of itemsReservation) {
+          try {
+            const responseReservation = await reservationsService.creerReservation(reservation, currentToken)
+            responseReservations.push(responseReservation)
+          } catch (reservationError) {
+            erreurs.push(`Réservation: ${reservationError.message}`)
+          }
+        }
+      }
       await viderPanier()
-
-      return response
-
+      if (erreurs.length > 0) {
+        const message = `Traitement partiellement réussi. Erreurs: ${erreurs.join(', ')}`
+        if (responseCommande || responseReservations.length > 0) {
+          toast.warning(message)
+        } else {
+          throw new Error(message)
+        }
+      }
+      const message = buildSuccessMessage(responseCommande, responseReservations)
+      return {
+        commande: responseCommande,
+        reservations: responseReservations,
+        message,
+        erreurs
+      }
     } catch (error) {
       throw error
     }
+  }
+
+  const buildSuccessMessage = (commande, reservations) => {
+    const parts = []
+    if (commande) {
+      parts.push('Commande créée')
+    }
+    if (reservations.length > 0) {
+      parts.push(`${reservations.length} réservation(s) créée(s)`)
+    }
+    return parts.join(' et ') + ' avec succès !'
   }
 
   const getItemDetails = (item) => {
@@ -344,11 +362,9 @@ export const usePanier = () => {
     panier: computed(() => panier.value),
     loading: computed(() => loading.value),
     error: computed(() => error.value),
-    
     totalItems,
     totalPrix,
     isEmpty,
-    
     chargerPanier,
     ajouterAuPanier,
     modifierQuantite,
