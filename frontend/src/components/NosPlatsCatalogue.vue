@@ -2,72 +2,102 @@
   <div class="p-6 bg-background min-h-screen">
     <h1 class="text-2xl font-semibold mb-6 text-primary">Catalogue des Plats</h1>
 
-    <div class="filters space-y-8 mb-8">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8 space-y-6">
+      
       <div>
-        <h3 class="text-lg font-semibold mb-2">Type de plat</h3>
-        <div class="grid grid-cols-4 gap-4">
-          <div
+        <h3 class="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
+          <Icon icon="mdi:silverware-fork-knife" class="text-xl text-primary" />
+          Type de plat
+        </h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <button
             v-for="type in types"
             :key="type"
             :class="[
-              'bg-white rounded-xl p-4 shadow transition flex items-center justify-center gap-3 cursor-pointer',
-              selectedType === type ? 'border-2 border-primary' : 'border border-gray-200'
+              'flex flex-col items-center p-4 rounded-xl transition-all duration-200 border-2',
+              selectedType === type 
+                ? 'border-primary bg-primary/5 text-primary shadow-sm' 
+                : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm text-gray-700'
             ]"
             @click="selectedType = (selectedType === type ? '' : type)"
           >
-            <Icon :icon="getTypeIcon(type)" class="text-3xl text-primary" />
-            <span class="text-sm font-medium">{{ type }}</span>
-          </div>
+            <Icon :icon="getTypeIcon(type)" class="text-2xl mb-2" />
+            <span class="text-sm font-medium text-center">{{ type }}</span>
+          </button>
         </div>
       </div>
 
       <div>
-        <h3 class="text-lg font-semibold mb-2">Pays</h3>
-        <div class="grid grid-cols-3 gap-4">
-          <div
+        <h3 class="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
+          <Icon icon="mdi:earth" class="text-xl text-accent" />
+          Pays d'origine
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <button
             v-for="pays in paysList"
             :key="pays"
             :class="[
-              'bg-white rounded-xl p-4 shadow transition flex items-center justify-center gap-3 cursor-pointer',
-              selectedPays === pays ? 'border-2 border-accent' : 'border border-gray-200'
+              'flex items-center justify-center gap-3 p-4 rounded-xl transition-all duration-200 border-2',
+              selectedPays === pays 
+                ? 'border-accent bg-accent/5 text-accent shadow-sm' 
+                : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm text-gray-700'
             ]"
             @click="selectedPays = (selectedPays === pays ? '' : pays)"
           >
-            <Icon :icon="getPaysIcon(pays)" class="text-3xl text-accent" />
+            <Icon :icon="getPaysIcon(pays)" class="text-2xl" />
             <span class="text-sm font-medium">{{ pays }}</span>
-          </div>
+          </button>
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-            <Icon icon="mdi:star-outline" class="text-2xl text-primary" /> Note minimale
+          <label class="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
+            <Icon icon="mdi:star" class="text-lg text-yellow-500" />
+            Note minimale
           </label>
           <select
             v-model="selectedNote"
-            class="w-full bg-white text-gray-700 rounded-lg p-2 shadow border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
+            class="w-full bg-white text-gray-700 rounded-xl p-3 border-2 border-gray-200 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
           >
             <option value="0">Toutes les notes</option>
             <option v-for="note in notes" :key="note" :value="note">
-              {{ note }} ⭐
+              {{ note }} ⭐ et plus
             </option>
           </select>
         </div>
 
         <div>
-          <label class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-            <Icon icon="mdi:sort-variant" class="text-2xl text-primary" /> Ordonner par
+          <label class="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
+            <Icon icon="mdi:sort-variant" class="text-lg text-primary" />
+            Trier par
           </label>
           <select
             v-model="selectedOrder"
-            class="w-full bg-white text-gray-700 rounded-xl p-2 shadow border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
+            class="w-full bg-white text-gray-700 rounded-xl p-3 border-2 border-gray-200 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
           >
             <option value="default">Par défaut</option>
             <option value="prix_asc">Prix croissant</option>
             <option value="prix_desc">Prix décroissant</option>
             <option value="note_desc">Note décroissante</option>
           </select>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-gray-100">
+        <div class="flex items-center justify-between flex-wrap gap-3">
+          <span class="text-sm text-gray-600">
+            {{ filteredPlats.length }} plat{{ filteredPlats.length > 1 ? 's' : '' }} trouvé{{ filteredPlats.length > 1 ? 's' : '' }}
+          </span>
+          
+          <button
+            v-if="selectedType || selectedPays || selectedNote > 0 || selectedOrder !== 'default'"
+            @click="resetFilters"
+            class="text-sm text-gray-500 hover:text-primary transition-colors flex items-center gap-1"
+          >
+            <Icon icon="mdi:refresh" class="text-base" />
+            Réinitialiser
+          </button>
         </div>
       </div>
     </div>
@@ -189,6 +219,13 @@ const getToken = () => {
 
 const isUserAuthenticated = () => {
   return authData?.isAuthenticated?.value || !!getToken()
+}
+
+const resetFilters = () => {
+  selectedType.value = ''
+  selectedPays.value = ''
+  selectedNote.value = 0
+  selectedOrder.value = 'default'
 }
 
 onMounted(async () => {
