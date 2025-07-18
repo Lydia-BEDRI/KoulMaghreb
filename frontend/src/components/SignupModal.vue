@@ -26,7 +26,7 @@
             </svg>
           </button>
 
-          <img src="/logo.png" alt="Logo KoulMaghreb" class="h-16 w-auto mx-auto mb-4" />
+          <img src="/logo-mobile.png" alt="Logo KoulMaghreb" class="h-16 w-auto mx-auto mb-4" />
 
           <h2 class="text-2xl font-bold text-center text-accent mb-2">Créer un compte</h2>
           <p class="text-sm text-center text-gray-500 mb-6">

@@ -1,305 +1,226 @@
 <template>
   <main class="px-4 py-8 space-y-16">
-    <!-- Section Bannière -->
     <section class="relative bg-gray-200 text-accent rounded-xl overflow-hidden shadow-md">
       <img src="/src/assets/img/banner.png" alt="Bannière KoulMaghreb"
-        class="absolute inset-0 w-full h-full object-cover opacity-55" />
+        class="absolute inset-0 w-full h-full object-cover" />
+      <div class="absolute inset-0 bg-gradient-to-br from-accent/80 via-primary/70 to-accent/80"></div>
+      
       <div class="relative z-10 text-center py-16 px-4">
-        <h1 class="text-3xl md:text-5xl font-bold mb-4">Découvrez la richesse culinaire du Maghreb</h1>
-        <p class="text-lg md:text-xl max-w-2xl mx-auto text-gray-900">
-          Réservez vos plats préférés, une table ou un événement en un clic. Une expérience authentique vous attend !
+        <h1 class="text-5xl md:text-7xl font-extrabold text-white mb-4 leading-tight drop-shadow-lg">
+          Bienvenue chez KoulMaghreb
+        </h1>
+        
+        <p class="text-xl md:text-2xl text-white mb-8 max-w-3xl mx-auto leading-relaxed drop-shadow-md">
+          Découvrez l'authenticité de la cuisine du Maghreb
         </p>
-        <RouterLink to="/evenements"
-          class="inline-block mt-6 bg-accent text-white font-medium py-3 px-6 rounded-lg hover:bg-primary transition">
-          Réservez maintenant
-        </RouterLink>
-      </div>
-    </section>
-
-    <!-- Section des cuisines -->
-    <section>
-      <h2
-        class="text-2xl md:text-3xl font-bold text-primary mb-6 text-center flex items-center justify-center space-x-2">
-        <FireIcon class="h-8 w-8 text-accent" />
-        <span>Nos cuisines maghrébines</span>
-        <SparklesIcon class="h-8 w-8 text-accent" />
-      </h2>
-      <p class="text-center text-gray-700 mb-10 max-w-2xl mx-auto">
-        Découvrez les saveurs uniques des cuisines maghrébines, chacune avec ses spécialités et son histoire.
-      </p>
-      <div class="grid md:grid-cols-3 gap-6">
-        <div
-          class="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition flex flex-col items-center h-full min-h-[380px]">
-          <img src="/src/assets/img/cuisine_mar.jpeg" alt="Cuisine Marocaine"
-            class="w-full h-40 object-cover rounded-lg mb-4" />
-          <h2 class="text-xl font-semibold text-primary mb-2">Cuisine Marocaine</h2>
-          <p class="text-gray-600 text-center flex-1">Savourez les tajines, couscous, pastillas et autres spécialités
-            marocaines dans toute leur authenticité.</p>
-          <RouterLink to="/cuisine-marocaine"
-            class="mt-6 bg-accent text-white font-medium py-2 px-4 rounded-lg hover:bg-primary transition self-stretch text-center">
-            Découvrir
+        
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <RouterLink 
+            to="/nos-plats" 
+            class="bg-white text-primary px-8 py-4 rounded-xl font-bold text-lg hover:shadow-lg transition-all duration-300 shadow-lg"
+          >
+            Découvrir nos plats
           </RouterLink>
-        </div>
-        <div
-          class="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition flex flex-col items-center h-full min-h-[380px]">
-          <img src="/src/assets/img/cuisine_alg.jpeg" alt="Cuisine Algérienne"
-            class="w-full h-40 object-cover rounded-lg mb-4" />
-          <h2 class="text-xl font-semibold text-primary mb-2">Cuisine Algérienne</h2>
-          <p class="text-gray-600 text-center flex-1">Dégustez les plats typiques comme la chorba, la rechta ou les
-            boureks dans une ambiance chaleureuse.</p>
-          <RouterLink to="/cuisine-algerienne"
-            class="mt-6 bg-accent text-white font-medium py-2 px-4 rounded-lg hover:bg-primary transition self-stretch text-center">
-            Découvrir
-          </RouterLink>
-        </div>
-        <div
-          class="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition flex flex-col items-center h-full min-h-[380px]">
-          <img src="/src/assets/img/cuisine_tun.jpeg" alt="Cuisine Tunisienne"
-            class="w-full h-40 object-cover rounded-lg mb-4" />
-          <h2 class="text-xl font-semibold text-primary mb-2">Cuisine Tunisienne</h2>
-          <p class="text-gray-600 text-center flex-1">Laissez-vous tenter par les bricks, couscous tunisiens et plats
-            épicés qui raviront vos papilles.</p>
-          <RouterLink to="/cuisine-tunisienne"
-            class="mt-6 bg-accent text-white font-medium py-2 px-4 rounded-lg hover:bg-primary transition self-stretch text-center">
-            Découvrir
+          
+          <RouterLink 
+            to="/evenements" 
+            class="bg-transparent border-2 border-white text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-primary transition-all duration-300 backdrop-blur-sm"
+          >
+            Voir les événements
           </RouterLink>
         </div>
       </div>
     </section>
 
-    <!-- Section Nos chefs -->
-    <section class="text-center">
-      <h2 class="text-2xl md:text-3xl font-bold text-primary mb-6 flex items-center justify-center gap-3">
-        <FireIcon class="h-8 w-8 text-accent" />
-        Nos 3 chefs maghrébins
-        <SparklesIcon class="h-8 w-8 text-accent" />
-      </h2>
-      <p class="text-center text-gray-700 mb-8 max-w-2xl mx-auto">
-        Découvrez les talents de nos chefs passionnés, chacun expert dans la cuisine de son pays d'origine. Leur
-        savoir-faire et leur créativité vous garantissent une expérience culinaire authentique et inoubliable.
-      </p>
-      <div class="grid md:grid-cols-3 gap-6">
-        <div class="bg-white rounded-xl shadow-md p-8 flex flex-col items-center hover:shadow-lg transition">
-          <img src="/chefs/chef1.jpeg" alt="Chef marocain"
-            class="rounded-full w-24 h-24 mb-4 object-cover border-2 border-accent" />
-          <h3 class="font-bold text-lg text-accent mb-2">Chef Rachid</h3>
-          <p class="text-gray-600 text-sm">Spécialiste du tajine et de la pâtisserie marocaine.</p>
-        </div>
-        <div class="bg-white rounded-xl shadow-md p-8 flex flex-col items-center hover:shadow-lg transition">
-          <img src="/chefs/chef3.jpeg" alt="Chef algérien"
-            class="rounded-full w-24 h-24 mb-4 object-cover border-2 border-accent" />
-          <h3 class="font-bold text-lg text-accent mb-2">Chef Nassima</h3>
-          <p class="text-gray-600 text-sm">Reine du couscous, bourek et de la cuisine kabyle.</p>
-        </div>
-        <div class="bg-white rounded-xl shadow-md p-8 flex flex-col items-center hover:shadow-lg transition">
-          <img src="/chefs/chef2.jpeg" alt="Chef tunisien"
-            class="rounded-full w-24 h-24 mb-4 object-cover border-2 border-accent" />
-          <h3 class="font-bold text-lg text-accent mb-2">Chef Sofien</h3>
-          <p class="text-gray-600 text-sm">Expert des plats tunisiens relevés et de la harissa artisanale.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Section Pourquoi nous choisir ? -->
-    <section>
-      <div class="max-w-4xl mx-auto text-center mb-10">
-        <h2
-          class="text-3xl md:text-4xl font-extrabold text-primary mb-2 tracking-tight uppercase flex items-center justify-center gap-3">
-          <HeartIcon class="h-8 w-8 text-accent" />
-          Pourquoi nous choisir ?
-          <UserGroupIcon class="h-8 w-8 text-accent" />
-        </h2>
-        <p class="text-gray-700 text-base md:text-lg">
-          Vous profitez de la meilleure qualité de plats maghrébins, d'un service rapide et d'une expérience
-          authentique.
-        </p>
-      </div>
-      <div class="grid gap-6 md:grid-cols-3">
-        <div class="bg-white rounded-xl shadow-md p-8 flex flex-col items-center hover:shadow-lg transition">
-          <UserGroupIcon class="h-10 w-10 text-primary mb-4" />
-          <h3 class="font-bold text-lg text-accent mb-2">Chefs passionnés</h3>
-          <p class="text-gray-600 text-sm">Des plats faits maison par des chefs maghrébins expérimentés.</p>
-        </div>
-        <div class="bg-white rounded-xl shadow-md p-8 flex flex-col items-center hover:shadow-lg transition">
-          <StarIcon class="h-10 w-10 text-primary mb-4" />
-          <h3 class="font-bold text-lg text-accent mb-2">Qualité supérieure</h3>
-          <p class="text-gray-600 text-sm">Notre cuisine est reconnue pour sa qualité et son authenticité.</p>
-        </div>
-        <div class="bg-white rounded-xl shadow-md p-8 flex flex-col items-center hover:shadow-lg transition">
-          <TruckIcon class="h-10 w-10 text-primary mb-4" />
-          <h3 class="font-bold text-lg text-accent mb-2">Livraison rapide</h3>
-          <p class="text-gray-600 text-sm">Commandez et faites-vous livrer rapidement chez vous ou au bureau.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Section Actualités -->
-    <section>
-      <div class="max-w-4xl mx-auto text-center mb-10">
-        <h2 class="text-3xl md:text-4xl font-extrabold text-primary mb-4 flex items-center justify-center gap-3">
-          <NewspaperIcon class="h-8 w-8 text-accent" />
-          Actualités
-          <SparklesIcon class="h-8 w-8 text-accent" />
-        </h2>
-        <p class="text-gray-700 text-base md:text-lg max-w-xl mx-auto">
-          Découvrez nos dernières actualités, événements et nouveautés culinaires.
-        </p>
-      </div>
-      <div class="grid md:grid-cols-3 gap-6 px-4 max-w-6xl mx-auto">
-        <div class="bg-white rounded-xl shadow-md p-6 flex flex-col hover:shadow-lg transition">
-          <h3 class="font-bold text-lg text-primary mb-2">Nouvelle carte de saison</h3>
-          <p class="text-gray-600 text-sm mb-4">
-            Découvrez nos nouveaux plats inspirés des saveurs automnales, disponibles dès maintenant.
-          </p>
-          <div class="mt-auto">
-            <RouterLink to="/nos-plats" class="text-accent font-medium hover:underline">Voir la carte</RouterLink>
-          </div>
-        </div>
-        <div class="bg-white rounded-xl shadow-md p-6 flex flex-col hover:shadow-lg transition">
-          <h3 class="font-bold text-lg text-primary mb-2">Soirée spéciale couscous</h3>
-          <p class="text-gray-600 text-sm mb-4">
-            Participez à notre soirée couscous avec musique live et ambiance maghrébine.
-          </p>
-          <div class="mt-auto">
-            <RouterLink to="/evenements" class="text-accent font-medium hover:underline">Réserver</RouterLink>
-          </div>
-        </div>
-        <div class="bg-white rounded-xl shadow-md p-6 flex flex-col hover:shadow-lg transition">
-          <h3 class="font-bold text-lg text-primary mb-2">Atelier pâtisserie</h3>
-          <p class="text-gray-600 text-sm mb-4">
-            Rejoignez notre atelier pour apprendre à préparer des pâtisseries maghrébines.
-          </p>
-          <div class="mt-auto">
-            <RouterLink to="/evenements" class="text-accent font-medium hover:underline">S'inscrire</RouterLink>
-          </div>
-        </div>
-      </div>
-      <div class="text-center mt-8">
-        <RouterLink to="/blog" class="bg-accent text-white font-medium py-3 px-6 rounded-lg hover:bg-primary transition">
-          Voir toutes nos actualités
-        </RouterLink>
-      </div>
-    </section>
-
-    <!-- Section Témoignages -->
-    <section class="text-center">
-      <h2 class="text-3xl md:text-4xl font-extrabold text-primary mb-10 flex items-center justify-center gap-3">
-        <ChatBubbleLeftEllipsisIcon class="h-8 w-8 text-accent" />
-        Ce que disent nos clients
-        <SparklesIcon class="h-8 w-8 text-accent" />
-      </h2>
-      <div class="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow text-center">
-          <p class="text-gray-600 italic">"Un voyage culinaire exceptionnel ! Les saveurs sont authentiques."</p>
-          <h4 class="mt-4 font-semibold text-accent">Ahmed K.</h4>
-        </div>
-        <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow text-center">
-          <p class="text-gray-600 italic">"J'ai retrouvé les saveurs de mon enfance. Je recommande les yeux fermés."</p>
-          <h4 class="mt-4 font-semibold text-accent">Sonia M.</h4>
-        </div>
-        <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow text-center">
-          <p class="text-gray-600 italic">"Service rapide, plats authentiques, et ambiance conviviale !"</p>
-          <h4 class="mt-4 font-semibold text-accent">Khaled T.</h4>
-        </div>
-      </div>
-    </section>
-
-    <!-- Section Notre histoire -->
-    <section class="py-20 bg-white rounded-lg">
-      <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center px-4">
-        <img src="/src/assets/img/our_story.jpeg" alt="Notre histoire"
-          class="rounded-xl shadow-md w-full max-h-96 object-cover mx-auto" />
-        <div>
-          <h2 class="text-3xl md:text-4xl font-extrabold text-primary mb-4 flex items-center justify-center gap-2">
-            <BookOpenIcon class="w-8 h-8 text-accent" />
-            Notre histoire
-            <SparklesIcon class="w-8 h-8 text-accent" />
+    <section class="py-20 bg-gray-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+          <h2 class="text-3xl md:text-4xl font-extrabold text-primary mb-4 flex items-center justify-center gap-3">
+            <Icon icon="mdi:chef-hat" class="w-8 h-8 text-accent" />
+            Explorez les Trois Cuisines du Maghreb
+            <Icon icon="mdi:star" class="w-8 h-8 text-accent" />
           </h2>
-          <p class="text-gray-700 text-base md:text-lg mb-4">
-            KoulMaghreb est né de l'envie de partager les trésors culinaires du Maghreb avec le plus grand nombre.
-            Fondé par une équipe passionnée, notre restaurant mêle tradition et innovation pour offrir une expérience
-            unique à chaque client.
+          <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+            Découvrez les traditions culinaires du Maroc, de l'Algérie et de la Tunisie
           </p>
-          <p class="text-gray-700 text-base md:text-lg">
-            Grâce à nos chefs issus de différentes régions du Maghreb, nous proposons une carte authentique, riche et
-            évolutive.
-            Notre objectif : faire découvrir ou redécouvrir les plats qui font la fierté de notre culture.
-          </p>
+        </div>
+        
+        <div class="grid md:grid-cols-3 gap-8">
+          <!-- Card Maroc -->
+          <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col">
+            <div class="h-48 bg-gradient-to-br from-red-200 to-orange-200 flex items-center justify-center">
+              <Icon icon="twemoji:flag-morocco" class="w-16 h-16" />
+            </div>
+            <div class="p-6 flex flex-col flex-grow">
+              <h3 class="text-xl font-bold text-primary mb-2">Cuisine Marocaine</h3>
+              <p class="text-gray-600 mb-4 flex-grow">Tajines parfumés, couscous royaux et pâtisseries aux amandes</p>
+              <RouterLink 
+                to="/cuisine-marocaine" 
+                class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-accent transition flex items-center justify-center gap-2 mt-auto"
+              >
+                <Icon icon="mdi:eye" class="w-4 h-4" />
+                Découvrir
+              </RouterLink>
+            </div>
+          </div>
+          
+          <!-- Card Algérie -->
+          <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col">
+            <div class="h-48 bg-gradient-to-br from-green-200 to-blue-200 flex items-center justify-center">
+              <Icon icon="twemoji:flag-algeria" class="w-16 h-16" />
+            </div>
+            <div class="p-6 flex flex-col flex-grow">
+              <h3 class="text-xl font-bold text-primary mb-2">Cuisine Algérienne</h3>
+              <p class="text-gray-600 mb-4 flex-grow">Chorba généreuse, rechta savoureuse et couscous traditionnels</p>
+              <RouterLink 
+                to="/cuisine-algerienne" 
+                class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-accent transition flex items-center justify-center gap-2 mt-auto"
+              >
+                <Icon icon="mdi:eye" class="w-4 h-4" />
+                Découvrir
+              </RouterLink>
+            </div>
+          </div>
+          
+          <!-- Card Tunisie -->
+          <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col">
+            <div class="h-48 bg-gradient-to-br from-red-200 to-yellow-200 flex items-center justify-center">
+              <Icon icon="twemoji:flag-tunisia" class="w-16 h-16" />
+            </div>
+            <div class="p-6 flex flex-col flex-grow">
+              <h3 class="text-xl font-bold text-primary mb-2">Cuisine Tunisienne</h3>
+              <p class="text-gray-600 mb-4 flex-grow">Bricks croustillants, lablabi épicé et harissa authentique</p>
+              <RouterLink 
+                to="/cuisine-tunisienne" 
+                class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-accent transition flex items-center justify-center gap-2 mt-auto"
+              >
+                <Icon icon="mdi:eye" class="w-4 h-4" />
+                Découvrir
+              </RouterLink>
+            </div>
+          </div>
+        </div>
+        
+        <div class="text-center mt-12">
+          <RouterLink 
+            to="/nos-plats" 
+            class="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-accent transition-all"
+          >
+            <span>Voir tous nos plats</span>
+            <Icon icon="mdi:arrow-right" class="w-5 h-5" />
+          </RouterLink>
         </div>
       </div>
     </section>
 
-    <!-- Section Localisation -->
-    <section class="py-16 bg-white rounded-lg">
-      <div class="max-w-6xl mx-auto text-center mb-10">
-        <h2 class="text-3xl md:text-4xl font-extrabold text-primary mb-4 flex items-center justify-center gap-3">
-          <MapPinIcon class="h-8 w-8 text-accent" />
-          Où nous trouver ?
-          <MapPinIcon class="h-8 w-8 text-accent" />
-        </h2>
-        <p class="text-gray-700 text-base md:text-lg">
-          Venez nous rendre visite dans notre restaurant pour une expérience culinaire unique. Voici où nous sommes
-          situés :
-        </p>
-      </div>
-      <div class="max-w-4xl mx-auto">
-        <iframe
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.835434509374!2d-122.4194154846816!3d37.77492977975962!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80858064f0e2c5b1%3A0x4c8b8b8b8b8b8b8b!2sRestaurant!5e0!3m2!1sen!2sfr!4v1680000000000!5m2!1sen!2sfr"
-          width="100%" height="400" style="border:0;" allowfullscreen="" loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade" class="rounded-xl shadow-md">
-        </iframe>
-      </div>
-      <div class="text-center mt-8">
-        <p class="text-gray-700 text-base md:text-lg">
-          Adresse : 123 Rue des Saveurs, 75000 Paris, France
-        </p>
-        <a href="https://www.google.com/maps/dir/?api=1&destination=123+Rue+des+Saveurs,+75000+Paris,+France"
-          target="_blank"
-          class="mt-4 inline-block bg-accent text-white font-medium py-3 px-6 rounded-lg hover:bg-primary transition">
-          Obtenir l'itinéraire
-        </a>
+    <!-- Section équipe -->
+    <section class="py-20 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+          <h2 class="text-3xl md:text-4xl font-extrabold text-primary mb-4 flex items-center justify-center gap-3">
+            <Icon icon="mdi:chef-hat" class="w-8 h-8 text-accent" />
+            Notre Équipe de Chefs
+            <Icon icon="mdi:star" class="w-8 h-8 text-accent" />
+          </h2>
+          <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+            Rencontrez les artisans passionnés qui donnent vie aux saveurs authentiques du Maghreb
+          </p>
+        </div>
+        
+        <div class="grid md:grid-cols-3 gap-8">
+          <div class="text-center group">
+            <div class="relative mb-6">
+              <div class="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-4xl font-bold hover:scale-105 transition-transform duration-300">
+                AK
+              </div>
+            </div>
+            <h3 class="text-xl font-bold text-primary mb-2">Ahmed Khadiri</h3>
+            <p class="text-accent font-medium mb-2">Chef Principal - Maroc</p>
+            <p class="text-gray-600 text-sm">Spécialiste du couscous royal et des tajines traditionnels depuis 15 ans.</p>
+          </div>
+          
+          <div class="text-center group">
+            <div class="relative mb-6">
+              <div class="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center text-white text-4xl font-bold hover:scale-105 transition-transform duration-300">
+                LB
+              </div>
+            </div>
+            <h3 class="text-xl font-bold text-primary mb-2">Leila Benchikh</h3>
+            <p class="text-accent font-medium mb-2">Chef Pâtissière - Algérie</p>
+            <p class="text-gray-600 text-sm">Maître dans l'art des makrouds, cornes de gazelle et pâtisseries orientales.</p>
+          </div>
+          
+          <div class="text-center group">
+            <div class="relative mb-6">
+              <div class="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-4xl font-bold hover:scale-105 transition-transform duration-300">
+                MT
+              </div>
+            </div>
+            <h3 class="text-xl font-bold text-primary mb-2">Mohamed Trabelsi</h3>
+            <p class="text-accent font-medium mb-2">Chef Spécialiste - Tunisie</p>
+            <p class="text-gray-600 text-sm">Expert des plats tunisiens relevés et de la harissa artisanale.</p>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- Bouton pour revenir en haut -->
-    <button v-show="showScrollTop" @click="scrollToTop"
-      class="fixed bottom-6 right-6 bg-accent text-white p-3 rounded-full shadow-lg hover:bg-primary transition">
-      <ChevronUpIcon class="h-6 w-6" />
-    </button>
+    <!-- Section avantages -->
+    <section class="py-20 bg-gray-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+          <h2 class="text-3xl md:text-4xl font-extrabold text-primary mb-4 flex items-center justify-center gap-3">
+            <Icon icon="mdi:heart" class="w-8 h-8 text-accent" />
+            Pourquoi Choisir KoulMaghreb ?
+            <Icon icon="mdi:star-circle" class="w-8 h-8 text-accent" />
+          </h2>
+          <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+            Une expérience culinaire unique qui combine tradition, qualité et innovation
+          </p>
+        </div>
+        
+        <div class="grid md:grid-cols-3 gap-8">
+          <div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 text-center">
+            <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Icon icon="mdi:leaf" class="w-8 h-8 text-white" />
+            </div>
+            <h3 class="text-xl font-bold text-primary mb-4">Ingrédients 100% Naturels</h3>
+            <p class="text-gray-600 leading-relaxed">
+              Nous sélectionnons rigoureusement nos épices et ingrédients directement des producteurs du Maghreb pour une authenticité garantie.
+            </p>
+          </div>
+          
+          <div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 text-center">
+            <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Icon icon="mdi:clock-fast" class="w-8 h-8 text-white" />
+            </div>
+            <h3 class="text-xl font-bold text-primary mb-4">Livraison Express</h3>
+            <p class="text-gray-600 leading-relaxed">
+              Commandez en ligne et recevez vos plats chauds en moins de 30 minutes dans un rayon de 10km autour de Paris.
+            </p>
+          </div>
+          
+          <div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 text-center">
+            <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Icon icon="mdi:shield-check" class="w-8 h-8 text-white" />
+            </div>
+            <h3 class="text-xl font-bold text-primary mb-4">Qualité Garantie</h3>
+            <p class="text-gray-600 leading-relaxed">
+              Satisfait ou remboursé ! Notre engagement qualité nous permet de maintenir une note de 4.8/5 depuis 3 ans.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 </template>
 
 <script setup>
-import { MapPinIcon, TruckIcon, ChevronUpIcon, NewspaperIcon, BookOpenIcon, SparklesIcon, StarIcon, ChatBubbleLeftEllipsisIcon, HeartIcon, UserGroupIcon, FireIcon } from '@heroicons/vue/24/outline'
-import { ref, onMounted, onUnmounted } from 'vue'
-
-const showScrollTop = ref(false)
-let homeContainer = null
-
-const handleScroll = () => {
-  if (homeContainer) {
-    showScrollTop.value = homeContainer.scrollTop > 200
-  }
-}
-
-const scrollToTop = () => {
-  if (homeContainer) {
-    homeContainer.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-}
-
-onMounted(() => {
-  homeContainer = document.querySelector('main')
-  if (homeContainer) {
-    homeContainer.addEventListener('scroll', handleScroll)
-  }
-})
-
-onUnmounted(() => {
-  if (homeContainer) {
-    homeContainer.removeEventListener('scroll', handleScroll)
-  }
-})
+import { Icon } from '@iconify/vue'
 </script>
 
-<style scoped></style>
+<style scoped>
+.bg-clip-text {
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+</style>

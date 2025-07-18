@@ -28,7 +28,7 @@
         </button>
 
         <div class="flex flex-col items-center gap-2 mb-6">
-          <img src="/logo.png" alt="Logo KoulMaghreb" class="h-16 w-auto">
+          <img src="/logo-mobile.png" alt="Logo KoulMaghreb" class="h-16 w-auto">
         </div>
 
         <h1 id="login-modal-title" class="text-xl font-semibold text-center text-accent mb-1">Bienvenue à nouveau !</h1>

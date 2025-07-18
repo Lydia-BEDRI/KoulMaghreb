@@ -22,7 +22,7 @@
         </svg>
       </button>
       <a href="/" class="flex-shrink-0" aria-label="Accueil KoulMaghreb">
-        <img src="/logo.png" alt="" class="h-16 w-auto" />
+        <img src="/logo-complete.png" alt="" class="h-16 w-auto" />
       </a>
       <span class="text-xl font-bold text-accent hidden sm:inline"
       >Administrateur</span>
