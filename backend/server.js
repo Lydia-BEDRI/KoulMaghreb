@@ -8,8 +8,7 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 const { testConnection } = require('./database/connection');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
+const PORT = process.env.PORT || 3001; 
 // Middlewares de sécurité
 app.use(helmet());
 
@@ -44,7 +43,7 @@ const evenementsRoutes = require('./routes/evenements');
 const reservationsRoutes = require('./routes/reservations');
 const avisRoutes = require('./routes/avis');
 const favorisRoutes = require('./routes/favoris');
-const panierRoutes = require('./routes/panier'); // Ajouter cette ligne
+const panierRoutes = require('./routes/panier');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/plats', platRoutes);
@@ -55,7 +54,7 @@ app.use('/api/evenements', evenementsRoutes);
 app.use('/api/reservations', reservationsRoutes);
 app.use('/api/avis', avisRoutes);
 app.use('/api/favoris', favorisRoutes);
-app.use('/api/panier', panierRoutes); // Ajouter cette ligne
+app.use('/api/panier', panierRoutes);
 
 // Route de test
 app.get('/api/health', (req, res) => {

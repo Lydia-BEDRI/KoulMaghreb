@@ -4,7 +4,7 @@
       <div class="flex flex-col sm:flex-row sm:items-center gap-4">
         <h2 class="text-xl font-semibold text-accent">Gestion des commandes</h2>
         <span class="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-          {{ commandesFiltrees.length }} commande{{ commandesFiltrees.length > 1 ? 's' : '' }}
+          {{ pagination?.total || 0 }} commande{{ (pagination?.total || 0) > 1 ? 's' : '' }}
         </span>
       </div>
       
@@ -12,6 +12,7 @@
         <div class="flex gap-3">
           <select 
             v-model="filtreStatut" 
+            @change="chargerCommandes(1)"
             class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary"
           >
             <option value="">Tous les statuts</option>
@@ -23,16 +24,42 @@
             <option value="Annulée">Annulée</option>
           </select>
           <input 
-            v-model="recherche" 
+            v-model="recherche"
+            @input="rechercherCommandes"
             placeholder="Rechercher..." 
             class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary"
           />
         </div>
+        
+        <button 
+          @click="chargerCommandes(pagination?.page || 1)"
+          :disabled="loading"
+          class="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-accent transition text-sm disabled:opacity-50"
+        >
+          <Icon icon="mdi:refresh" :class="{ 'animate-spin': loading }" />
+          Actualiser
+        </button>
       </div>
     </div>
 
     <div class="bg-white rounded-xl shadow p-4 overflow-x-auto">
-      <table class="w-full text-left text-sm border-separate border-spacing-y-2">
+      <div v-if="loading" class="text-center py-12">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+        <p class="text-gray-600">Chargement des commandes...</p>
+      </div>
+
+      <div v-else-if="error" class="text-center py-12 text-red-600">
+        <Icon icon="mdi:alert-circle" class="text-4xl mb-2" />
+        <p class="mb-4">{{ error }}</p>
+        <button 
+          @click="chargerCommandes(1)" 
+          class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-accent transition"
+        >
+          Réessayer
+        </button>
+      </div>
+
+      <table v-else-if="commandes.length > 0" class="w-full text-left text-sm border-separate border-spacing-y-2">
         <thead class="text-primary uppercase text-xs tracking-wide">
           <tr>
             <th class="py-2 px-3">ID</th>
@@ -46,27 +73,30 @@
         </thead>
         <tbody>
           <tr 
-            v-for="commande in commandesFiltrees" 
+            v-for="commande in commandes" 
             :key="commande.id"
             class="bg-background hover:bg-orange-50 rounded transition-colors"
           >
             <td class="py-3 px-3 font-semibold text-gray-800">
-              {{ commande.id }}
+              #{{ commande.id }}
             </td>
             
             <td class="py-3 px-3 font-semibold text-accent">
-              {{ commande.numeroCommande }}
+              {{ commande.numero_commande }}
             </td>
             
             <td class="py-3 px-3">
-              <div>
+              <div v-if="commande.client">
                 <p class="font-medium text-gray-800">{{ commande.client.nom }}</p>
                 <p class="text-xs text-gray-500">{{ commande.client.email }}</p>
+              </div>
+              <div v-else class="text-gray-400 italic">
+                Client inconnu
               </div>
             </td>
             
             <td class="py-3 px-3 font-semibold text-gray-800">
-              {{ commande.total.toFixed(2) }}€
+              {{ parseFloat(commande.total).toFixed(2) }}€
             </td>
             
             <td class="py-3 px-3">
@@ -97,15 +127,37 @@
         </tbody>
       </table>
 
-      <div v-if="commandesFiltrees.length === 0" class="text-center py-8">
+      <div v-else class="text-center py-8">
         <Icon icon="mdi:package-variant" class="text-6xl text-gray-300 mb-4" />
         <p class="text-gray-500 text-lg">
           {{ recherche || filtreStatut ? 'Aucune commande trouvée' : 'Aucune commande disponible' }}
         </p>
         <p class="text-sm text-gray-400 mt-2">
-          {{ recherche || filtreStatut ? 'Essayez de modifier vos filtres' : 'Ajoutez votre première commande' }}
+          {{ recherche || filtreStatut ? 'Essayez de modifier vos filtres' : 'Les commandes apparaîtront ici' }}
         </p>
       </div>
+    </div>
+
+    <div v-if="pagination && pagination.pages > 1" class="flex justify-center items-center gap-2">
+      <button
+        @click="chargerCommandes(pagination.page - 1)"
+        :disabled="pagination.page <= 1 || loading"
+        class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition disabled:opacity-50"
+      >
+        Précédent
+      </button>
+      
+      <span class="px-4 py-2 text-gray-700">
+        Page {{ pagination.page }} sur {{ pagination.pages }}
+      </span>
+      
+      <button
+        @click="chargerCommandes(pagination.page + 1)"
+        :disabled="pagination.page >= pagination.pages || loading"
+        class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition disabled:opacity-50"
+      >
+        Suivant
+      </button>
     </div>
 
     <CommandeDetailModal 
@@ -118,39 +170,71 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { commandes as commandesData } from '@/data/commandes'
+import { ref, computed, onMounted } from 'vue'
+import { useAuth } from '@/composables/useAuth'
+import { useToast } from 'vue-toastification'
+import { adminCommandesService } from '@/services/adminCommandesService'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Icon } from '@iconify/vue'
 import CommandeDetailModal from './CommandeDetailModal.vue'
 
-const commandes = ref(commandesData)
+const { isAdmin } = useAuth()
+const toast = useToast()
+
+const commandes = ref([])
+const pagination = ref(null)
+const loading = ref(false)
+const error = ref(null)
 const filtreStatut = ref('')
 const recherche = ref('')
 
 const showModal = ref(false)
 const selectedCommande = ref(null)
 
-const commandesFiltrees = computed(() => {
-  let result = commandes.value
+let rechercheTimeout = null
 
-  if (filtreStatut.value) {
-    result = result.filter(cmd => cmd.statut === filtreStatut.value)
+const token = computed(() => localStorage.getItem('auth_token'))
+
+const chargerCommandes = async (page = 1) => {
+  if (!token.value || !isAdmin.value) {
+    error.value = 'Accès non autorisé'
+    return
   }
 
-  if (recherche.value) {
-    const term = recherche.value.toLowerCase()
-    result = result.filter(cmd => 
-      cmd.client.nom.toLowerCase().includes(term) ||
-      cmd.numeroCommande.toLowerCase().includes(term) ||
-      cmd.client.email.toLowerCase().includes(term) ||
-      cmd.id.toString().includes(term)
+  try {
+    loading.value = true
+    error.value = null
+
+    const response = await adminCommandesService.getAllCommandes(
+      token.value,
+      page,
+      20,
+      filtreStatut.value
     )
-  }
 
-  return result
-})
+    commandes.value = response.commandes || []
+    pagination.value = response.pagination
+
+    if (commandes.value.length === 0 && page > 1) {
+      await chargerCommandes(1)
+    }
+
+  } catch (err) {
+    console.error('Erreur chargement commandes:', err)
+    error.value = err.message || 'Erreur lors du chargement des commandes'
+    toast.error(error.value)
+  } finally {
+    loading.value = false
+  }
+}
+
+const rechercherCommandes = () => {
+  clearTimeout(rechercheTimeout)
+  rechercheTimeout = setTimeout(() => {
+    chargerCommandes(1)
+  }, 500)
+}
 
 const getStatutClass = (statut) => {
   const classes = {
@@ -164,8 +248,12 @@ const getStatutClass = (statut) => {
   return classes[statut] || 'bg-gray-100 text-gray-600'
 }
 
-const formatDate = (date) => {
-  return format(new Date(date), 'dd/MM/yyyy HH:mm', { locale: fr })
+const formatDate = (dateString) => {
+  try {
+    return format(new Date(dateString), 'dd/MM/yyyy HH:mm', { locale: fr })
+  } catch (err) {
+    return 'Date invalide'
+  }
 }
 
 const voirDetails = (commande) => {
@@ -173,11 +261,30 @@ const voirDetails = (commande) => {
   showModal.value = true
 }
 
-const updateCommande = (updates) => {
-  const index = commandes.value.findIndex(cmd => cmd.id === updates.id)
-  if (index !== -1) {
-    commandes.value[index] = { ...commandes.value[index], ...updates }
-    alert(`Commande ${commandes.value[index].numeroCommande} mise à jour !`)
+const updateCommande = async (updates) => {
+  try {
+    await adminCommandesService.updateCommande(
+      token.value,
+      updates.id,
+      {
+        statut: updates.statut,
+        notes_admin: updates.notesAdmin
+      }
+    )
+
+    toast.success('Commande mise à jour avec succès !')
+    
+    await chargerCommandes(pagination.value?.page || 1)
+    
+    showModal.value = false
+
+  } catch (err) {
+    console.error('Erreur mise à jour commande:', err)
+    toast.error(err.message || 'Erreur lors de la mise à jour')
   }
 }
+
+onMounted(() => {
+  chargerCommandes(1)
+})
 </script>

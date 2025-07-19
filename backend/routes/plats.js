@@ -1,62 +1,47 @@
 const express = require('express');
-const { body, validationResult } = require('express-validator');
 const { query } = require('../database/connection');
-const { auth, adminAuth, optionalAuth } = require('../middleware/auth');
+const { auth, adminAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get('/', optionalAuth, async (req, res) => {
+// Route pour récupérer tous les plats (public)
+router.get('/', async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 12;
+    const limit = parseInt(req.query.limit) || 20;
     const offset = (page - 1) * limit;
-    const search = req.query.search || '';
-    const pays = req.query.pays || '';
+    
     const type = req.query.type || '';
-    const disponible = req.query.disponible === 'true' ? true : req.query.disponible === 'false' ? false : null;
+    const cuisine = req.query.cuisine || '';
 
-    let whereClause = '';
-    let queryParams = [];
+    let whereClause = 'WHERE statut = "Actif"';
+    let params = [];
 
-    const conditions = [];
-    
-    if (search) {
-      conditions.push('(nom LIKE ? OR short_desc LIKE ? OR long_desc LIKE ?)');
-      queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
-    }
-    
-    if (pays) {
-      conditions.push('pays = ?');
-      queryParams.push(pays);
-    }
-    
     if (type) {
-      conditions.push('type = ?');
-      queryParams.push(type);
-    }
-    
-    if (disponible !== null) {
-      conditions.push('disponible = ?');
-      queryParams.push(disponible);
+      whereClause += ' AND type = ?';
+      params.push(type);
     }
 
-    if (conditions.length > 0) {
-      whereClause = 'WHERE ' + conditions.join(' AND ');
+    if (cuisine) {
+      whereClause += ' AND cuisine = ?';
+      params.push(cuisine);
     }
 
+    // Compter le total
     const countQuery = `SELECT COUNT(*) as total FROM plats ${whereClause}`;
-    const totalResult = await query(countQuery, queryParams);
-    const total = totalResult[0].total;
+    const countResult = await query(countQuery, params);
+    const total = countResult[0].total;
 
+    // Récupérer les plats avec pagination
     const platsQuery = `
-      SELECT id, nom, prix, note, image, short_desc, pays, type, disponible, created_at
+      SELECT id, nom, description, prix, image_url, type, cuisine, statut, created_at
       FROM plats 
       ${whereClause}
-      ORDER BY nom ASC 
+      ORDER BY created_at DESC
       LIMIT ${limit} OFFSET ${offset}
     `;
-    
-    const plats = await query(platsQuery, queryParams);
+
+    const plats = await query(platsQuery, params);
 
     res.json({
       plats,
@@ -74,175 +59,227 @@ router.get('/', optionalAuth, async (req, res) => {
   }
 });
 
+// Route pour récupérer un plat par ID (public)
 router.get('/:id', async (req, res) => {
   try {
     const platId = req.params.id;
-    
-    const plats = await query('SELECT * FROM plats WHERE id = ?', [platId]);
-    
+
+    const plats = await query(
+      'SELECT * FROM plats WHERE id = ? AND statut = "Actif"',
+      [platId]
+    );
+
     if (plats.length === 0) {
       return res.status(404).json({ error: 'Plat non trouvé' });
     }
-    
-    res.json(plats[0]);
-    
+
+    res.json({ plat: plats[0] });
+
   } catch (error) {
-    res.status(500).json({ error: 'Erreur serveur' });
+    console.error('Erreur récupération plat:', error);
+    res.status(500).json({ error: 'Erreur lors de la récupération du plat' });
   }
 });
 
-const createValidation = [
-  body('nom').notEmpty().trim().withMessage('Le nom du plat est requis'),
-  body('prix').isFloat({ min: 0 }).withMessage('Le prix doit être un nombre positif'),
-  body('short_desc').notEmpty().trim().withMessage('La description courte est requise'),
-  body('long_desc').optional().trim(),
-  body('pays').notEmpty().trim().withMessage('Le pays d\'origine est requis'),
-  body('type').isIn(['Entrée', 'Plat principal', 'Dessert', 'Boisson']).withMessage('Type de plat invalide'),
-  body('image').optional().trim(),
-  body('disponible').optional().isBoolean().withMessage('Disponible doit être un booléen')
-];
-
-router.post('/', auth, adminAuth, createValidation, async (req, res) => {
+// Route admin pour récupérer tous les plats (avec ceux inactifs)
+router.get('/admin/all', auth, adminAuth, async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const offset = (page - 1) * limit;
+    
+    const statut = req.query.statut || '';
+    const type = req.query.type || '';
+    const cuisine = req.query.cuisine || '';
+
+    let whereClause = 'WHERE 1=1';
+    let params = [];
+
+    if (statut) {
+      whereClause += ' AND statut = ?';
+      params.push(statut);
     }
 
-    const { nom, prix, short_desc, long_desc, pays, type, image, disponible = true } = req.body;
+    if (type) {
+      whereClause += ' AND type = ?';
+      params.push(type);
+    }
 
-    const result = await query(
-      'INSERT INTO plats (nom, prix, short_desc, long_desc, pays, type, image, disponible) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [nom, prix, short_desc, long_desc, pays, type, image, disponible]
-    );
+    if (cuisine) {
+      whereClause += ' AND cuisine = ?';
+      params.push(cuisine);
+    }
 
-    const newPlat = await query(
+    // Compter le total
+    const countQuery = `SELECT COUNT(*) as total FROM plats ${whereClause}`;
+    const countResult = await query(countQuery, params);
+    const total = countResult[0].total;
+
+    // Récupérer les plats avec pagination
+    const platsQuery = `
+      SELECT * FROM plats 
+      ${whereClause}
+      ORDER BY created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+
+    const plats = await query(platsQuery, params);
+
+    res.json({
+      plats,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+
+  } catch (error) {
+    console.error('Erreur récupération plats admin:', error);
+    res.status(500).json({ 
+      error: 'Erreur lors de la récupération des plats',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// Route admin pour créer un plat
+router.post('/admin', auth, adminAuth, async (req, res) => {
+  try {
+    const {
+      nom,
+      description,
+      prix,
+      image_url,
+      type,
+      cuisine,
+      statut = 'Actif'
+    } = req.body;
+
+    // Validation
+    if (!nom || !description || !prix || !type || !cuisine) {
+      return res.status(400).json({
+        error: 'Données manquantes: nom, description, prix, type et cuisine sont requis'
+      });
+    }
+
+    const result = await query(`
+      INSERT INTO plats (nom, description, prix, image_url, type, cuisine, statut)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `, [nom, description, prix, image_url, type, cuisine, statut]);
+
+    // Récupérer le plat créé
+    const nouveauPlat = await query(
       'SELECT * FROM plats WHERE id = ?',
       [result.insertId]
     );
 
     res.status(201).json({
       message: 'Plat créé avec succès',
-      plat: newPlat[0]
+      plat: nouveauPlat[0]
     });
 
   } catch (error) {
     console.error('Erreur création plat:', error);
-    res.status(500).json({ error: 'Erreur lors de la création du plat' });
+    res.status(500).json({ 
+      error: 'Erreur lors de la création du plat',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
-const updateValidation = [
-  body('nom').optional().notEmpty().trim().withMessage('Le nom du plat ne peut pas être vide'),
-  body('prix').optional().isFloat({ min: 0 }).withMessage('Le prix doit être un nombre positif'),
-  body('short_desc').optional().notEmpty().trim().withMessage('La description courte ne peut pas être vide'),
-  body('long_desc').optional().trim(),
-  body('pays').optional().notEmpty().trim().withMessage('Le pays d\'origine ne peut pas être vide'),
-  body('type').optional().isIn(['Entrée', 'Plat principal', 'Dessert', 'Boisson']).withMessage('Type de plat invalide'),
-  body('image').optional().trim(),
-  body('disponible').optional().isBoolean().withMessage('Disponible doit être un booléen')
-];
-
-router.put('/:id', auth, adminAuth, updateValidation, async (req, res) => {
+// Route admin pour mettre à jour un plat
+router.put('/admin/:id', auth, adminAuth, async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+    const platId = req.params.id;
+    const {
+      nom,
+      description,
+      prix,
+      image_url,
+      type,
+      cuisine,
+      statut
+    } = req.body;
 
-    const platId = parseInt(req.params.id);
-    const { nom, prix, short_desc, long_desc, pays, type, image, disponible } = req.body;
-
-    const existingPlat = await query('SELECT id FROM plats WHERE id = ?', [platId]);
-    if (existingPlat.length === 0) {
+    // Vérifier que le plat existe
+    const platExistant = await query('SELECT * FROM plats WHERE id = ?', [platId]);
+    
+    if (platExistant.length === 0) {
       return res.status(404).json({ error: 'Plat non trouvé' });
     }
 
+    // Construire la requête de mise à jour
     const updates = [];
-    const values = [];
+    const params = [];
 
-    if (nom !== undefined) { updates.push('nom = ?'); values.push(nom); }
-    if (prix !== undefined) { updates.push('prix = ?'); values.push(prix); }
-    if (short_desc !== undefined) { updates.push('short_desc = ?'); values.push(short_desc); }
-    if (long_desc !== undefined) { updates.push('long_desc = ?'); values.push(long_desc); }
-    if (pays !== undefined) { updates.push('pays = ?'); values.push(pays); }
-    if (type !== undefined) { updates.push('type = ?'); values.push(type); }
-    if (image !== undefined) { updates.push('image = ?'); values.push(image); }
-    if (disponible !== undefined) { updates.push('disponible = ?'); values.push(disponible); }
+    if (nom !== undefined) { updates.push('nom = ?'); params.push(nom); }
+    if (description !== undefined) { updates.push('description = ?'); params.push(description); }
+    if (prix !== undefined) { updates.push('prix = ?'); params.push(prix); }
+    if (image_url !== undefined) { updates.push('image_url = ?'); params.push(image_url); }
+    if (type !== undefined) { updates.push('type = ?'); params.push(type); }
+    if (cuisine !== undefined) { updates.push('cuisine = ?'); params.push(cuisine); }
+    if (statut !== undefined) { updates.push('statut = ?'); params.push(statut); }
 
     if (updates.length === 0) {
       return res.status(400).json({ error: 'Aucune donnée à mettre à jour' });
     }
 
-    updates.push('updated_at = NOW()');
-    values.push(platId);
+    updates.push('updated_at = CURRENT_TIMESTAMP');
+    params.push(platId);
 
-    await query(
-      `UPDATE plats SET ${updates.join(', ')} WHERE id = ?`,
-      values
-    );
+    await query(`
+      UPDATE plats 
+      SET ${updates.join(', ')} 
+      WHERE id = ?
+    `, params);
 
-    const updatedPlat = await query('SELECT * FROM plats WHERE id = ?', [platId]);
+    // Récupérer le plat mis à jour
+    const platMisAJour = await query('SELECT * FROM plats WHERE id = ?', [platId]);
 
     res.json({
       message: 'Plat mis à jour avec succès',
-      plat: updatedPlat[0]
+      plat: platMisAJour[0]
     });
 
   } catch (error) {
     console.error('Erreur mise à jour plat:', error);
-    res.status(500).json({ error: 'Erreur lors de la mise à jour du plat' });
+    res.status(500).json({ 
+      error: 'Erreur lors de la mise à jour du plat',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
-router.delete('/:id', auth, adminAuth, async (req, res) => {
+// Route admin pour supprimer un plat (soft delete)
+router.delete('/admin/:id', auth, adminAuth, async (req, res) => {
   try {
-    const platId = parseInt(req.params.id);
+    const platId = req.params.id;
 
-    const existingPlat = await query('SELECT id FROM plats WHERE id = ?', [platId]);
-    if (existingPlat.length === 0) {
+    // Vérifier que le plat existe
+    const platExistant = await query('SELECT * FROM plats WHERE id = ?', [platId]);
+    
+    if (platExistant.length === 0) {
       return res.status(404).json({ error: 'Plat non trouvé' });
     }
 
-    await query('DELETE FROM plats WHERE id = ?', [platId]);
+    // Soft delete - marquer comme inactif
+    await query(
+      'UPDATE plats SET statut = "Inactif", updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [platId]
+    );
 
-    res.json({ message: 'Plat supprimé avec succès' });
+    res.json({
+      message: 'Plat supprimé avec succès'
+    });
 
   } catch (error) {
     console.error('Erreur suppression plat:', error);
-    res.status(500).json({ error: 'Erreur lors de la suppression du plat' });
-  }
-});
-
-router.get('/pays/list', async (req, res) => {
-  try {
-    const pays = await query(
-      'SELECT DISTINCT pays FROM plats WHERE pays IS NOT NULL ORDER BY pays'
-    );
-
-    res.json({ 
-      pays: pays.map(p => p.pays) 
+    res.status(500).json({ 
+      error: 'Erreur lors de la suppression du plat',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
-
-  } catch (error) {
-    console.error('Erreur récupération pays:', error);
-    res.status(500).json({ error: 'Erreur lors de la récupération des pays' });
-  }
-});
-
-router.get('/types/list', async (req, res) => {
-  try {
-    const types = await query(
-      'SELECT DISTINCT type FROM plats WHERE type IS NOT NULL ORDER BY type'
-    );
-
-    res.json({ 
-      types: types.map(t => t.type) 
-    });
-
-  } catch (error) {
-    console.error('Erreur récupération types:', error);
-    res.status(500).json({ error: 'Erreur lors de la récupération des types' });
   }
 });
 
