@@ -4,13 +4,14 @@
             <div class="flex flex-col sm:flex-row sm:items-center gap-4">
                 <h2 class="text-xl font-semibold text-accent">Gestion des avis</h2>
                 <span class="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-                    {{ avisFiltres.length }} avis
+                    {{ totalAvis }} avis
                 </span>
             </div>
             <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
                 <div class="flex gap-3">
                     <select 
                         v-model="filtreNote" 
+                        @change="chargerAvis"
                         class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary"
                     >
                         <option value="">Toutes les notes</option>
@@ -22,22 +23,36 @@
                     </select>
                     <select 
                         v-model="filtreStatut" 
+                        @change="chargerAvis"
                         class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary"
                     >
                         <option value="">Tous les statuts</option>
-                        <option value="Publié">Publié</option>
-                        <option value="En attente">En attente</option>
-                        <option value="Masqué">Masqué</option>
+                        <option value="true">Publié</option>
+                        <option value="false">En attente</option>
                     </select>
                     <input 
                         v-model="recherche" 
+                        @input="debounceSearch"
                         placeholder="Rechercher..." 
                         class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary"
                     />
                 </div>
             </div>
         </div>
-        <div class="bg-white rounded-xl shadow p-4 overflow-x-auto">
+
+        <div v-if="loading" class="text-center py-8">
+            <Icon icon="mdi:loading" class="text-4xl text-primary animate-spin mb-4" />
+            <p class="text-gray-600">Chargement des avis...</p>
+        </div>
+
+        <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div class="flex items-center gap-2 text-red-800">
+                <Icon icon="mdi:alert-circle" class="text-xl" />
+                <p>{{ error }}</p>
+            </div>
+        </div>
+
+        <div v-else class="bg-white rounded-xl shadow p-4 overflow-x-auto">
             <table class="w-full text-left text-sm border-separate border-spacing-y-2">
                 <thead class="text-primary uppercase text-xs tracking-wide">
                     <tr>
@@ -53,7 +68,7 @@
                 </thead>
                 <tbody>
                     <tr 
-                        v-for="avis in avisFiltres" 
+                        v-for="avis in avisData" 
                         :key="avis.id"
                         class="bg-background hover:bg-orange-50 rounded transition-colors"
                     >
@@ -63,11 +78,11 @@
                         <td class="py-3 px-3">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-full bg-primary text-white font-bold flex items-center justify-center text-sm">
-                                    {{ getInitiales(avis.client.nom) }}
+                                    {{ getInitiales(avis.utilisateur?.nom || 'Utilisateur') }}
                                 </div>
                                 <div>
-                                    <p class="font-medium text-gray-800">{{ avis.client.nom }}</p>
-                                    <p class="text-xs text-gray-500">{{ avis.client.email }}</p>
+                                    <p class="font-medium text-gray-800">{{ avis.utilisateur?.nom || 'Utilisateur' }}</p>
+                                    <p class="text-xs text-gray-500">ID: {{ avis.user_id }}</p>
                                 </div>
                             </div>
                         </td>
@@ -82,19 +97,19 @@
                         </td>
                         <td class="py-3 px-3 max-w-xs">
                             <p class="text-gray-800 truncate" :title="avis.commentaire">
-                                {{ avis.commentaire }}
+                                {{ avis.commentaire || 'Aucun commentaire' }}
                             </p>
                         </td>
                         <td class="py-3 px-3">
-                            <p class="font-medium text-gray-800">{{ avis.plat.nom }}</p>
-                            <p class="text-xs text-gray-500">{{ avis.plat.prix }}€</p>
+                            <p class="font-medium text-gray-800">{{ avis.plat?.nom || 'Plat supprimé' }}</p>
+                            <p class="text-xs text-gray-500">{{ avis.plat?.prix || 0 }}€</p>
                         </td>
                         <td class="py-3 px-3">
                             <span 
-                                :class="getStatutClass(avis.statut)"
+                                :class="getStatutClass(avis.approuve)"
                                 class="px-2 py-1 rounded-full text-xs font-semibold"
                             >
-                                {{ avis.statut }}
+                                {{ avis.approuve ? 'Publié' : 'En attente' }}
                             </span>
                         </td>
                         <td class="py-3 px-3 text-gray-600">
@@ -109,12 +124,20 @@
                                 >
                                     Détails
                                 </button>
+                                <button 
+                                    @click="supprimerAvis(avis)"
+                                    class="bg-red-500 text-white px-3 py-1 rounded-lg text-xs hover:bg-red-600 transition"
+                                    title="Supprimer"
+                                >
+                                    <Icon icon="mdi:delete" />
+                                </button>
                             </div>
                         </td>
                     </tr>
                 </tbody>
             </table>
-            <div v-if="avisFiltres.length === 0" class="text-center py-8">
+            
+            <div v-if="avisData.length === 0" class="text-center py-8">
                 <Icon icon="mdi:comment-text" class="text-6xl text-gray-300 mb-4" />
                 <p class="text-gray-500 text-lg">
                     {{ recherche || filtreNote || filtreStatut ? 'Aucun avis trouvé' : 'Aucun avis disponible' }}
@@ -123,7 +146,30 @@
                     {{ recherche || filtreNote || filtreStatut ? 'Essayez de modifier vos filtres' : 'Les avis clients apparaîtront ici' }}
                 </p>
             </div>
+
+            <div v-if="pagination && pagination.pages > 1" class="flex justify-center items-center gap-2 mt-6">
+                <button 
+                    @click="changerPage(pagination.page - 1)"
+                    :disabled="pagination.page <= 1"
+                    class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    Précédent
+                </button>
+                
+                <span class="text-sm text-gray-600">
+                    Page {{ pagination.page }} sur {{ pagination.pages }}
+                </span>
+                
+                <button 
+                    @click="changerPage(pagination.page + 1)"
+                    :disabled="pagination.page >= pagination.pages"
+                    class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:cursor-not-allowed"
+                >
+                    Suivant
+                </button>
+            </div>
         </div>
+
         <AvisDetailModal 
             :show="showModal"
             :avis="selectedAvis"
@@ -134,204 +180,161 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Icon } from '@iconify/vue'
 import AvisDetailModal from './AvisDetailModal.vue'
+import { useToast } from 'vue-toastification'
+import { avisService } from '@/services/avisService'
 
-const avis = ref([
-    {
-        id: 1,
-        client: {
-            nom: 'Amel Benali',
-            email: 'amel.benali@email.com',
-            telephone: '+33 6 12 34 56 78'
-        },
-        note: 5,
-        commentaire: 'Délicieux couscous, bien épicé et très généreux ! Je recommande vivement ce restaurant pour l\'authenticité de ses plats.',
-        plat: {
-            nom: 'Couscous Royal',
-            prix: 18
-        },
-        statut: 'Publié',
-        created_at: '2025-06-20T14:30:00'
-    },
-    {
-        id: 2,
-        client: {
-            nom: 'Karim Djelloul',
-            email: 'karim.djelloul@email.com',
-            telephone: '+33 6 98 76 54 32'
-        },
-        note: 4,
-        commentaire: 'Très bon plat, un peu salé pour moi mais le goût est authentique. Service rapide et personnel accueillant.',
-        plat: {
-            nom: 'Tajine de Poulet',
-            prix: 16
-        },
-        statut: 'Publié',
-        created_at: '2025-06-18T10:15:00'
-    },
-    {
-        id: 3,
-        client: {
-            nom: 'Yasmine Zidane',
-            email: 'yasmine.z@email.com',
-            telephone: '+33 6 45 67 89 12'
-        },
-        note: 5,
-        commentaire: 'Parfait ! Les saveurs me rappellent la cuisine de ma grand-mère. Merci pour ce voyage culinaire.',
-        plat: {
-            nom: 'Pastilla au Poulet',
-            prix: 15
-        },
-        statut: 'Publié',
-        created_at: '2025-06-15T19:45:00'
-    },
-    {
-        id: 4,
-        client: {
-            nom: 'Mohamed Larbi',
-            email: 'mohamed.larbi@email.com',
-            telephone: '+33 6 33 44 55 66'
-        },
-        note: 3,
-        commentaire: 'Correct sans plus. La présentation pourrait être améliorée et le service était un peu lent.',
-        plat: {
-            nom: 'Harira',
-            prix: 8
-        },
-        statut: 'En attente',
-        created_at: '2025-06-12T16:20:00'
-    },
-    {
-        id: 5,
-        client: {
-            nom: 'Fatima Belkacem',
-            email: 'fatima.belkacem@email.com',
-            telephone: '+33 6 77 88 99 00'
-        },
-        note: 2,
-        commentaire: 'Très déçue de ma commande. Les épices étaient trop fortes et la viande pas assez cuite.',
-        plat: {
-            nom: 'Chorba',
-            prix: 10
-        },
-        statut: 'Masqué',
-        created_at: '2025-06-10T12:30:00'
-    },
-    {
-        id: 6,
-        client: {
-            nom: 'Rachid Benzema',
-            email: 'rachid.b@email.com',
-            telephone: '+33 6 11 22 33 44'
-        },
-        note: 4,
-        commentaire: 'Bon restaurant, je reviendrai ! Les desserts sont particulièrement réussis.',
-        plat: {
-            nom: 'Makroud',
-            prix: 5
-        },
-        statut: 'Publié',
-        created_at: '2025-06-08T15:45:00'
-    },
-    {
-        id: 7,
-        client: {
-            nom: 'Lina Amrani',
-            email: 'lina.amrani@email.com',
-            telephone: '+33 6 55 66 77 88'
-        },
-        note: 5,
-        commentaire: 'Absolument délicieux ! Une explosion de saveurs dans chaque bouchée. Bravo au chef !',
-        plat: {
-            nom: 'Bricks à l\'œuf',
-            prix: 7
-        },
-        statut: 'Publié',
-        created_at: '2025-06-05T18:10:00'
-    },
-    {
-        id: 8,
-        client: {
-            nom: 'Omar Mansouri',
-            email: 'omar.mansouri@email.com',
-            telephone: '+33 6 99 88 77 66'
-        },
-        note: 1,
-        commentaire: 'Service catastrophique et nourriture froide. Je ne recommande absolument pas.',
-        plat: {
-            nom: 'Tajine de Poulet',
-            prix: 16
-        },
-        statut: 'En attente',
-        created_at: '2025-06-03T13:25:00'
-    }
-])
+const toast = useToast()
+
+const avisData = ref([])
+const loading = ref(true)
+const error = ref('')
+const totalAvis = ref(0)
+const pagination = ref(null)
 
 const filtreNote = ref('')
 const filtreStatut = ref('')
 const recherche = ref('')
+const searchTimeout = ref(null)
 
 const showModal = ref(false)
 const selectedAvis = ref(null)
 
-const avisFiltres = computed(() => {
-    let result = avis.value
+const getToken = () => {
+    return localStorage.getItem('auth_token')
+}
 
-    if (filtreNote.value) {
-        result = result.filter(av => av.note === parseInt(filtreNote.value))
+const chargerAvis = async (page = 1) => {
+    try {
+        loading.value = true
+        error.value = ''
+        
+        const currentToken = getToken()
+        if (!currentToken) {
+            throw new Error('Token d\'authentification manquant')
+        }
+
+        const filters = {}
+        if (filtreNote.value) filters.note = filtreNote.value
+        if (filtreStatut.value) filters.approuve = filtreStatut.value
+        if (recherche.value) filters.search = recherche.value
+
+        const response = await avisService.getAllAvis(currentToken, page, 10, filters)
+        
+        avisData.value = response.avis || []
+        pagination.value = response.pagination
+        totalAvis.value = response.pagination?.total || 0
+
+    } catch (err) {
+        console.error('Erreur chargement avis:', err)
+        error.value = err.message || 'Erreur lors du chargement des avis'
+        
+        if (err.message.includes('401') || err.message.includes('403')) {
+            toast.error('Session expirée, veuillez vous reconnecter')
+        }
+    } finally {
+        loading.value = false
     }
+}
 
-    if (filtreStatut.value) {
-        result = result.filter(av => av.statut === filtreStatut.value)
+const debounceSearch = () => {
+    if (searchTimeout.value) {
+        clearTimeout(searchTimeout.value)
     }
+    searchTimeout.value = setTimeout(() => {
+        chargerAvis(1)
+    }, 500)
+}
 
-    if (recherche.value) {
-        const term = recherche.value.toLowerCase()
-        result = result.filter(av => 
-            av.client.nom.toLowerCase().includes(term) ||
-            av.client.email.toLowerCase().includes(term) ||
-            av.commentaire.toLowerCase().includes(term) ||
-            av.plat.nom.toLowerCase().includes(term) ||
-            av.id.toString().includes(term)
-        )
+const changerPage = (nouvellePage) => {
+    if (nouvellePage >= 1 && pagination.value && nouvellePage <= pagination.value.pages) {
+        chargerAvis(nouvellePage)
     }
+}
 
-    return result
-})
-
-const getStatutClass = (statut) => {
-    const classes = {
-        'Publié': 'bg-green-100 text-green-600',
-        'En attente': 'bg-yellow-100 text-yellow-600',
-        'Masqué': 'bg-red-100 text-red-600'
-    }
-    return classes[statut] || 'bg-gray-100 text-gray-600'
+const getStatutClass = (approuve) => {
+    return approuve 
+        ? 'bg-green-100 text-green-600'
+        : 'bg-yellow-100 text-yellow-600'
 }
 
 const getInitiales = (nom) => {
-    if (!nom) return ''
+    if (!nom) return '?'
     const parties = nom.trim().split(' ')
     return parties.slice(0, 2).map(p => p[0]?.toUpperCase()).join('')
 }
 
 const formatDate = (date) => {
+    if (!date) return 'Non disponible'
     return format(new Date(date), 'dd/MM/yyyy HH:mm', { locale: fr })
 }
 
-const voirDetails = (avisItem) => {
-    selectedAvis.value = avisItem
+const voirDetails = (avis) => {
+    selectedAvis.value = {
+        ...avis,
+        client: {
+            nom: avis.utilisateur?.nom || 'Utilisateur',
+            email: avis.utilisateur?.email || `user_${avis.user_id}@example.com`,
+            telephone: 'Non renseigné'
+        },
+        statut: avis.approuve ? 'Publié' : 'En attente'
+    }
     showModal.value = true
 }
 
-const updateAvis = (updates) => {
-    const index = avis.value.findIndex(av => av.id === updates.id)
-    if (index !== -1) {
-        avis.value[index] = { ...avis.value[index], ...updates }
-        alert(`Avis #${avis.value[index].id} mis à jour !`)
+const updateAvis = async (updates) => {
+    try {
+        const currentToken = getToken()
+        if (!currentToken) {
+            throw new Error('Token d\'authentification manquant')
+        }
+
+        const apiData = {
+            approuve: updates.statut === 'Publié'
+        }
+
+        await avisService.updateAvis(updates.id, apiData, currentToken)
+        
+        toast.success('Avis mis à jour avec succès !')
+        
+        await chargerAvis(pagination.value?.page || 1)
+        
+    } catch (err) {
+        console.error('Erreur mise à jour avis:', err)
+        toast.error(err.message || 'Erreur lors de la mise à jour de l\'avis')
     }
 }
+
+const supprimerAvis = async (avis) => {
+    const confirmation = confirm(
+        `Êtes-vous sûr de vouloir supprimer l'avis de ${avis.utilisateur?.nom || 'cet utilisateur'} ?\n\nCette action est irréversible.`
+    )
+    
+    if (!confirmation) return
+    
+    try {
+        const currentToken = getToken()
+        if (!currentToken) {
+            throw new Error('Token d\'authentification manquant')
+        }
+
+        await avisService.deleteAvis(avis.id, currentToken)
+        
+        toast.success('Avis supprimé avec succès !')
+        
+        await chargerAvis(pagination.value?.page || 1)
+        
+    } catch (err) {
+        console.error('Erreur suppression avis:', err)
+        toast.error(err.message || 'Erreur lors de la suppression de l\'avis')
+    }
+}
+
+onMounted(() => {
+    chargerAvis(1)
+})
 </script>

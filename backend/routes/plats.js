@@ -7,14 +7,19 @@ const router = express.Router();
 // Route pour récupérer tous les plats (public)
 router.get('/', async (req, res) => {
   try {
+    console.log('🔍 Route GET /plats appelée');
+    console.log('📦 Query params:', +req.query);
+    
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
+    const limit = parseInt(req.query.limit) || 50;
     const offset = (page - 1) * limit;
     
     const type = req.query.type || '';
-    const cuisine = req.query.cuisine || '';
+    const pays = req.query.pays || '';
+    const search = req.query.search || '';
 
-    let whereClause = 'WHERE statut = "Actif"';
+    // ✅ Enlever la condition sur statut qui n'existe pas
+    let whereClause = 'WHERE 1=1';
     let params = [];
 
     if (type) {
@@ -22,28 +27,55 @@ router.get('/', async (req, res) => {
       params.push(type);
     }
 
-    if (cuisine) {
-      whereClause += ' AND cuisine = ?';
-      params.push(cuisine);
+    if (pays) {
+      whereClause += ' AND pays = ?';
+      params.push(pays);
     }
+
+    if (search) {
+      whereClause += ' AND (nom LIKE ? OR short_desc LIKE ? OR long_desc LIKE ?)';
+      const searchPattern = `%${search}%`;
+      params.push(searchPattern, searchPattern, searchPattern);
+    }
+
+    console.log('🔍 Where clause:', whereClause);
+    console.log('🔍 Params:', params);
 
     // Compter le total
     const countQuery = `SELECT COUNT(*) as total FROM plats ${whereClause}`;
+    console.log('🔍 Count query:', countQuery);
+    
     const countResult = await query(countQuery, params);
     const total = countResult[0].total;
+    console.log('🔍 Total plats:', total);
 
-    // Récupérer les plats avec pagination
+    // ✅ Récupérer les plats avec les vraies colonnes de ton seed
     const platsQuery = `
-      SELECT id, nom, description, prix, image_url, type, cuisine, statut, created_at
+      SELECT id, nom, prix, note, image, short_desc, long_desc, pays, type
       FROM plats 
       ${whereClause}
-      ORDER BY created_at DESC
+      ORDER BY note DESC, nom ASC
       LIMIT ${limit} OFFSET ${offset}
     `;
+    console.log('🔍 Plats query:', platsQuery);
 
-    const plats = await query(platsQuery, params);
+    const platsResults = await query(platsQuery, params);
+    console.log('🔍 Plats trouvés:', platsResults.length);
 
-    res.json({
+    // ✅ Formater les données pour correspondre au frontend
+    const plats = platsResults.map(plat => ({
+      id: plat.id,
+      nom: plat.nom,
+      prix: parseFloat(plat.prix),
+      note: parseFloat(plat.note || 0),
+      image: plat.image,
+      description: plat.short_desc, // Frontend utilise 'description'
+      long_desc: plat.long_desc,
+      pays: plat.pays,
+      type: plat.type
+    }));
+
+    const response = {
       plats,
       pagination: {
         page,
@@ -51,10 +83,13 @@ router.get('/', async (req, res) => {
         total,
         pages: Math.ceil(total / limit)
       }
-    });
+    };
+
+    console.log('✅ Réponse envoyée:', response);
+    res.json(response);
 
   } catch (error) {
-    console.error('Erreur récupération plats:', error);
+    console.error('❌ Erreur récupération plats:', error);
     res.status(500).json({ error: 'Erreur lors de la récupération des plats' });
   }
 });
@@ -62,26 +97,45 @@ router.get('/', async (req, res) => {
 // Route pour récupérer un plat par ID (public)
 router.get('/:id', async (req, res) => {
   try {
-    const platId = req.params.id;
+    const platId = parseInt(req.params.id);
+    
+    if (isNaN(platId)) {
+      return res.status(400).json({ error: 'ID de plat invalide' });
+    }
 
-    const plats = await query(
-      'SELECT * FROM plats WHERE id = ? AND statut = "Actif"',
-      [platId]
-    );
+    const platQuery = `
+      SELECT id, nom, prix, note, image, short_desc, long_desc, pays, type
+      FROM plats 
+      WHERE id = ?
+    `;
 
-    if (plats.length === 0) {
+    const platResults = await query(platQuery, [platId]);
+    
+    if (platResults.length === 0) {
       return res.status(404).json({ error: 'Plat non trouvé' });
     }
 
-    res.json({ plat: plats[0] });
+    const platData = platResults[0];
+    
+    const plat = {
+      id: platData.id,
+      nom: platData.nom,
+      prix: parseFloat(platData.prix),
+      note: parseFloat(platData.note || 0),
+      image: platData.image,
+      description: platData.short_desc,
+      long_desc: platData.long_desc,
+      pays: platData.pays,
+      type: platData.type
+    };
+
+    res.json({ plat });
 
   } catch (error) {
-    console.error('Erreur récupération plat:', error);
     res.status(500).json({ error: 'Erreur lors de la récupération du plat' });
   }
 });
 
-// Route admin pour récupérer tous les plats (avec ceux inactifs)
 router.get('/admin/all', auth, adminAuth, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -110,12 +164,10 @@ router.get('/admin/all', auth, adminAuth, async (req, res) => {
       params.push(cuisine);
     }
 
-    // Compter le total
     const countQuery = `SELECT COUNT(*) as total FROM plats ${whereClause}`;
     const countResult = await query(countQuery, params);
     const total = countResult[0].total;
 
-    // Récupérer les plats avec pagination
     const platsQuery = `
       SELECT * FROM plats 
       ${whereClause}
@@ -144,7 +196,6 @@ router.get('/admin/all', auth, adminAuth, async (req, res) => {
   }
 });
 
-// Route admin pour créer un plat
 router.post('/admin', auth, adminAuth, async (req, res) => {
   try {
     const {
@@ -157,7 +208,6 @@ router.post('/admin', auth, adminAuth, async (req, res) => {
       statut = 'Actif'
     } = req.body;
 
-    // Validation
     if (!nom || !description || !prix || !type || !cuisine) {
       return res.status(400).json({
         error: 'Données manquantes: nom, description, prix, type et cuisine sont requis'
@@ -169,7 +219,6 @@ router.post('/admin', auth, adminAuth, async (req, res) => {
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `, [nom, description, prix, image_url, type, cuisine, statut]);
 
-    // Récupérer le plat créé
     const nouveauPlat = await query(
       'SELECT * FROM plats WHERE id = ?',
       [result.insertId]
@@ -189,7 +238,6 @@ router.post('/admin', auth, adminAuth, async (req, res) => {
   }
 });
 
-// Route admin pour mettre à jour un plat
 router.put('/admin/:id', auth, adminAuth, async (req, res) => {
   try {
     const platId = req.params.id;
@@ -203,14 +251,12 @@ router.put('/admin/:id', auth, adminAuth, async (req, res) => {
       statut
     } = req.body;
 
-    // Vérifier que le plat existe
     const platExistant = await query('SELECT * FROM plats WHERE id = ?', [platId]);
     
     if (platExistant.length === 0) {
       return res.status(404).json({ error: 'Plat non trouvé' });
     }
 
-    // Construire la requête de mise à jour
     const updates = [];
     const params = [];
 
@@ -252,19 +298,16 @@ router.put('/admin/:id', auth, adminAuth, async (req, res) => {
   }
 });
 
-// Route admin pour supprimer un plat (soft delete)
 router.delete('/admin/:id', auth, adminAuth, async (req, res) => {
   try {
     const platId = req.params.id;
 
-    // Vérifier que le plat existe
     const platExistant = await query('SELECT * FROM plats WHERE id = ?', [platId]);
     
     if (platExistant.length === 0) {
       return res.status(404).json({ error: 'Plat non trouvé' });
     }
 
-    // Soft delete - marquer comme inactif
     await query(
       'UPDATE plats SET statut = "Inactif", updated_at = CURRENT_TIMESTAMP WHERE id = ?',
       [platId]

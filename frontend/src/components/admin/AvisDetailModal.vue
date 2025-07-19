@@ -116,7 +116,6 @@
                                 >
                                     <option value="Publié">Publié</option>
                                     <option value="En attente">En attente</option>
-                                    <option value="Masqué">Masqué</option>
                                 </select>
                                 <div class="mt-2 space-y-1">
                                     <div class="flex items-start gap-2">
@@ -129,12 +128,6 @@
                                         <span class="inline-block w-2 h-2 mt-1 rounded-full bg-yellow-400"></span>
                                         <span class="text-xs text-gray-600">
                                             <span class="font-semibold text-yellow-700">En attente</span> : L'avis est en cours de modération
-                                        </span>
-                                    </div>
-                                    <div class="flex items-start gap-2">
-                                        <span class="inline-block w-2 h-2 mt-1 rounded-full bg-gray-400"></span>
-                                        <span class="text-xs text-gray-600">
-                                            <span class="font-semibold text-gray-700">Masqué</span> : L'avis est caché du public
                                         </span>
                                     </div>
                                 </div>

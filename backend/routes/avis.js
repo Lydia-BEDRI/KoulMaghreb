@@ -13,12 +13,7 @@ router.get('/', optionalAuth, async (req, res) => {
 
     const platId = req.query.plat_id || '';
     const evenementId = req.query.evenement_id || '';
-    const approuve =
-        req.query.approuve === 'true'
-            ? true
-            : req.query.approuve === 'false'
-                ? false
-                : null;
+    const approuve = req.query.approuve === 'true' ? true : req.query.approuve === 'false' ? false : null;
 
     let whereClause = '';
     const conditions = [];
@@ -87,7 +82,6 @@ router.get('/', optionalAuth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Erreur récupération avis:', error);
     res.status(500).json({ error: 'Erreur lors de la récupération des avis' });
   }
 });
@@ -117,15 +111,11 @@ router.get('/:id', optionalAuth, async (req, res) => {
 
     const avisItem = avis[0];
 
-    // Vérifier les permissions pour les avis non approuvés
     if (!avisItem.approuve && req.user?.role !== 'Admin' && req.user?.id !== avisItem.user_id) {
       return res.status(404).json({ error: 'Avis non trouvé' });
     }
 
-    // Formater les données
-    avisItem.utilisateur = {
-      nom: `${avisItem.prenom} ${avisItem.nom}`
-    };
+    avisItem.utilisateur = { nom: `${avisItem.prenom} ${avisItem.nom}` };
     
     if (avisItem.plat_nom) {
       avisItem.plat = { nom: avisItem.plat_nom };
@@ -135,7 +125,6 @@ router.get('/:id', optionalAuth, async (req, res) => {
       avisItem.evenement = { titre: avisItem.evenement_titre };
     }
     
-    // Nettoyer les champs
     delete avisItem.prenom;
     delete avisItem.nom;
     delete avisItem.plat_nom;
@@ -144,7 +133,6 @@ router.get('/:id', optionalAuth, async (req, res) => {
     res.json({ avis: avisItem });
 
   } catch (error) {
-    console.error('Erreur récupération avis:', error);
     res.status(500).json({ error: 'Erreur lors de la récupération de l\'avis' });
   }
 });
@@ -165,7 +153,6 @@ router.post('/', auth, createValidation, async (req, res) => {
 
     const { plat_id, evenement_id, note, commentaire } = req.body;
 
-    // Vérifier qu'au moins un plat_id ou evenement_id est fourni
     if (!plat_id && !evenement_id) {
       return res.status(400).json({ error: 'Un plat ou un événement doit être spécifié' });
     }
@@ -190,15 +177,9 @@ router.post('/', auth, createValidation, async (req, res) => {
 
     let existingAvis;
     if (plat_id) {
-      existingAvis = await query(
-        'SELECT id FROM avis WHERE user_id = ? AND plat_id = ?',
-        [req.user.id, plat_id]
-      );
+      existingAvis = await query('SELECT id FROM avis WHERE user_id = ? AND plat_id = ?', [req.user.id, plat_id]);
     } else {
-      existingAvis = await query(
-        'SELECT id FROM avis WHERE user_id = ? AND evenement_id = ?',
-        [req.user.id, evenement_id]
-      );
+      existingAvis = await query('SELECT id FROM avis WHERE user_id = ? AND evenement_id = ?', [req.user.id, evenement_id]);
     }
 
     if (existingAvis.length > 0) {
@@ -211,17 +192,10 @@ router.post('/', auth, createValidation, async (req, res) => {
     );
 
     if (plat_id) {
-      const moyenneResult = await query(
-        'SELECT AVG(note) as moyenne FROM avis WHERE plat_id = ? AND approuve = true',
-        [plat_id]
-      );
-      
+      const moyenneResult = await query('SELECT AVG(note) as moyenne FROM avis WHERE plat_id = ? AND approuve = true', [plat_id]);
       const moyenne = moyenneResult[0].moyenne;
       if (moyenne) {
-        await query(
-          'UPDATE plats SET note = ? WHERE id = ?',
-          [parseFloat(moyenne).toFixed(1), plat_id]
-        );
+        await query('UPDATE plats SET note = ? WHERE id = ?', [parseFloat(moyenne).toFixed(1), plat_id]);
       }
     }
 
@@ -233,7 +207,6 @@ router.post('/', auth, createValidation, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Erreur création avis:', error);
     res.status(500).json({ error: 'Erreur lors de la création de l\'avis' });
   }
 });
@@ -260,7 +233,6 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
     }
 
     const avis = existingAvis[0];
-
     const isOwner = avis.user_id === req.user.id;
     const isAdmin = req.user.role === 'Admin';
 
@@ -286,22 +258,12 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
     updates.push('updated_at = NOW()');
     values.push(avisId);
 
-    await query(
-      `UPDATE avis SET ${updates.join(', ')} WHERE id = ?`,
-      values
-    );
+    await query(`UPDATE avis SET ${updates.join(', ')} WHERE id = ?`, values);
 
     if ((note !== undefined || approuve !== undefined) && avis.plat_id) {
-      const moyenneResult = await query(
-        'SELECT AVG(note) as moyenne FROM avis WHERE plat_id = ? AND approuve = true',
-        [avis.plat_id]
-      );
-      
+      const moyenneResult = await query('SELECT AVG(note) as moyenne FROM avis WHERE plat_id = ? AND approuve = true', [avis.plat_id]);
       const moyenne = moyenneResult[0].moyenne;
-      await query(
-        'UPDATE plats SET note = ? WHERE id = ?',
-        [moyenne ? parseFloat(moyenne).toFixed(1) : 0, avis.plat_id]
-      );
+      await query('UPDATE plats SET note = ? WHERE id = ?', [moyenne ? parseFloat(moyenne).toFixed(1) : 0, avis.plat_id]);
     }
 
     const updatedAvis = await query('SELECT * FROM avis WHERE id = ?', [avisId]);
@@ -312,7 +274,6 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Erreur mise à jour avis:', error);
     res.status(500).json({ error: 'Erreur lors de la mise à jour de l\'avis' });
   }
 });
@@ -327,7 +288,6 @@ router.delete('/:id', auth, async (req, res) => {
     }
 
     const avis = existingAvis[0];
-
     const isOwner = avis.user_id === req.user.id;
     const isAdmin = req.user.role === 'Admin';
 
@@ -338,22 +298,14 @@ router.delete('/:id', auth, async (req, res) => {
     await query('DELETE FROM avis WHERE id = ?', [avisId]);
 
     if (avis.plat_id) {
-      const moyenneResult = await query(
-        'SELECT AVG(note) as moyenne FROM avis WHERE plat_id = ? AND approuve = true',
-        [avis.plat_id]
-      );
-      
+      const moyenneResult = await query('SELECT AVG(note) as moyenne FROM avis WHERE plat_id = ? AND approuve = true', [avis.plat_id]);
       const moyenne = moyenneResult[0].moyenne;
-      await query(
-        'UPDATE plats SET note = ? WHERE id = ?',
-        [moyenne ? parseFloat(moyenne).toFixed(1) : 0, avis.plat_id]
-      );
+      await query('UPDATE plats SET note = ? WHERE id = ?', [moyenne ? parseFloat(moyenne).toFixed(1) : 0, avis.plat_id]);
     }
 
     res.json({ message: 'Avis supprimé avec succès' });
 
   } catch (error) {
-    console.error('Erreur suppression avis:', error);
     res.status(500).json({ error: 'Erreur lors de la suppression de l\'avis' });
   }
 });
@@ -375,7 +327,6 @@ router.get('/stats/overview', auth, adminAuth, async (req, res) => {
     res.json(stats[0]);
 
   } catch (error) {
-    console.error('Erreur stats avis:', error);
     res.status(500).json({ error: 'Erreur lors de la récupération des statistiques' });
   }
 });
