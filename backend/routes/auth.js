@@ -102,7 +102,14 @@ router.post('/login', loginValidation, async (req, res) => {
     const user = users[0];
 
     if (user.statut !== 'Actif') {
-      return res.status(401).json({ error: 'Compte suspendu ou inactif' });
+      const messages = {
+        'Suspendu': 'Votre compte est temporairement suspendu. Contactez un administrateur.',
+        'Inactif': 'Votre compte a été désactivé. Contactez un administrateur.'
+      };
+      
+      return res.status(401).json({ 
+        error: messages[user.statut] || 'Compte non autorisé' 
+      });
     }
     
     const isPasswordValid = await bcrypt.compare(password, user.password);
