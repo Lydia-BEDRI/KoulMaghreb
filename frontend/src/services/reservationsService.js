@@ -90,5 +90,73 @@ export const reservationsService = {
     }
 
     return await response.json()
+  },
+
+  async getAllReservations(token, page = 1, limit = 10, filters = {}) {
+    try {
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+        ...filters
+      })
+
+      const response = await fetch(`${API_BASE_URL}/reservations?${queryParams}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Erreur réseau' }))
+        throw new Error(errorData.error || `Erreur HTTP ${response.status}`)
+      }
+
+      return await response.json()
+    } catch (error) {
+      throw error
+    }
+  },
+
+  async updateReservation(reservationId, updates, token) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/reservations/${reservationId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updates)
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Erreur réseau' }))
+        throw new Error(errorData.error || `Erreur HTTP ${response.status}`)
+      }
+
+      return await response.json()
+    } catch (error) {
+      throw error
+    }
+  },
+
+  async getStatsReservations(token) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/reservations/stats/overview`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Erreur réseau' }))
+        throw new Error(errorData.error || `Erreur HTTP ${response.status}`)
+      }
+
+      return await response.json()
+    } catch (error) {
+      throw error
+    }
   }
 }

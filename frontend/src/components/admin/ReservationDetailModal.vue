@@ -119,7 +119,6 @@
                   <option value="En attente">En attente</option>
                   <option value="Confirmée">Confirmée</option>
                   <option value="Annulée">Annulée</option>
-                  <option value="Terminée">Terminée</option>
                 </select>
               </div>
               <div>
