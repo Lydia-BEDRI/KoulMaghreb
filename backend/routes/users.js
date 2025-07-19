@@ -2,8 +2,99 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { query } = require('../database/connection');
 const { auth, adminAuth } = require('../middleware/auth');
+const bcrypt = require('bcryptjs');
 
 const router = express.Router();
+
+router.put('/change-password', auth, async (req, res) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: 'Utilisateur non authentifié' });
+    }
+    
+    const { currentPassword, newPassword } = req.body;
+    
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Mot de passe actuel et nouveau mot de passe requis' });
+    }
+    
+    if (newPassword.length < 8) {
+      return res.status(400).json({ error: 'Le nouveau mot de passe doit contenir au moins 8 caractères' });
+    }
+    
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({ 
+        error: 'Le nouveau mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre' 
+      });
+    }
+    
+    const users = await query(
+      'SELECT id, password FROM utilisateurs WHERE id = ?',
+      [req.user.id]
+    );
+    
+    if (users.length === 0) {
+      return res.status(404).json({ error: 'Utilisateur non trouvé' });
+    }
+    
+    const user = users[0];
+    
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    
+    if (!isCurrentPasswordValid) {
+      return res.status(401).json({ error: 'Mot de passe actuel incorrect' });
+    }
+    
+    const saltRounds = 12;
+    const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+    
+    await query(
+      'UPDATE utilisateurs SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [hashedNewPassword, req.user.id]
+    );
+    
+    res.json({ message: 'Mot de passe mis à jour avec succès' });
+    
+  } catch (error) {
+    console.error('Erreur changement mot de passe:', error);
+    res.status(500).json({ error: 'Erreur lors du changement de mot de passe' });
+  }
+});
+
+router.get('/stats/overview', auth, adminAuth, async (req, res) => {
+  try {
+    const stats = await query(`
+      SELECT 
+        COUNT(*) as total,
+        SUM(CASE WHEN statut = 'Actif' THEN 1 ELSE 0 END) as actifs,
+        SUM(CASE WHEN statut = 'Inactif' THEN 1 ELSE 0 END) as inactifs,
+        SUM(CASE WHEN statut = 'Suspendu' THEN 1 ELSE 0 END) as suspendus,
+        SUM(CASE WHEN DATE(created_at) = CURDATE() THEN 1 ELSE 0 END) as nouveaux_aujourd_hui,
+        SUM(CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) as nouveaux_30_jours
+      FROM utilisateurs 
+      WHERE role != 'Admin'
+    `);
+
+    const adminStats = await query(`
+      SELECT 
+        COUNT(*) as total_admins,
+        SUM(CASE WHEN statut = 'Actif' THEN 1 ELSE 0 END) as admins_actifs
+      FROM utilisateurs 
+      WHERE role = 'Admin'
+    `);
+
+    res.json({
+      ...stats[0],
+      total_admins: adminStats[0]?.total_admins || 0,
+      admins_actifs: adminStats[0]?.admins_actifs || 0
+    });
+
+  } catch (error) {
+    console.error('Erreur stats utilisateurs:', error);
+    res.status(500).json({ error: 'Erreur lors de la récupération des statistiques' });
+  }
+});
 
 router.get('/', auth, adminAuth, async (req, res) => {
   try {
@@ -13,7 +104,7 @@ router.get('/', auth, adminAuth, async (req, res) => {
     const search = req.query.search || '';
     const statut = req.query.statut || '';
 
-    let whereClause = 'WHERE role != "Admin"'; // ✅ Exclure les admins
+    let whereClause = 'WHERE role != "Admin"';
     let queryParams = [];
 
     const conditions = [];
@@ -196,40 +287,6 @@ router.delete('/:id', auth, adminAuth, async (req, res) => {
   } catch (error) {
     console.error('Erreur suppression utilisateur:', error);
     res.status(500).json({ error: 'Erreur lors de la suppression de l\'utilisateur' });
-  }
-});
-
-router.get('/stats/overview', auth, adminAuth, async (req, res) => {
-  try {
-    const stats = await query(`
-      SELECT 
-        COUNT(*) as total,
-        SUM(CASE WHEN statut = 'Actif' THEN 1 ELSE 0 END) as actifs,
-        SUM(CASE WHEN statut = 'Inactif' THEN 1 ELSE 0 END) as inactifs,
-        SUM(CASE WHEN statut = 'Suspendu' THEN 1 ELSE 0 END) as suspendus,
-        SUM(CASE WHEN DATE(created_at) = CURDATE() THEN 1 ELSE 0 END) as nouveaux_aujourd_hui,
-        SUM(CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) as nouveaux_30_jours
-      FROM utilisateurs 
-      WHERE role != 'Admin'
-    `);
-
-    const adminStats = await query(`
-      SELECT 
-        COUNT(*) as total_admins,
-        SUM(CASE WHEN statut = 'Actif' THEN 1 ELSE 0 END) as admins_actifs
-      FROM utilisateurs 
-      WHERE role = 'Admin'
-    `);
-
-    res.json({
-      ...stats[0],
-      total_admins: adminStats[0]?.total_admins || 0,
-      admins_actifs: adminStats[0]?.admins_actifs || 0
-    });
-
-  } catch (error) {
-    console.error('Erreur stats utilisateurs:', error);
-    res.status(500).json({ error: 'Erreur lors de la récupération des statistiques' });
   }
 });
 
