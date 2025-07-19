@@ -2,8 +2,12 @@ import { ref, computed } from 'vue'
 import { authService } from '../services/authService'
 
 const user = ref(authService.getCurrentUser())
-const isAuthenticated = computed(() => !!user.value && !!localStorage.getItem('auth_token'))
-const isAdmin = computed(() => user.value?.role === 'Admin')
+const isAuthenticated = computed(() => {
+  return !!user.value && !!localStorage.getItem('auth_token')
+})
+const isAdmin = computed(() => {
+  return user.value?.role === 'Admin'
+})
 
 export const useAuth = () => {
   const login = async (email, password) => {
@@ -28,8 +32,7 @@ export const useAuth = () => {
 
   const logout = () => {
     user.value = null
-    localStorage.removeItem('auth_token')
-    localStorage.removeItem('user_data')
+    authService.logout()
   }
 
   const refreshUserData = async () => {
@@ -49,7 +52,6 @@ export const useAuth = () => {
       return userData
       
     } catch (error) {
-      console.error('Erreur refresh user data:', error)
       if (error.message.includes('401') || error.message.includes('Token') || error.message.includes('non connecté')) {
         logout()
       }
@@ -67,7 +69,6 @@ export const useAuth = () => {
       user.value = updatedUser
       return updatedUser
     } catch (error) {
-      console.error('Erreur update user profile:', error)
       throw error
     }
   }

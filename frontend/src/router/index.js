@@ -64,6 +64,7 @@ const routes = [
   {
     path: '/admin',
     component: AdminLayout,
+    meta: { requiresAdmin: true },
     children: [
       { path: '', redirect: { name: 'AdminDashboard' } },
       { path: 'dashboard', name: 'AdminDashboard', component: AdminDashboard },
@@ -82,31 +83,33 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition
+    }
+    return { top: 0 }
+  }
 })
 
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('auth_token')
-  const protectedRoutes = ['/profil', '/mes-commandes', '/mes-favoris', '/mes-reservations']
-  
-  if (protectedRoutes.includes(to.path) && !token) {
-    next('/')
-  } else if (to.matched.some(record => record.meta.requiresAuth) && !token) {
-    next('/')
-  } else {
-    next()
-  }
-})
-
-router.beforeEach((to, from, next) => {
   const user = authService.getCurrentUser()
   
-  if (user && user.role === 'Admin' && !to.path.startsWith('/admin')) {
+  if (to.matched.some(record => record.meta.requiresAdmin)) {
+    if (!token || !user || user.role !== 'Admin') {
+      next('/')
+      return
+    }
+  }
+  
+  if (token && user && user.role === 'Admin' && to.path === '/' && from.path !== '/admin/dashboard') {
     next('/admin/dashboard')
     return
   }
   
-  if (to.path.startsWith('/admin') && (!user || user.role !== 'Admin')) {
-    next('/') 
+  const protectedRoutes = ['/profil', '/mes-commandes', '/mes-favoris', '/mes-reservations', '/mon-panier']
+  if (protectedRoutes.includes(to.path) && !token) {
+    next('/')
     return
   }
   

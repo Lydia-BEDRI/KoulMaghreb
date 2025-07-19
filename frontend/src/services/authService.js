@@ -55,6 +55,7 @@ export const authService = {
   async getCurrentUserProfile() {
     try {
       const token = localStorage.getItem('auth_token')
+      
       if (!token) {
         throw new Error('Token manquant')
       }
@@ -82,7 +83,6 @@ export const authService = {
       
       return data.user
     } catch (error) {
-      console.error('Erreur getCurrentUserProfile:', error)
       throw error
     }
   },
@@ -90,6 +90,7 @@ export const authService = {
   async updateUserProfile(userData) {
     try {
       const token = localStorage.getItem('auth_token')
+      
       if (!token) {
         throw new Error('Token manquant')
       }
@@ -114,12 +115,10 @@ export const authService = {
       }
 
       const data = await response.json()
-      
       localStorage.setItem('user_data', JSON.stringify(data.user))
       
       return data.user
     } catch (error) {
-      console.error('Erreur updateUserProfile:', error)
       throw error
     }
   },
@@ -127,9 +126,13 @@ export const authService = {
   getCurrentUser() {
     try {
       const userData = localStorage.getItem('user_data')
-      return userData ? JSON.parse(userData) : null
+      
+      if (!userData) {
+        return null
+      }
+      
+      return JSON.parse(userData)
     } catch (error) {
-      console.error('Erreur parsing user data:', error)
       localStorage.removeItem('user_data')
       return null
     }
