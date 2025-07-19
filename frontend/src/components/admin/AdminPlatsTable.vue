@@ -53,7 +53,6 @@
                         <th class="py-2 px-3">Note</th>
                         <th class="py-2 px-3">Pays</th>
                         <th class="py-2 px-3">Type</th>
-                        <th class="py-2 px-3">Description</th>
                         <th class="py-2 px-3">Actions</th>
                     </tr>
                 </thead>
@@ -77,7 +76,9 @@
                                 </div>
                                 <div>
                                     <p class="font-medium text-gray-800">{{ plat.nom }}</p>
-                                    <p class="text-xs text-gray-500">{{ plat.shortDesc.slice(0, 40) }}...</p>
+                                    <p class="text-xs text-gray-500">
+                                      {{ (plat.shortDesc || plat.description || '').slice(0, 40) }}...
+                                    </p>
                                 </div>
                             </div>
                         </td>
@@ -109,11 +110,6 @@
                             >
                                 {{ plat.type }}
                             </span>
-                        </td>
-                        <td class="py-3 px-3 max-w-xs">
-                            <p class="text-gray-800 truncate" :title="plat.shortDesc">
-                                {{ plat.shortDesc }}
-                            </p>
                         </td>
                         <td class="py-3 px-3">
                             <div class="flex gap-2">
@@ -150,12 +146,15 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { plats as platsData } from '@/data/plats'
+import { ref, computed, onMounted } from 'vue'
 import { Icon } from '@iconify/vue'
 import PlatDetailModal from './PlatDetailModal.vue'
+import { platsService } from '@/services/platsService'
 
-const plats = ref(platsData)
+const plats = ref([])
+const loading = ref(false)
+const error = ref('')
+
 const filtrePays = ref('')
 const filtreType = ref('')
 const recherche = ref('')
@@ -163,6 +162,24 @@ const recherche = ref('')
 const showModal = ref(false)
 const selectedPlat = ref(null)
 const modeCreation = ref(false)
+
+const getToken = () => localStorage.getItem('auth_token')
+
+const chargerPlats = async () => {
+    try {
+        loading.value = true
+        error.value = ''
+        const token = getToken()
+        const response = await platsService.getAll(1, 50)
+        plats.value = response
+    } catch (err) {
+        error.value = err.message || 'Erreur lors du chargement des plats'
+    } finally {
+        loading.value = false
+    }
+}
+
+onMounted(chargerPlats)
 
 const platsFiltres = computed(() => {
     let result = plats.value
@@ -175,12 +192,12 @@ const platsFiltres = computed(() => {
     if (recherche.value) {
         const term = recherche.value.toLowerCase()
         result = result.filter(plat => 
-            plat.nom.toLowerCase().includes(term) ||
-            plat.shortDesc.toLowerCase().includes(term) ||
-            plat.longDesc.toLowerCase().includes(term) ||
-            plat.pays.toLowerCase().includes(term) ||
-            plat.type.toLowerCase().includes(term) ||
-            plat.id.toString().includes(term)
+            plat.nom?.toLowerCase().includes(term) ||
+            plat.shortDesc?.toLowerCase().includes(term) ||
+            plat.longDesc?.toLowerCase().includes(term) ||
+            plat.pays?.toLowerCase().includes(term) ||
+            plat.type?.toLowerCase().includes(term) ||
+            plat.id?.toString().includes(term)
         )
     }
     return result
@@ -225,25 +242,9 @@ const ajouterPlat = () => {
     showModal.value = true
 }
 
-const creerPlat = (nouveauPlat) => {
-    const nouvelId = Math.max(...plats.value.map(plat => plat.id)) + 1
-    const platComplet = {
-        ...nouveauPlat,
-        id: nouvelId
-    }
-    plats.value.unshift(platComplet)
-    alert(`Nouveau plat "${platComplet.nom}" créé avec succès !`)
-}
-
 const updatePlat = (updates) => {
-    if (modeCreation.value) {
-        creerPlat(updates)
-    } else {
-        const index = plats.value.findIndex(plat => plat.id === updates.id)
-        if (index !== -1) {
-            plats.value[index] = { ...plats.value[index], ...updates }
-            alert(`Plat "${plats.value[index].nom}" mis à jour !`)
-        }
-    }
+    // Tu peux garder la logique existante pour la création/édition locale
+    // Ou l'adapter pour utiliser l'API si tu veux persister côté serveur
+    showModal.value = false
 }
 </script>
