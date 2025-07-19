@@ -12,7 +12,9 @@ const registerValidation = [
   body('password').isLength({ min: 6 }).withMessage('Le mot de passe doit faire au moins 6 caractères'),
   body('prenom').notEmpty().trim().withMessage('Le prénom est requis'),
   body('nom').notEmpty().trim().withMessage('Le nom est requis'),
-  body('telephone').optional().isMobilePhone('fr-FR').withMessage('Numéro de téléphone invalide')
+  body('telephone').optional().matches(/^(0[1-9](\d{8}))$/).withMessage('Numéro de téléphone invalide (format: 0123456789)'),
+  body('adresse').optional().trim(),
+  body('code_postal').notEmpty().trim().isLength({ min: 5, max: 5 }).isNumeric().withMessage('Le code postal doit contenir exactement 5 chiffres')
 ];
 
 const loginValidation = [
@@ -24,52 +26,60 @@ router.post('/register', registerValidation, async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ 
+        success: false, 
+        errors: errors.array() 
+      });
     }
 
-    const { email, password, prenom, nom, telephone, adresse, role } = req.body;
+    const { email, password, prenom, nom, telephone, adresse, code_postal } = req.body;
 
-    const existingUser = await query(
+    // Vérifier si l'utilisateur existe déjà - UTILISER query au lieu de connection.execute
+    const existingUsers = await query(
       'SELECT id FROM utilisateurs WHERE email = ?',
       [email]
     );
 
-    if (existingUser.length > 0) {
-      return res.status(400).json({ error: 'Un compte avec cet email existe déjà' });
+    if (existingUsers.length > 0) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Un utilisateur avec cet email existe déjà' 
+      });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const userRole = role === 'Admin' ? 'Admin' : 'Client';
-
+    // Créer l'utilisateur - UTILISER query au lieu de connection.execute
     const result = await query(
-      'INSERT INTO utilisateurs (email, password, prenom, nom, telephone, adresse, statut, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [email, hashedPassword, prenom, nom, telephone || null, adresse || null, 'Actif', userRole]
+      'INSERT INTO utilisateurs (prenom, nom, email, password, telephone, adresse, code_postal) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [prenom, nom, email, hashedPassword, telephone || null, adresse || null, code_postal]
     );
 
-    // Générer JWT
+    // Récupérer l'utilisateur créé - UTILISER query au lieu de connection.execute
+    const newUsers = await query(
+      'SELECT id, prenom, nom, email, telephone, adresse, code_postal, role, statut, date_inscription FROM utilisateurs WHERE id = ?',
+      [result.insertId]
+    );
+
     const token = jwt.sign(
-      { userId: result.insertId, email, role: userRole },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { userId: newUsers[0].id, email: newUsers[0].email },
+      process.env.JWT_SECRET || 'votre-secret-jwt',
+      { expiresIn: '24h' }
     );
 
     res.status(201).json({
-      message: 'Compte créé avec succès',
+      success: true,
+      message: 'Utilisateur créé avec succès',
       token,
-      user: {
-        id: result.insertId,
-        email,
-        prenom,
-        nom,
-        role: userRole,
-        statut: 'Actif'
-      }
+      user: newUsers[0]
     });
 
   } catch (error) {
-    console.error('Erreur inscription:', error);
-    res.status(500).json({ error: 'Erreur lors de la création du compte' });
+    console.error('Erreur lors de l\'inscription:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Erreur interne du serveur' 
+    });
   }
 });
 
@@ -84,7 +94,7 @@ router.post('/login', loginValidation, async (req, res) => {
     const { email, password } = req.body;
 
     const users = await query(
-      'SELECT id, email, password, prenom, nom, role, statut FROM utilisateurs WHERE email = ?',
+      'SELECT id, email, password, prenom, nom, telephone, adresse, code_postal, role, statut FROM utilisateurs WHERE email = ?',
       [email]
     );
 
@@ -97,6 +107,7 @@ router.post('/login', loginValidation, async (req, res) => {
     if (user.statut !== 'Actif') {
       return res.status(401).json({ error: 'Compte suspendu ou inactif' });
     }
+    
     const isPasswordValid = await bcrypt.compare(password, user.password);
     
     if (!isPasswordValid) {
@@ -118,6 +129,9 @@ router.post('/login', loginValidation, async (req, res) => {
         email: user.email,
         prenom: user.prenom,
         nom: user.nom,
+        telephone: user.telephone,
+        adresse: user.adresse,
+        code_postal: user.code_postal,
         role: user.role,
         statut: user.statut
       }
@@ -132,7 +146,7 @@ router.post('/login', loginValidation, async (req, res) => {
 router.get('/me', auth, async (req, res) => {
   try {
     const users = await query(
-      'SELECT id, email, prenom, nom, telephone, adresse, role, statut, date_inscription FROM utilisateurs WHERE id = ?',
+      'SELECT id, email, prenom, nom, telephone, adresse, code_postal, role, statut, date_inscription FROM utilisateurs WHERE id = ?',
       [req.user.id]
     );
 

@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { authService } from '@/services/authService'
 
 import MainLayout from '@/layouts/main/MainLayout.vue'
 import AdminLayout from '@/layouts/admin/AdminLayout.vue'
@@ -53,7 +54,7 @@ const routes = [
       { path: 'plat/:id', name: 'Plat', component: PlatDetail },
       { path: 'mes-favoris', name: 'Mes favoris', component: Favoris },
       { path: 'evenements', name: 'Événements', component: EvenementList },
-      { path: 'evenement/:id', name: 'Événement Détail', component: EvenementDetail },
+      { path: 'evenements/:id', name: 'Événement Détail', component: EvenementDetail },
       { path: 'mes-reservations', name: 'Mes réservations', component: MesReservations },
       { path: 'profil', name: 'Mon profil', component: ProfilUtilisateur },
       { path: 'test-backend', name: 'Test Backend', component: TestBackend },
@@ -81,6 +82,35 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+})
+
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('auth_token')
+  const protectedRoutes = ['/profil', '/mes-commandes', '/mes-favoris', '/mes-reservations']
+  
+  if (protectedRoutes.includes(to.path) && !token) {
+    next('/')
+  } else if (to.matched.some(record => record.meta.requiresAuth) && !token) {
+    next('/')
+  } else {
+    next()
+  }
+})
+
+router.beforeEach((to, from, next) => {
+  const user = authService.getCurrentUser()
+  
+  if (user && user.role === 'Admin' && !to.path.startsWith('/admin')) {
+    next('/admin/dashboard')
+    return
+  }
+  
+  if (to.path.startsWith('/admin') && (!user || user.role !== 'Admin')) {
+    next('/') 
+    return
+  }
+  
+  next()
 })
 
 export default router

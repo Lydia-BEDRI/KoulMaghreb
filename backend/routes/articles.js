@@ -17,12 +17,12 @@ router.get('/', optionalAuth, async (req, res) => {
     let queryParams = [];
 
     const conditions = [];
-    
+
     if (search) {
       conditions.push('(title LIKE ? OR excerpt LIKE ? OR content LIKE ?)');
       queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
     }
-    
+
     if (category) {
       conditions.push('category = ?');
       queryParams.push(category);
@@ -41,10 +41,10 @@ router.get('/', optionalAuth, async (req, res) => {
       FROM articles 
       ${whereClause}
       ORDER BY created_at DESC 
-      LIMIT ? OFFSET ?
+      LIMIT ${limit} OFFSET ${offset}
     `;
-    
-    const articles = await query(articlesQuery, [...queryParams, parseInt(limit), parseInt(offset)]);
+
+    const articles = await query(articlesQuery, queryParams);
 
     res.json({
       articles,

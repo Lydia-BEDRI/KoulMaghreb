@@ -35,15 +35,27 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static('uploads'));
 
 // Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/users', require('./routes/users'));
-app.use('/api/articles', require('./routes/articles'));
-app.use('/api/plats', require('./routes/plats'));
-app.use('/api/evenements', require('./routes/evenements'));
-app.use('/api/commandes', require('./routes/commandes'));
-app.use('/api/reservations', require('./routes/reservations'));
-app.use('/api/avis', require('./routes/avis'));
-app.use('/api/test', require('./routes/test'));
+const authRoutes = require('./routes/auth');
+const platRoutes = require('./routes/plats');
+const userRoutes = require('./routes/users');
+const articlesRoutes = require('./routes/articles');
+const commandesRoutes = require('./routes/commandes');
+const evenementsRoutes = require('./routes/evenements');
+const reservationsRoutes = require('./routes/reservations');
+const avisRoutes = require('./routes/avis');
+const favorisRoutes = require('./routes/favoris');
+const panierRoutes = require('./routes/panier');
+
+app.use('/api/auth', authRoutes);
+app.use('/api/plats', platRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/articles', articlesRoutes);
+app.use('/api/commandes', commandesRoutes);
+app.use('/api/evenements', evenementsRoutes);
+app.use('/api/reservations', reservationsRoutes);
+app.use('/api/avis', avisRoutes);
+app.use('/api/favoris', favorisRoutes);
+app.use('/api/panier', panierRoutes);
 
 // Route de test
 app.get('/api/health', (req, res) => {

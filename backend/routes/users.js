@@ -1,5 +1,5 @@
 const express = require('express');
-const { body, validationResult } = require('express-validator');
+const { body } = require('express-validator');
 const { query } = require('../database/connection');
 const { auth, adminAuth } = require('../middleware/auth');
 
@@ -37,7 +37,7 @@ router.get('/', auth, adminAuth, async (req, res) => {
     const total = totalResult[0].total;
 
     const usersQuery = `
-      SELECT id, prenom, nom, email, telephone, adresse, statut, role, date_inscription, created_at
+      SELECT id, prenom, nom, email, telephone, adresse, code_postal, statut, role, date_inscription, created_at
       FROM utilisateurs 
       ${whereClause}
       ORDER BY created_at DESC 
@@ -71,7 +71,7 @@ router.get('/:id', auth, async (req, res) => {
     }
 
     const users = await query(
-      'SELECT id, prenom, nom, email, telephone, adresse, statut, role, date_inscription, created_at FROM utilisateurs WHERE id = ?',
+      'SELECT id, prenom, nom, email, telephone, adresse, code_postal, statut, role, date_inscription, created_at FROM utilisateurs WHERE id = ?',
       [userId]
     );
 
@@ -92,79 +92,59 @@ const updateValidation = [
   body('nom').optional().notEmpty().trim().withMessage('Le nom ne peut pas être vide'),
   body('email').optional().isEmail().normalizeEmail().withMessage('Email invalide'),
   body('telephone').optional().isMobilePhone('fr-FR').withMessage('Numéro de téléphone invalide'),
+  body('adresse').optional().trim(),
+  body('code_postal').optional().isLength({ min: 5, max: 5 }).isNumeric().withMessage('Le code postal doit contenir exactement 5 chiffres'),
   body('statut').optional().isIn(['Actif', 'Inactif', 'Suspendu']).withMessage('Statut invalide'),
   body('role').optional().isIn(['Client', 'Admin', 'Chef']).withMessage('Rôle invalide')
 ];
 
-router.put('/:id', auth, updateValidation, async (req, res) => {
+router.put('/:id', auth, async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+    const { id } = req.params;
+    
+    if (req.user.id !== parseInt(id) && req.user.role !== 'Admin') {
+      return res.status(403).json({ error: 'Accès non autorisé' });
     }
 
-    const userId = parseInt(req.params.id);
-    const { prenom, nom, email, telephone, adresse, statut, role } = req.body;
-
-    if (req.user.role !== 'Admin' && req.user.id !== userId) {
-      return res.status(403).json({ error: 'Accès refusé' });
-    }
-
-    if (req.user.role !== 'Admin' && (statut || role)) {
-      return res.status(403).json({ error: 'Vous ne pouvez pas modifier le statut ou le rôle' });
-    }
-
-    const existingUsers = await query('SELECT id FROM utilisateurs WHERE id = ?', [userId]);
-    if (existingUsers.length === 0) {
-      return res.status(404).json({ error: 'Utilisateur non trouvé' });
-    }
-
-    if (email) {
-      const emailExists = await query(
-        'SELECT id FROM utilisateurs WHERE email = ? AND id != ?',
-        [email, userId]
-      );
-      if (emailExists.length > 0) {
-        return res.status(400).json({ error: 'Cet email est déjà utilisé' });
+    const allowedFields = ['prenom', 'nom', 'telephone', 'adresse', 'code_postal'];
+    const updateData = {};
+    
+    allowedFields.forEach(field => {
+      if (req.body[field] !== undefined) {
+        updateData[field] = req.body[field];
       }
-    }
+    });
 
-    const updates = [];
-    const values = [];
-
-    if (prenom !== undefined) { updates.push('prenom = ?'); values.push(prenom); }
-    if (nom !== undefined) { updates.push('nom = ?'); values.push(nom); }
-    if (email !== undefined) { updates.push('email = ?'); values.push(email); }
-    if (telephone !== undefined) { updates.push('telephone = ?'); values.push(telephone); }
-    if (adresse !== undefined) { updates.push('adresse = ?'); values.push(adresse); }
-    if (statut !== undefined && req.user.role === 'Admin') { updates.push('statut = ?'); values.push(statut); }
-    if (role !== undefined && req.user.role === 'Admin') { updates.push('role = ?'); values.push(role); }
-
-    if (updates.length === 0) {
+    if (Object.keys(updateData).length === 0) {
       return res.status(400).json({ error: 'Aucune donnée à mettre à jour' });
     }
 
-    updates.push('updated_at = NOW()');
-    values.push(userId);
+    const fields = Object.keys(updateData).map(field => `${field} = ?`).join(', ');
+    const values = Object.values(updateData);
+    values.push(id);
 
     await query(
-      `UPDATE utilisateurs SET ${updates.join(', ')} WHERE id = ?`,
+      `UPDATE utilisateurs SET ${fields} WHERE id = ?`,
       values
     );
 
-    const updatedUsers = await query(
-      'SELECT id, prenom, nom, email, telephone, adresse, statut, role, date_inscription FROM utilisateurs WHERE id = ?',
-      [userId]
+    const users = await query(
+      'SELECT id, email, prenom, nom, telephone, adresse, code_postal, role, statut, date_inscription FROM utilisateurs WHERE id = ?',
+      [id]
     );
 
+    if (users.length === 0) {
+      return res.status(404).json({ error: 'Utilisateur non trouvé' });
+    }
+
     res.json({
-      message: 'Utilisateur mis à jour avec succès',
-      user: updatedUsers[0]
+      message: 'Profil mis à jour avec succès',
+      user: users[0]
     });
 
   } catch (error) {
     console.error('Erreur mise à jour utilisateur:', error);
-    res.status(500).json({ error: 'Erreur lors de la mise à jour de l\'utilisateur' });
+    res.status(500).json({ error: 'Erreur lors de la mise à jour' });
   }
 });
 

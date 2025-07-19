@@ -43,7 +43,7 @@ const formattedDate = computed(() => {
       </div>
 
       <p class="text-gray-600 text-sm">
-        {{ event.shortDesc }}
+        {{ event.short_desc }}
       </p>
 
       <div class="flex justify-end pt-2">

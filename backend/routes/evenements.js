@@ -48,14 +48,13 @@ router.get('/', optionalAuth, async (req, res) => {
     const total = totalResult[0].total;
 
     const evenementsQuery = `
-      SELECT id, title, date, lieu, image, description, short_desc, places_total, places_restantes, prix_par_personne, actif, created_at
-      FROM evenements 
-      ${whereClause}
-      ORDER BY date ASC 
-      LIMIT ? OFFSET ?
+      SELECT id, title, date, lieu, image, description, short_desc, long_desc, places_total, places_restantes, prix_par_personne, actif, created_at
+      FROM evenements
+        ${whereClause}
+      ORDER BY date ASC
+        LIMIT ${limit} OFFSET ${offset}
     `;
-    
-    const evenements = await query(evenementsQuery, [...queryParams, limit, offset]);
+    const evenements = await query(evenementsQuery, queryParams);
 
     res.json({
       evenements,

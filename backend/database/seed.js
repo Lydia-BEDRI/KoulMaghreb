@@ -10,6 +10,7 @@ const seedData = {
       password: 'password123',
       telephone: '+33 6 12 34 56 78',
       adresse: '123 Rue de la Paix, Paris',
+      code_postal: '75001',
       statut: 'Actif',
       role: 'Client'
     },
@@ -20,6 +21,7 @@ const seedData = {
       password: 'password123',
       telephone: '+33 6 98 76 54 32',
       adresse: '456 Avenue des Champs, Paris',
+      code_postal: '75002',
       statut: 'Actif',
       role: 'Client'
     },
@@ -30,6 +32,7 @@ const seedData = {
       password: 'password123',
       telephone: '+33 6 45 67 89 12',
       adresse: '789 Boulevard Saint-Michel, Paris',
+      code_postal: '75005',
       statut: 'Suspendu',
       role: 'Client'
     },
@@ -40,6 +43,7 @@ const seedData = {
       password: 'admin123',
       telephone: '+33 6 00 00 00 00',
       adresse: 'Paris, France',
+      code_postal: '75000',
       statut: 'Actif',
       role: 'Admin'
     }
@@ -162,8 +166,8 @@ const seedDatabase = async () => {
     for (const user of seedData.utilisateurs) {
       const hashedPassword = await bcrypt.hash(user.password, 10);
       await query(
-        'INSERT INTO utilisateurs (prenom, nom, email, password, telephone, adresse, statut, role, date_inscription) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())',
-        [user.prenom, user.nom, user.email, hashedPassword, user.telephone, user.adresse, user.statut, user.role]
+        'INSERT INTO utilisateurs (prenom, nom, email, password, telephone, adresse, code_postal, statut, role, date_inscription) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
+        [user.prenom, user.nom, user.email, hashedPassword, user.telephone, user.adresse, user.code_postal, user.statut, user.role]
       );
     }
 

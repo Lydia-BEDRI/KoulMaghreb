@@ -11,88 +11,24 @@ const generateReservationNumber = () => {
   return `RSV-${timestamp}${random}`;
 };
 
-router.get('/', auth, async (req, res) => {
+router.get('/user', auth, async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const offset = (page - 1) * limit;
-    const statut = req.query.statut || '';
-
-    let whereClause = '';
-    let queryParams = [];
-
-    if (req.user.role === 'Client') {
-      whereClause = 'WHERE r.user_id = ?';
-      queryParams.push(req.user.id);
-    }
-
-    if (statut) {
-      if (whereClause) {
-        whereClause += ' AND r.statut = ?';
-      } else {
-        whereClause = 'WHERE r.statut = ?';
-      }
-      queryParams.push(statut);
-    }
-
-    const countQuery = `
-      SELECT COUNT(*) as total 
-      FROM reservations r 
-      ${whereClause}
-    `;
-    const totalResult = await query(countQuery, queryParams);
-    const total = totalResult[0].total;
-
-    const reservationsQuery = `
-      SELECT 
-        r.id, r.numero_reservation, r.user_id, r.evenement_id, r.nombre_places, 
-        r.montant_total, r.statut, r.notes_admin, r.created_at,
-        u.prenom, u.nom, u.email, u.telephone,
-        e.title as evenement_titre, e.date as evenement_date, e.lieu as evenement_lieu
-      FROM reservations r
-      LEFT JOIN utilisateurs u ON r.user_id = u.id
-      LEFT JOIN evenements e ON r.evenement_id = e.id
-      ${whereClause}
-      ORDER BY r.created_at DESC 
-      LIMIT ? OFFSET ?
-    `;
+    const reservations = await query(
+      `SELECT r.*, 
+              e.title as evenement_titre, 
+              e.date as evenement_date, 
+              e.lieu as evenement_lieu,
+              e.image as evenement_image
+       FROM reservations r
+       LEFT JOIN evenements e ON r.evenement_id = e.id
+       WHERE r.user_id = ?
+       ORDER BY r.created_at DESC`,
+      [req.user.id] 
+    );
     
-    const reservations = await query(reservationsQuery, [...queryParams, limit, offset]);
-
-    reservations.forEach(reservation => {
-      reservation.client = {
-        nom: `${reservation.prenom} ${reservation.nom}`,
-        email: reservation.email,
-        telephone: reservation.telephone
-      };
-      reservation.evenement = {
-        id: reservation.evenement_id,
-        titre: reservation.evenement_titre,
-        date: reservation.evenement_date,
-        lieu: reservation.evenement_lieu
-      };
-      
-      delete reservation.prenom;
-      delete reservation.nom;
-      delete reservation.email;
-      delete reservation.telephone;
-      delete reservation.evenement_titre;
-      delete reservation.evenement_date;
-      delete reservation.evenement_lieu;
-    });
-
-    res.json({
-      reservations,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
-      }
-    });
-
+    res.json({ reservations });
   } catch (error) {
-    console.error('Erreur récupération réservations:', error);
+    console.error('Erreur récupération réservations utilisateur:', error);
     res.status(500).json({ error: 'Erreur lors de la récupération des réservations' });
   }
 });
@@ -129,6 +65,7 @@ router.get('/:id', auth, async (req, res) => {
       email: reservation.email,
       telephone: reservation.telephone
     };
+    
     reservation.evenement = {
       id: reservation.evenement_id,
       titre: reservation.evenement_titre,
@@ -165,61 +102,65 @@ router.post('/', auth, createValidation, async (req, res) => {
     }
 
     const { evenement_id, nombre_places } = req.body;
-
+    
     const evenements = await query(
-      'SELECT * FROM evenements WHERE id = ? AND actif = true',
-      [evenement_id]
+      'SELECT * FROM evenements WHERE id = ? AND actif = ?', 
+      [evenement_id, true]
     );
+    
     if (evenements.length === 0) {
-      return res.status(404).json({ error: 'Événement non trouvé ou inactif' });
+      const evenementInactif = await query(
+        'SELECT * FROM evenements WHERE id = ?', 
+        [evenement_id]
+      );
+      
+      if (evenementInactif.length === 0) {
+        return res.status(404).json({ error: 'Événement inexistant' });
+      } else {
+        return res.status(404).json({ error: 'Événement inactif' });
+      }
     }
+    
     const evenement = evenements[0];
-
+    
     if (evenement.places_restantes < nombre_places) {
       return res.status(400).json({ 
-        error: `Pas assez de places disponibles (${evenement.places_restantes} restantes)` 
+        error: `Seulement ${evenement.places_restantes} place(s) disponible(s)` 
       });
     }
-
-    if (new Date(evenement.date) < new Date()) {
+    
+    const dateEvenement = new Date(evenement.date);
+    const maintenant = new Date();
+    
+    if (dateEvenement < maintenant) {
       return res.status(400).json({ error: 'Impossible de réserver pour un événement passé' });
     }
-
-    const montant_total = evenement.prix_par_personne * nombre_places;
-
-    let numeroReservation;
-    let attempts = 0;
-    do {
-      numeroReservation = generateReservationNumber();
-      const existing = await query('SELECT id FROM reservations WHERE numero_reservation = ?', [numeroReservation]);
-      if (existing.length === 0) break;
-      attempts++;
-    } while (attempts < 10);
-
-    if (attempts >= 10) {
-      return res.status(500).json({ error: 'Impossible de générer un numéro de réservation unique' });
-    }
-
+    
+    const numeroReservation = generateReservationNumber();
+    const montantTotal = evenement.prix_par_personne * nombre_places;
+    
     const result = await query(
       'INSERT INTO reservations (numero_reservation, user_id, evenement_id, nombre_places, montant_total, statut) VALUES (?, ?, ?, ?, ?, ?)',
-      [numeroReservation, req.user.id, evenement_id, nombre_places, montant_total, 'En attente']
+      [numeroReservation, req.user.id, evenement_id, nombre_places, montantTotal, 'En attente']
     );
-
+    
     await query(
       'UPDATE evenements SET places_restantes = places_restantes - ? WHERE id = ?',
       [nombre_places, evenement_id]
     );
-
-    const newReservation = await query(
-      'SELECT * FROM reservations WHERE id = ?',
-      [result.insertId]
-    );
-
+    
     res.status(201).json({
       message: 'Réservation créée avec succès',
-      reservation: newReservation[0]
+      reservation: {
+        id: result.insertId,
+        numero_reservation: numeroReservation,
+        evenement_id,
+        nombre_places,
+        montant_total: montantTotal,
+        statut: 'En attente'
+      }
     });
-
+    
   } catch (error) {
     console.error('Erreur création réservation:', error);
     res.status(500).json({ error: 'Erreur lors de la création de la réservation' });
@@ -257,7 +198,6 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
       }
     }
 
-    // Si on annule une réservation confirmée, remettre les places disponibles
     if (statut === 'Annulée' && reservation.statut === 'Confirmée') {
       await query(
         'UPDATE evenements SET places_restantes = places_restantes + ? WHERE id = ?',
@@ -281,7 +221,11 @@ router.put('/:id', auth, updateValidation, async (req, res) => {
     const updates = [];
     const values = [];
 
-    if (statut !== undefined) { updates.push('statut = ?'); values.push(statut); }
+    if (statut !== undefined) { 
+      updates.push('statut = ?'); 
+      values.push(statut); 
+    }
+    
     if (notes_admin !== undefined && req.user.role === 'Admin') { 
       updates.push('notes_admin = ?'); 
       values.push(notes_admin); 
