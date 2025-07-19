@@ -91,13 +91,21 @@
                         </td>
                         <td class="py-3 px-3">
                             <div class="flex gap-2">
-                                <button 
+                                 <button 
                                     @click="voirDetails(article)"
                                     class="bg-primary text-white px-3 py-1 rounded-lg text-xs hover:bg-accent transition"
                                     title="Voir détails"
                                 >
                                     Détails
                                 </button>
+                                <button 
+                                    @click="supprimerArticle(article)"
+                                    class="bg-red-500 text-white px-3 py-1 rounded-lg text-xs hover:bg-red-600 transition flex items-center"
+                                    title="Supprimer"
+                                >
+                                    <Icon icon="mdi:delete" class="text-base mr-1" />   
+                                </button>
+                               
                             </div>
                         </td>
                     </tr>
@@ -124,20 +132,31 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { articles as articlesData } from '@/data/articles'
+import { ref, computed, onMounted } from 'vue'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Icon } from '@iconify/vue'
 import ArticleDetailModal from './ArticleDetailModal.vue'
+import { articlesService } from '@/services/articlesService'
 
-const articles = ref(articlesData)
+const articles = ref([])
 const filtreCategorie = ref('')
 const recherche = ref('')
 
 const showModal = ref(false)
 const selectedArticle = ref(null)
 const modeCreation = ref(false)
+
+const chargerArticles = async () => {
+    try {
+        const data = await articlesService.getAll()
+        articles.value = data || []
+    } catch (err) {
+        alert(err.message || 'Erreur lors du chargement des articles')
+    }
+}
+
+onMounted(chargerArticles)
 
 const articlesFiltres = computed(() => {
     let result = articles.value
@@ -147,11 +166,11 @@ const articlesFiltres = computed(() => {
     if (recherche.value) {
         const term = recherche.value.toLowerCase()
         result = result.filter(article => 
-            article.title.toLowerCase().includes(term) ||
-            article.excerpt.toLowerCase().includes(term) ||
-            article.category.toLowerCase().includes(term) ||
-            article.slug.toLowerCase().includes(term) ||
-            article.id.toString().includes(term)
+            article.title?.toLowerCase().includes(term) ||
+            article.excerpt?.toLowerCase().includes(term) ||
+            article.category?.toLowerCase().includes(term) ||
+            article.slug?.toLowerCase().includes(term) ||
+            article.id?.toString().includes(term)
         )
     }
     return result
@@ -213,6 +232,15 @@ const updateArticle = (updates) => {
             articles.value[index] = { ...articles.value[index], ...updates }
             alert(`Article "${articles.value[index].title}" mis à jour !`)
         }
+    }
+}
+
+const supprimerArticle = async (id) => {
+    if (confirm('Voulez-vous vraiment supprimer cet article ?')) {
+        // Si tu veux supprimer côté serveur :
+        // await articlesService.delete(id)
+        articles.value = articles.value.filter(article => article.id !== id)
+        alert('Article supprimé !')
     }
 }
 </script>
