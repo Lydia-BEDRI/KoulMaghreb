@@ -158,6 +158,24 @@
             </div>
           </div>
 
+          <div>
+            <h3 class="text-lg font-semibold text-primary mb-4">Tarification</h3>
+            <div class="grid grid-cols-1 gap-4">
+              <div>
+                <label class="block text-base font-bold text-gray-700 mb-1">Prix par personne *</label>
+                <input 
+                  v-model.number="editableEvenement.prixParPersonne"
+                  :disabled="isTermine"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="Ex: 25.00"
+                  class="w-full px-4 py-2 border-2 border-gray-300 rounded-xl bg-white text-gray-800"
+                />
+              </div>
+            </div>
+          </div>
+
           <div v-if="editableEvenement.image">
             <h3 class="text-lg font-semibold text-primary mb-4">Aperçu de l'image</h3>
             <div class="w-full max-w-md mx-auto">
@@ -221,7 +239,8 @@ const editableEvenement = ref({
   shortDesc: '',
   longDesc: '',
   placesTotal: 50,
-  placesRestantes: 50
+  placesRestantes: 50,
+  prixParPersonne: 0
 })
 
 const getStatutFromDate = (date) => {
@@ -270,15 +289,16 @@ const sauvegarder = () => {
   emit('update', {
     id: props.evenement?.id,
     title: editableEvenement.value.title,
-    date: dateISO,
+    date: new Date(editableEvenement.value.date).toISOString(),
     lieu: editableEvenement.value.lieu,
     image: editableEvenement.value.image,
     description: editableEvenement.value.description,
-    shortDesc: editableEvenement.value.shortDesc,
-    longDesc: editableEvenement.value.longDesc,
-    placesTotal: editableEvenement.value.placesTotal,
-    placesRestantes: editableEvenement.value.placesRestantes,
-    statut: editableEvenement.statut
+    short_desc: editableEvenement.value.shortDesc,
+    long_desc: editableEvenement.value.longDesc,
+    places_total: editableEvenement.value.placesTotal,
+    places_restantes: editableEvenement.value.placesRestantes,
+    prix_par_personne: editableEvenement.value.prixParPersonne,
+    statut: editableEvenement.value.statut
   })
   emit('close')
 }

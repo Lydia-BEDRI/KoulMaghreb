@@ -40,5 +40,20 @@ export const evenementsService = {
                 longDesc: ev.long_desc ?? ''
             }))
         }
+    },
+    async createEvenement(evenement, token) {
+        const response = await fetch(`${API_BASE_URL}/evenements`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(evenement)
+        })
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Erreur réseau' }))
+            throw new Error(errorData.error || `Erreur HTTP ${response.status}`)
+        }
+        return await response.json()
     }
 };

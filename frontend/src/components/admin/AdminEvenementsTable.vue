@@ -253,18 +253,16 @@ const ajouterEvenement = () => {
   showModal.value = true
 }
 
-const creerEvenement = (nouvelEvenement) => {
-  const nouvelId = Math.max(...evenements.value.map(event => event.id)) + 1
-  
-  const evenementComplet = {
-    ...nouvelEvenement,
-    id: nouvelId,
-    placesRestantes: nouvelEvenement.placesTotal 
+const creerEvenement = async (nouvelEvenement) => {
+  try {
+    const token = getToken()
+    const response = await evenementsService.createEvenement(nouvelEvenement, token)
+    evenements.value.unshift(response.evenement)
+    alert(`Nouvel événement "${response.evenement.title}" créé avec succès !`)
+    showModal.value = false
+  } catch (err) {
+    alert(err.message || 'Erreur lors de la création de l\'événement')
   }
-  
-  evenements.value.unshift(evenementComplet)
-  
-  alert(`Nouvel événement "${evenementComplet.title}" créé avec succès !`)
 }
 
 const updateEvenement = (updates) => {
