@@ -44,6 +44,7 @@ const reservationsRoutes = require('./routes/reservations');
 const avisRoutes = require('./routes/avis');
 const favorisRoutes = require('./routes/favoris');
 const panierRoutes = require('./routes/panier');
+const adminDashboardRoutes = require('./routes/adminDashboard');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/plats', platRoutes);
@@ -55,6 +56,7 @@ app.use('/api/reservations', reservationsRoutes);
 app.use('/api/avis', avisRoutes);
 app.use('/api/favoris', favorisRoutes);
 app.use('/api/panier', panierRoutes);
+app.use('/api/admin/dashboard', adminDashboardRoutes);
 
 // Route de test
 app.get('/api/health', (req, res) => {
