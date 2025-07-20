@@ -142,6 +142,7 @@ import { useAuth } from '@/composables/useAuth'
 import { useToast } from 'vue-toastification'
 import { Icon } from '@iconify/vue'
 import AvisCommentaires from './AvisCommentaires.vue'
+import { useSeo } from '@/composables/useSeo.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -295,6 +296,11 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+})
+
+useSeo({
+  title: plat.value ? `${plat.value.nom} - Plat maghrébin - KoulMaghreb` : 'Détail du plat - KoulMaghreb',
+  description: plat.value ? plat.value.short_desc || plat.value.nom : "Découvrez les ingrédients, la recette et l'histoire de ce plat maghrébin sur KoulMaghreb."
 })
 </script>
 

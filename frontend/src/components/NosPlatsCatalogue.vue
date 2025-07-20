@@ -181,6 +181,7 @@ import { useToast } from 'vue-toastification'
 import { ShoppingCartIcon } from '@heroicons/vue/24/outline'
 import { Icon } from '@iconify/vue'
 import { useModalStore } from '@/stores/useModalStore'
+import { useSeo } from '@/composables/useSeo.js'
 
 const router = useRouter()
 const toast = useToast()
@@ -387,6 +388,11 @@ const redirectToPanier = () => {
     }
   }
 }
+
+useSeo({
+  title: 'Catalogue des plats maghrébins - KoulMaghreb',
+  description: "Explorez notre catalogue de plats marocains, algériens et tunisiens. Filtrez par type, pays d'origine, note et prix pour trouver votre prochain coup de cœur culinaire."
+})
 </script>
 
 <style scoped>

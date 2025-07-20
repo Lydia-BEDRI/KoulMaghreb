@@ -183,6 +183,7 @@ import { useRouter } from 'vue-router'
 import { usePanier } from '@/composables/usePanier'
 import { useToast } from 'vue-toastification'
 import { useAuth } from '@/composables/useAuth'
+import { useSeo } from '@/composables/useSeo.js'
 
 const router = useRouter()
 const toast = useToast()
@@ -309,6 +310,11 @@ ${reservations.length > 0 ? 'Vos réservations iront dans "Mes réservations"' :
 
 onMounted(() => {
   chargerPanier()
+})
+
+useSeo({
+  title: 'Mon panier - Commande et réservation - KoulMaghreb',
+  description: "Validez votre panier, passez commande de plats maghrébins ou réservez vos événements en quelques clics sur KoulMaghreb."
 })
 </script>
 

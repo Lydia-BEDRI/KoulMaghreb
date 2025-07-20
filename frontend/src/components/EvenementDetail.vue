@@ -7,6 +7,7 @@ import { evenementsService } from '@/services/evenementsService.js'
 import { Icon } from '@iconify/vue'
 import { usePanier } from '@/composables/usePanier'
 import { useToast } from 'vue-toastification'
+import { useSeo } from '@/composables/useSeo.js'
 
 const route = useRoute()
 const event = ref(null)
@@ -64,6 +65,11 @@ const ajouterReservationAuPanier = async () => {
 const placesDisponibles = computed(() => {
   if (!event.value?.places_restantes) return 0
   return Math.min(event.value.places_restantes, 10) 
+})
+
+useSeo({
+  title: event.value ? `${event.value.title} - Événement - KoulMaghreb` : 'Événement - KoulMaghreb',
+  description: event.value ? event.value.short_desc || event.value.title : "Détail d'un événement maghrébin organisé par KoulMaghreb."
 })
 </script>
 

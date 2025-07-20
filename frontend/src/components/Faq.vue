@@ -78,6 +78,12 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useSeo } from '@/composables/useSeo.js'
+
+useSeo({
+  title: 'FAQ - Questions fréquentes - KoulMaghreb',
+  description: "Consultez les réponses aux questions les plus fréquentes sur la cuisine maghrébine, la livraison, les commandes et le service KoulMaghreb."
+})
 
 const openIndex = ref(null)
 

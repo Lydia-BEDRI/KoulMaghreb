@@ -66,5 +66,14 @@
   </section>
 </template>
 
+<script>
+import { useSeo } from '@/composables/useSeo.js'
+
+useSeo({
+  title: 'Mentions légales - KoulMaghreb',
+  description: "Retrouvez toutes les informations légales concernant le site KoulMaghreb : éditeur, hébergement, propriété intellectuelle, données personnelles et cookies."
+})
+</script>
+
 <style scoped>
 </style>

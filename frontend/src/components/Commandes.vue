@@ -247,6 +247,12 @@ import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { commandesService } from '@/services/commandesService'
 import { useAuth } from '@/composables/useAuth'
+import { useSeo } from '@/composables/useSeo.js'
+
+useSeo({
+  title: 'Mes commandes - KoulMaghreb',
+  description: 'Consultez l’historique et le suivi de vos commandes sur KoulMaghreb. Annulez ou suivez vos commandes de plats maghrébins en toute simplicité.'
+})
 
 const router = useRouter()
 const toast = useToast()

@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import EvenementCard from './EvenementCard.vue'
 import { evenementsService } from '@/services/evenementsService.js'
+import { useSeo } from '@/composables/useSeo.js'
 
 const evenements = ref([])
 const loading = ref(true)
@@ -15,6 +16,11 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+})
+
+useSeo({
+  title: 'Événements maghrébins à venir - KoulMaghreb',
+  description: "Découvrez et participez aux événements culinaires, ateliers et rencontres culturelles organisés par KoulMaghreb."
 })
 </script>
 

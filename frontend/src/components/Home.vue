@@ -216,6 +216,12 @@
 
 <script setup>
 import { Icon } from '@iconify/vue'
+import { useSeo } from '@/composables/useSeo.js'
+
+useSeo({
+  title: 'Accueil - KoulMaghreb',
+  description: "Bienvenue sur KoulMaghreb, le site dédié à la cuisine du Maghreb. Découvrez nos plats, nos chefs et nos événements culinaires marocains, algériens et tunisiens."
+})
 </script>
 
 <style scoped>

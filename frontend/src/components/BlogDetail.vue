@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { articlesService } from '@/services/articlesService.js'
+import { useSeo } from '@/composables/useSeo.js'
 
 const route = useRoute()
 const article = ref(null)
@@ -43,6 +44,11 @@ function getCategoryClass(category) {
       return "text-gray-600";
   }
 }
+
+useSeo({
+  title: article.value ? `${article.value.title} - KoulMaghreb` : 'Article - KoulMaghreb',
+  description: article.value ? article.value.excerpt || article.value.title : 'Découvrez un article culinaire sur KoulMaghreb.'
+})
 </script>
 
 <template>

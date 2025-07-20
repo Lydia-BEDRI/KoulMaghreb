@@ -25,6 +25,7 @@
 <script setup>
 import {ref, onMounted} from 'vue'
 import {articlesService} from '@/services/articlesService.js'
+import { useSeo } from '@/composables/useSeo.js'
 
 const articles = ref([])
 
@@ -63,4 +64,9 @@ function getCategoryClass(category) {
       return "text-gray-600";
   }
 }
+
+useSeo({
+  title: 'Articles culinaires - KoulMaghreb',
+  description: 'Découvrez nos articles sur la cuisine maghrébine, les recettes traditionnelles et les tendances culinaires du Maghreb.'
+})
 </script>

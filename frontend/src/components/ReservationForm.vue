@@ -2,6 +2,7 @@
 import { reactive, toRefs } from 'vue'
 import { useToast } from 'vue-toastification'
 import { reservationsService } from '@/services/reservationsService'
+import { useSeo } from '@/composables/useSeo.js'
 
 const props = defineProps({
     eventId: {
@@ -21,6 +22,11 @@ const form = reactive({
 })
 
 const loading = reactive({ value: false })
+
+useSeo({
+  title: 'Réserver une table ou un événement - KoulMaghreb',
+  description: "Réservez facilement votre place pour nos événements culinaires maghrébins. Remplissez le formulaire et recevez une confirmation rapide sur KoulMaghreb."
+})
 
 async function submit() {
     if (!form.prenom || !form.nom || !form.email) {

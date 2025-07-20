@@ -66,6 +66,7 @@ import fr from 'date-fns/locale/fr'
 import { useToast } from 'vue-toastification'
 import { useRoute } from 'vue-router'
 import { avisService } from '@/services/avisService.js'
+import { useSeo } from '@/composables/useSeo.js'
 
 const toast = useToast()
 const route = useRoute()
@@ -131,4 +132,9 @@ const getInitiales = (nomComplet) => {
 }
 
 const formatDate = (date) => format(new Date(date), 'dd/MM/yyyy  HH:mm', { locale: fr })
+
+useSeo({
+  title: 'Avis sur les plats - KoulMaghreb',
+  description: 'Lisez et partagez des avis sur les plats maghrébins proposés par KoulMaghreb.'
+})
 </script>
