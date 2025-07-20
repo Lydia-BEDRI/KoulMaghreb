@@ -37,7 +37,7 @@ router.get('/', optionalAuth, async (req, res) => {
     const total = totalResult[0].total;
 
     const articlesQuery = `
-      SELECT id, title, slug, excerpt, image, category, created_at
+      SELECT id, title, slug, excerpt, content, image, category, created_at
       FROM articles 
       ${whereClause}
       ORDER BY created_at DESC 

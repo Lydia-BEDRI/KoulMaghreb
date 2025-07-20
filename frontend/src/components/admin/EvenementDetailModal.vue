@@ -39,11 +39,15 @@
             </div>
             <div>
               <label class="block text-base font-bold text-gray-700 mb-1">Statut</label>
-              <input 
-                :value="modeCreation ? 'À venir' : getStatutFromDate(evenement?.date)" 
-                disabled 
-                class="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 text-gray-400 cursor-not-allowed"
-              />
+              <select 
+                v-model="editableEvenement.statut"
+                class="w-full px-4 py-2 border-2 border-gray-300 rounded-xl bg-white text-gray-800"
+              >
+                <option value="À venir">À venir</option>
+                <option value="En cours">En cours</option>
+                <option value="Terminé">Terminé</option>
+                <option value="Annulé">Annulé</option>
+              </select>
             </div>
           </div>
 
@@ -54,6 +58,7 @@
                 <label class="block text-base font-bold text-gray-700 mb-1">Titre de l'événement *</label>
                 <input 
                   v-model="editableEvenement.title"
+                  :disabled="isTermine"
                   placeholder="Ex: Soirée Couscous & Musique Andalouse"
                   class="w-full px-4 py-2 border-2 border-gray-300 rounded-xl bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary hover:border-gray-400 transition-colors"
                 />
@@ -63,6 +68,7 @@
                   <label class="block text-base font-bold text-gray-700 mb-1">Date et heure *</label>
                   <input 
                     v-model="editableEvenement.date"
+                    :disabled="isTermine"
                     type="datetime-local"
                     class="w-full px-4 py-2 border-2 border-gray-300 rounded-xl bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary hover:border-gray-400 transition-colors"
                   />
@@ -71,6 +77,7 @@
                   <label class="block text-base font-bold text-gray-700 mb-1">Lieu *</label>
                   <input 
                     v-model="editableEvenement.lieu"
+                    :disabled="isTermine"
                     placeholder="Ex: Paris"
                     class="w-full px-4 py-2 border-2 border-gray-300 rounded-xl bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary hover:border-gray-400 transition-colors"
                   />
@@ -80,6 +87,7 @@
                 <label class="block text-base font-bold text-gray-700 mb-1">Image URL *</label>
                 <input 
                   v-model="editableEvenement.image"
+                  :disabled="isTermine"
                   placeholder="Ex: /img/events/mon-evenement.jpeg"
                   class="w-full px-4 py-2 border-2 border-gray-300 rounded-xl bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary hover:border-gray-400 transition-colors"
                 />
@@ -94,6 +102,7 @@
                 <label class="block text-base font-bold text-gray-700 mb-1">Description courte *</label>
                 <input 
                   v-model="editableEvenement.shortDesc"
+                  :disabled="isTermine"
                   placeholder="Ex: Couscous et musique andalouse à Paris."
                   class="w-full px-4 py-2 border-2 border-gray-300 rounded-xl bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary hover:border-gray-400 transition-colors"
                 />
@@ -102,6 +111,7 @@
                 <label class="block text-base font-bold text-gray-700 mb-1">Description générale *</label>
                 <textarea 
                   v-model="editableEvenement.description"
+                  :disabled="isTermine"
                   placeholder="Description affichée sur la carte de l'événement..."
                   rows="3"
                   class="w-full px-4 py-2 border-2 border-gray-300 rounded-xl bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary hover:border-gray-400 transition-colors placeholder-gray-400"
@@ -111,6 +121,7 @@
                 <label class="block text-base font-bold text-gray-700 mb-1">Description détaillée *</label>
                 <textarea 
                   v-model="editableEvenement.longDesc"
+                  :disabled="isTermine"
                   placeholder="Description complète affichée sur la page de détail..."
                   rows="4"
                   class="w-full px-4 py-2 border-2 border-gray-300 rounded-xl bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary hover:border-gray-400 transition-colors placeholder-gray-400"
@@ -126,19 +137,40 @@
                 <label class="block text-base font-bold text-gray-700 mb-1">Places totales *</label>
                 <input 
                   v-model.number="editableEvenement.placesTotal"
+                  :disabled="isTermine"
                   type="number"
                   min="1"
-                  class="w-full px-4 py-2 border-2 border-gray-300 rounded-xl bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary hover:border-gray-400 transition-colors"
+                  :placeholder="editableEvenement.placesTotal !== '' && editableEvenement.placesTotal !== null ? editableEvenement.placesTotal : '-'"
+                  class="w-full px-4 py-2 border-2 border-gray-300 rounded-xl bg-white text-gray-800"
                 />
               </div>
               <div v-if="!modeCreation">
                 <label class="block text-base font-bold text-gray-700 mb-1">Places restantes</label>
                 <input 
                   v-model.number="editableEvenement.placesRestantes"
+                  :disabled="isTermine"
                   type="number"
                   min="0"
                   :max="editableEvenement.placesTotal"
                   class="w-full px-4 py-2 border-2 border-gray-300 rounded-xl bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary hover:border-gray-400 transition-colors"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-lg font-semibold text-primary mb-4">Tarification</h3>
+            <div class="grid grid-cols-1 gap-4">
+              <div>
+                <label class="block text-base font-bold text-gray-700 mb-1">Prix par personne *</label>
+                <input 
+                  v-model.number="editableEvenement.prixParPersonne"
+                  :disabled="isTermine"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="Ex: 25.00"
+                  class="w-full px-4 py-2 border-2 border-gray-300 rounded-xl bg-white text-gray-800"
                 />
               </div>
             </div>
@@ -172,6 +204,14 @@
           >
             <Icon icon="mdi:content-save" class="text-2xl" />
           </button>
+          <!-- Ajoute ici le bouton supprimer -->
+          <button 
+            @click="$emit('delete', props.evenement?.id)"
+            class="flex items-center justify-center w-12 h-12 bg-red-500 text-white rounded-xl hover:bg-red-600 transition shadow-md hover:shadow-lg"
+            title="Supprimer l'événement"
+          >
+            <Icon icon="mdi:delete" class="text-2xl" />
+          </button>
         </div>
       </div>
     </div>
@@ -179,7 +219,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { Icon } from '@iconify/vue'
 
 const props = defineProps({
@@ -199,7 +239,8 @@ const editableEvenement = ref({
   shortDesc: '',
   longDesc: '',
   placesTotal: 50,
-  placesRestantes: 50
+  placesRestantes: 50,
+  prixParPersonne: 0
 })
 
 const getStatutFromDate = (date) => {
@@ -227,10 +268,11 @@ watch(() => props.evenement, (newEvenement) => {
       lieu: newEvenement.lieu || '',
       image: newEvenement.image || '',
       description: newEvenement.description || '',
-      shortDesc: newEvenement.shortDesc || '',
-      longDesc: newEvenement.longDesc || '',
-      placesTotal: newEvenement.placesTotal || 50,
-      placesRestantes: newEvenement.placesRestantes || newEvenement.placesTotal || 50
+      shortDesc: newEvenement.short_desc || newEvenement.shortDesc || '',
+      longDesc: newEvenement.long_desc || newEvenement.longDesc || '',
+      placesTotal: newEvenement.places_total || newEvenement.placesTotal || 50,
+      placesRestantes: newEvenement.places_restantes || newEvenement.placesRestantes || newEvenement.placesTotal || 50,
+      statut: newEvenement.statut || getStatutFromDate(newEvenement.date)
     }
   }
 }, { immediate: true })
@@ -247,17 +289,21 @@ const sauvegarder = () => {
   emit('update', {
     id: props.evenement?.id,
     title: editableEvenement.value.title,
-    date: dateISO,
+    date: new Date(editableEvenement.value.date).toISOString(),
     lieu: editableEvenement.value.lieu,
     image: editableEvenement.value.image,
     description: editableEvenement.value.description,
-    shortDesc: editableEvenement.value.shortDesc,
-    longDesc: editableEvenement.value.longDesc,
-    placesTotal: editableEvenement.value.placesTotal,
-    placesRestantes: editableEvenement.value.placesRestantes
+    short_desc: editableEvenement.value.shortDesc,
+    long_desc: editableEvenement.value.longDesc,
+    places_total: editableEvenement.value.placesTotal,
+    places_restantes: editableEvenement.value.placesRestantes,
+    prix_par_personne: editableEvenement.value.prixParPersonne,
+    statut: editableEvenement.value.statut
   })
   emit('close')
 }
+
+const isTermine = computed(() => getStatutFromDate(props.evenement?.date) === 'Terminé')
 </script>
 
 <style scoped>

@@ -205,10 +205,12 @@ watch(() => props.article, (newArticle) => {
             title: newArticle.title || '',
             slug: newArticle.slug || '',
             excerpt: newArticle.excerpt || '',
-            content: newArticle.content || '',
+            content: newArticle.content ?? newArticle.long_desc ?? '', 
             image: newArticle.image || '',
             category: newArticle.category || 'Culture',
-            created_at: newArticle.created_at || new Date().toISOString().split('T')[0]
+            created_at: newArticle.created_at 
+                ? newArticle.created_at.split('T')[0] 
+                : new Date().toISOString().split('T')[0]
         }
     }
 }, { immediate: true })

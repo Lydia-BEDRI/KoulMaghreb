@@ -6,25 +6,14 @@ const auth = async (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
     if (!token) {
-      return res.status(401).json({ error: 'Token d\'accès requis' });
+      return res.status(401).json({ error: 'Accès refusé, token manquant' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
     
-    const user = await query(
-      'SELECT id, email, role, statut FROM utilisateurs WHERE id = ?',
-      [decoded.userId]
-    );
-
-    if (!user.length) {
-      return res.status(401).json({ error: 'Utilisateur non trouvé' });
-    }
-
-    if (user[0].statut !== 'Actif') {
-      return res.status(401).json({ error: 'Compte suspendu ou inactif' });
-    }
-
-    req.user = user[0];
+    decoded.id = decoded.userId || decoded.id;
+    
+    req.user = decoded;
     next();
   } catch (error) {
     res.status(401).json({ error: 'Token invalide' });
@@ -32,8 +21,8 @@ const auth = async (req, res, next) => {
 };
 
 const adminAuth = (req, res, next) => {
-  if (req.user.role !== 'Admin') {
-    return res.status(403).json({ error: 'Accès refusé - Droits administrateur requis' });
+  if (req.user?.role !== 'Admin') {
+    return res.status(403).json({ error: 'Accès refusé, droits administrateur requis' });
   }
   next();
 };

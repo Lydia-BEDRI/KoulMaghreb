@@ -34,7 +34,6 @@ router.post('/register', registerValidation, async (req, res) => {
 
     const { email, password, prenom, nom, telephone, adresse, code_postal } = req.body;
 
-    // Vérifier si l'utilisateur existe déjà - UTILISER query au lieu de connection.execute
     const existingUsers = await query(
       'SELECT id FROM utilisateurs WHERE email = ?',
       [email]
@@ -49,20 +48,18 @@ router.post('/register', registerValidation, async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Créer l'utilisateur - UTILISER query au lieu de connection.execute
     const result = await query(
       'INSERT INTO utilisateurs (prenom, nom, email, password, telephone, adresse, code_postal) VALUES (?, ?, ?, ?, ?, ?, ?)',
       [prenom, nom, email, hashedPassword, telephone || null, adresse || null, code_postal]
     );
 
-    // Récupérer l'utilisateur créé - UTILISER query au lieu de connection.execute
     const newUsers = await query(
       'SELECT id, prenom, nom, email, telephone, adresse, code_postal, role, statut, date_inscription FROM utilisateurs WHERE id = ?',
       [result.insertId]
     );
 
     const token = jwt.sign(
-      { userId: newUsers[0].id, email: newUsers[0].email },
+      { userId: newUsers[0].id, email: newUsers[0].email, role: newUsers[0].role },
       process.env.JWT_SECRET || 'votre-secret-jwt',
       { expiresIn: '24h' }
     );
@@ -105,7 +102,14 @@ router.post('/login', loginValidation, async (req, res) => {
     const user = users[0];
 
     if (user.statut !== 'Actif') {
-      return res.status(401).json({ error: 'Compte suspendu ou inactif' });
+      const messages = {
+        'Suspendu': 'Votre compte est temporairement suspendu. Contactez un administrateur.',
+        'Inactif': 'Votre compte a été désactivé. Contactez un administrateur.'
+      };
+      
+      return res.status(401).json({ 
+        error: messages[user.statut] || 'Compte non autorisé' 
+      });
     }
     
     const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -138,7 +142,7 @@ router.post('/login', loginValidation, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Erreur connexion:', error);
+    console.error('Erreur lors de la connexion:', error);
     res.status(500).json({ error: 'Erreur lors de la connexion' });
   }
 });

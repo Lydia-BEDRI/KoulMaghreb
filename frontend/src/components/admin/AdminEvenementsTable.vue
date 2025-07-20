@@ -141,14 +141,37 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { evenements as evenementsData } from '@/data/evenements'
+import { ref, computed, onMounted } from 'vue'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Icon } from '@iconify/vue'
 import EvenementDetailModal from './EvenementDetailModal.vue'
+import { evenementsService } from '@/services/evenementsService'
 
-const evenements = ref(evenementsData)
+const evenements = ref([])
+const loading = ref(false)
+const error = ref('')
+
+const getToken = () => localStorage.getItem('auth_token')
+
+const chargerEvenements = async (page = 1) => {
+  try {
+    loading.value = true
+    error.value = ''
+    const token = getToken()
+    const response = await evenementsService.getAllEvenements(token, page, 20)
+    evenements.value = response.evenements || []
+  } catch (err) {
+    error.value = err.message || 'Erreur lors du chargement des événements'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  chargerEvenements(1)
+})
+
 const filtreStatut = ref('')
 const recherche = ref('')
 
@@ -193,7 +216,7 @@ const getStatutClass = (statut) => {
   const classes = {
     'À venir': 'bg-blue-100 text-blue-600',
     'En cours': 'bg-green-100 text-green-600',
-    'Terminé': 'bg-gray-100 text-gray-600',
+    'Terminé': 'bg-orange-100 text-orange-600', 
     'Annulé': 'bg-red-100 text-red-600'
   }
   return classes[statut] || 'bg-gray-100 text-gray-600'
@@ -230,18 +253,16 @@ const ajouterEvenement = () => {
   showModal.value = true
 }
 
-const creerEvenement = (nouvelEvenement) => {
-  const nouvelId = Math.max(...evenements.value.map(event => event.id)) + 1
-  
-  const evenementComplet = {
-    ...nouvelEvenement,
-    id: nouvelId,
-    placesRestantes: nouvelEvenement.placesTotal 
+const creerEvenement = async (nouvelEvenement) => {
+  try {
+    const token = getToken()
+    const response = await evenementsService.createEvenement(nouvelEvenement, token)
+    evenements.value.unshift(response.evenement)
+    alert(`Nouvel événement "${response.evenement.title}" créé avec succès !`)
+    showModal.value = false
+  } catch (err) {
+    alert(err.message || 'Erreur lors de la création de l\'événement')
   }
-  
-  evenements.value.unshift(evenementComplet)
-  
-  alert(`Nouvel événement "${evenementComplet.title}" créé avec succès !`)
 }
 
 const updateEvenement = (updates) => {

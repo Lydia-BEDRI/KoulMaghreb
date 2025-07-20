@@ -11,6 +11,105 @@ const generateCommandeNumber = () => {
   return `CMD-${timestamp}${random}`;
 };
 
+router.get('/admin/all', auth, adminAuth, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 50
+    const statut = req.query.statut || ''
+    const offset = (page - 1) * limit
+
+    let whereClause = 'WHERE 1=1'
+    let params = []
+
+    if (statut) {
+      whereClause += ' AND c.statut = ?'
+      params.push(statut)
+    }
+
+    const countQuery = `
+      SELECT COUNT(*) as total 
+      FROM commandes c 
+      ${whereClause}
+    `
+    const countResult = await query(countQuery, params)
+    const total = countResult[0].total
+
+    const commandesQuery = `
+      SELECT 
+        c.id, 
+        c.numero_commande, 
+        c.user_id, 
+        c.total, 
+        c.statut, 
+        c.notes_admin, 
+        c.created_at,
+        c.updated_at,
+        u.prenom, 
+        u.nom, 
+        u.email, 
+        u.telephone,
+        u.adresse,
+        u.code_postal
+      FROM commandes c
+      LEFT JOIN utilisateurs u ON c.user_id = u.id
+      ${whereClause}
+      ORDER BY c.created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `
+
+    const commandes = await query(commandesQuery, params)
+
+    for (const commande of commandes) {
+      try {
+        const items = await query(
+          'SELECT nom_plat, prix, quantite FROM items_commande WHERE commande_id = ?',
+          [commande.id]
+        )
+        commande.items = items
+      } catch (itemError) {
+        console.error(`Erreur items commande ${commande.id}:`, itemError)
+        commande.items = []
+      }
+
+      if (commande.prenom && commande.nom) {
+        commande.client = {
+          nom: `${commande.prenom} ${commande.nom}`,
+          email: commande.email,
+          telephone: commande.telephone,
+          adresse: commande.adresse,
+          code_postal: commande.code_postal
+        }
+      }
+
+      delete commande.prenom
+      delete commande.nom
+      delete commande.email
+      delete commande.telephone
+      delete commande.adresse
+      delete commande.code_postal
+    }
+
+    const response = {
+      commandes,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    }
+
+    res.json(response)
+
+  } catch (error) {
+    console.error('Erreur getAllCommandes admin:', error)
+    res.status(500).json({ 
+      error: 'Erreur lors de la récupération des commandes',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    })
+  }
+});
+
 router.get('/', auth, async (req, res) => {
   try {
     const statut = req.query.statut || '';

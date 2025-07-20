@@ -21,7 +21,7 @@
           </button>
           
           <h2 class="text-2xl font-bold text-center text-accent mb-2">
-            Détails de la commande n° {{ commande?.numeroCommande }}
+            Détails de la commande n° {{ commande?.numero_commande }}
           </h2>
           <p class="text-sm text-center text-gray-500">
              Gestion administrative
@@ -41,7 +41,7 @@
             <div>
               <label class="block text-base font-bold text-gray-700 mb-1">Numéro de commande</label>
               <input 
-                :value="commande?.numeroCommande" 
+                :value="commande?.numero_commande" 
                 disabled 
                 class="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 text-gray-400 cursor-not-allowed"
               />
@@ -54,7 +54,7 @@
               <div>
                 <label class="block text-base font-bold text-gray-700 mb-1">Nom complet</label>
                 <input 
-                  :value="commande?.client?.nom" 
+                  :value="commande?.client?.nom || 'Client inconnu'" 
                   disabled 
                   class="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 text-gray-400 cursor-not-allowed"
                 />
@@ -62,19 +62,29 @@
               <div>
                 <label class="block text-base font-bold text-gray-700 mb-1">Adresse email</label>
                 <input 
-                  :value="commande?.client?.email" 
+                  :value="commande?.client?.email || 'Non renseigné'" 
                   disabled 
                   class="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 text-gray-400 cursor-not-allowed"
                 />
               </div>
             </div>
-            <div class="mt-4">
-              <label class="block text-base font-bold text-gray-700 mb-1">Téléphone</label>
-              <input 
-                :value="commande?.client?.telephone || 'Non renseigné'" 
-                disabled 
-                class="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 text-gray-400 cursor-not-allowed"
-              />
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div>
+                <label class="block text-base font-bold text-gray-700 mb-1">Téléphone</label>
+                <input 
+                  :value="commande?.client?.telephone || 'Non renseigné'" 
+                  disabled 
+                  class="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 text-gray-400 cursor-not-allowed"
+                />
+              </div>
+              <div>
+                <label class="block text-base font-bold text-gray-700 mb-1">Adresse</label>
+                <input 
+                  :value="formatAdresse(commande?.client)" 
+                  disabled 
+                  class="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 text-gray-400 cursor-not-allowed"
+                />
+              </div>
             </div>
           </div>
 
@@ -98,25 +108,35 @@
               <div>
                 <label class="block text-base font-bold text-gray-700 mb-1">Montant total</label>
                 <input 
-                  :value="commande?.total?.toFixed(2) + ' €'" 
+                  :value="formatPrice(commande?.total)" 
                   disabled 
                   class="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 text-gray-400 cursor-not-allowed"
                 />
               </div>
             </div>
-            <div class="mt-4">
-              <label class="block text-base font-bold text-gray-700 mb-1">Date de commande</label>
-              <input 
-                :value="formatDate(commande?.created_at)" 
-                disabled 
-                class="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 text-gray-400 cursor-not-allowed"
-              />
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div>
+                <label class="block text-base font-bold text-gray-700 mb-1">Date de commande</label>
+                <input 
+                  :value="formatDate(commande?.created_at)" 
+                  disabled 
+                  class="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 text-gray-400 cursor-not-allowed"
+                />
+              </div>
+              <div>
+                <label class="block text-base font-bold text-gray-700 mb-1">Dernière mise à jour</label>
+                <input 
+                  :value="formatDate(commande?.updated_at)" 
+                  disabled 
+                  class="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 text-gray-400 cursor-not-allowed"
+                />
+              </div>
             </div>
           </div>
 
           <div>
             <h3 class="text-lg font-semibold text-primary mb-4">Articles commandés</h3>
-            <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+            <div v-if="commande?.items && commande.items.length > 0" class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
               <table class="w-full text-sm">
                 <thead class="bg-gray-50">
                   <tr>
@@ -127,14 +147,26 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="item in commande?.items" :key="item.nom" class="border-t hover:bg-gray-50 transition">
-                    <td class="px-4 py-3 font-medium text-gray-800">{{ item.nom }}</td>
+                  <tr v-for="item in commande.items" :key="item.nom_plat" class="border-t hover:bg-gray-50 transition">
+                    <td class="px-4 py-3 font-medium text-gray-800">{{ item.nom_plat }}</td>
                     <td class="px-4 py-3 text-center text-gray-600">{{ item.quantite }}</td>
-                    <td class="px-4 py-3 text-right text-gray-600">{{ item.prix }} €</td>
-                    <td class="px-4 py-3 text-right font-semibold text-primary">{{ (item.prix * item.quantite).toFixed(2) }} €</td>
+                    <td class="px-4 py-3 text-right text-gray-600">{{ parseFloat(item.prix).toFixed(2) }} €</td>
+                    <td class="px-4 py-3 text-right font-semibold text-primary">
+                      {{ (parseFloat(item.prix) * parseInt(item.quantite)).toFixed(2) }} €
+                    </td>
                   </tr>
                 </tbody>
+                <tfoot class="bg-gray-50 font-semibold">
+                  <tr>
+                    <td colspan="3" class="px-4 py-3 text-right text-gray-700">Total :</td>
+                    <td class="px-4 py-3 text-right text-primary text-lg">{{ formatPrice(commande?.total) }}</td>
+                  </tr>
+                </tfoot>
               </table>
+            </div>
+            <div v-else class="text-center py-8 text-gray-500">
+              <Icon icon="mdi:package-variant" class="text-4xl mb-2" />
+              <p>Aucun article dans cette commande</p>
             </div>
           </div>
 
@@ -149,21 +181,27 @@
           </div>
         </div>
 
-        <div class="flex justify-end gap-3 p-6 border-t bg-gray-50">
-          <button 
-            @click="$emit('close')"
-            class="flex items-center justify-center w-12 h-12 text-gray-600 hover:text-gray-800 transition rounded-xl hover:bg-gray-200"
-            title="Annuler"
-          >
-            <Icon icon="mdi:close" class="text-2xl" />
-          </button>
-          <button 
-            @click="sauvegarder"
-            class="flex items-center justify-center w-12 h-12 bg-primary text-white rounded-xl hover:bg-accent transition shadow-md hover:shadow-lg"
-            title="Sauvegarder les modifications"
-          >
-            <Icon icon="mdi:content-save" class="text-2xl" />
-          </button>
+        <div class="flex justify-between items-center p-6 border-t bg-gray-50">
+          <div class="text-sm text-gray-500">
+            <p>User ID: {{ commande?.user_id }}</p>
+            <p v-if="commande?.updated_at">Modifiée le {{ formatDate(commande.updated_at) }}</p>
+          </div>
+          
+          <div class="flex gap-3">
+            <button 
+              @click="$emit('close')"
+              class="px-4 py-2 text-gray-600 hover:text-gray-800 transition rounded-xl hover:bg-gray-200 border border-gray-300"
+            >
+              Annuler
+            </button>
+            <button 
+              @click="sauvegarder"
+              :disabled="!hasChanges"
+              class="px-6 py-2 bg-primary text-white rounded-xl hover:bg-accent transition shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Sauvegarder
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -171,7 +209,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Icon } from '@iconify/vue'
@@ -188,27 +226,62 @@ const editableCommande = ref({
   notesAdmin: ''
 })
 
+const originalCommande = ref({
+  statut: '',
+  notesAdmin: ''
+})
+
+const hasChanges = computed(() => {
+  return editableCommande.value.statut !== originalCommande.value.statut ||
+         editableCommande.value.notesAdmin !== originalCommande.value.notesAdmin
+})
+
 watch(() => props.commande, (newCommande) => {
   if (newCommande) {
-    editableCommande.value = {
-      statut: newCommande.statut,
-      notesAdmin: newCommande.notesAdmin || ''
+    const initial = {
+      statut: newCommande.statut || 'En attente',
+      notesAdmin: newCommande.notes_admin || ''
     }
+    
+    editableCommande.value = { ...initial }
+    originalCommande.value = { ...initial }
   }
 }, { immediate: true })
 
 const formatDate = (date) => {
   if (!date) return 'Non disponible'
-  return format(new Date(date), 'dd/MM/yyyy à HH:mm', { locale: fr })
+  try {
+    return format(new Date(date), 'dd/MM/yyyy à HH:mm', { locale: fr })
+  } catch (error) {
+    return 'Date invalide'
+  }
+}
+
+const formatPrice = (price) => {
+  if (!price && price !== 0) return '0,00 €'
+  return parseFloat(price).toFixed(2) + ' €'
+}
+
+const formatAdresse = (client) => {
+  if (!client) return 'Non renseigné'
+  
+  const adresse = client.adresse || ''
+  const codePostal = client.code_postal || ''
+  
+  if (!adresse && !codePostal) return 'Non renseigné'
+  if (adresse && codePostal) return `${adresse}, ${codePostal}`
+  if (adresse) return adresse
+  return codePostal
 }
 
 const sauvegarder = () => {
+  if (!hasChanges.value) return
+  
   emit('update', {
     id: props.commande.id,
     statut: editableCommande.value.statut,
     notesAdmin: editableCommande.value.notesAdmin
   })
-  emit('close')
 }
 </script>
 

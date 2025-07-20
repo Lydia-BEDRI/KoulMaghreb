@@ -216,8 +216,8 @@ watch(() => props.plat, (newPlat) => {
             nom: newPlat.nom || '',
             prix: newPlat.prix || 0,
             image: newPlat.image || '',
-            shortDesc: newPlat.shortDesc || '',
-            longDesc: newPlat.longDesc || '',
+            shortDesc: newPlat.shortDesc || newPlat.short_desc || newPlat.description || '',
+            longDesc: newPlat.longDesc || newPlat.long_desc || '',
             pays: newPlat.pays || 'Algérie',
             type: newPlat.type || 'Plat principal'
         }

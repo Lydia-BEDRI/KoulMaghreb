@@ -11,6 +11,103 @@ const generateReservationNumber = () => {
   return `RSV-${timestamp}${random}`;
 };
 
+router.get('/', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'Admin') {
+      return res.status(403).json({ error: 'Accès refusé' });
+    }
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+
+    const statut = req.query.statut || '';
+    const search = req.query.search || '';
+
+    let whereClause = '';
+    const conditions = [];
+    const queryParams = [];
+
+    if (statut) {
+      conditions.push('r.statut = ?');
+      queryParams.push(statut);
+    }
+
+    if (search) {
+      conditions.push('(r.numero_reservation LIKE ? OR u.nom LIKE ? OR u.prenom LIKE ? OR u.email LIKE ? OR e.title LIKE ?)');
+      const searchPattern = `%${search}%`;
+      queryParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
+    }
+
+    if (conditions.length > 0) {
+      whereClause = 'WHERE ' + conditions.join(' AND ');
+    }
+
+    const countQuery = `
+      SELECT COUNT(*) AS total 
+      FROM reservations r
+      LEFT JOIN utilisateurs u ON r.user_id = u.id
+      LEFT JOIN evenements e ON r.evenement_id = e.id
+      ${whereClause}
+    `;
+    const totalResult = await query(countQuery, queryParams);
+    const total = totalResult[0]?.total || 0;
+
+    const reservationsQuery = `
+      SELECT 
+        r.*, 
+        u.prenom, u.nom, u.email, u.telephone,
+        e.title as evenement_titre, e.date as evenement_date, e.lieu as evenement_lieu, e.prix_par_personne
+      FROM reservations r
+      LEFT JOIN utilisateurs u ON r.user_id = u.id
+      LEFT JOIN evenements e ON r.evenement_id = e.id
+      ${whereClause}
+      ORDER BY r.created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+
+    const reservationsResults = await query(reservationsQuery, queryParams);
+
+    const reservations = reservationsResults.map(item => ({
+      id: item.id,
+      numeroReservation: item.numero_reservation,
+      user_id: item.user_id,
+      evenement_id: item.evenement_id,
+      nombrePlaces: item.nombre_places,
+      montantTotal: parseFloat(item.montant_total),
+      statut: item.statut,
+      created_at: item.created_at,
+      updated_at: item.updated_at,
+      notesAdmin: item.notes_admin,
+      client: {
+        nom: `${item.prenom || ''} ${item.nom || ''}`.trim() || 'Utilisateur',
+        email: item.email,
+        telephone: item.telephone
+      },
+      evenement: {
+        id: item.evenement_id,
+        titre: item.evenement_titre,
+        date: item.evenement_date,
+        lieu: item.evenement_lieu,
+        prix: item.prix_par_personne
+      }
+    }));
+
+    res.json({
+      reservations,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur lors de la récupération des réservations' });
+  }
+});
+
 router.get('/user', auth, async (req, res) => {
   try {
     const reservations = await query(
