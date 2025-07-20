@@ -133,7 +133,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { platsService } from '@/services/platsService.js'
 import { favorisService } from '@/services/favorisService.js'
@@ -143,6 +143,7 @@ import { useToast } from 'vue-toastification'
 import { Icon } from '@iconify/vue'
 import AvisCommentaires from './AvisCommentaires.vue'
 import { useSeo } from '@/composables/useSeo.js'
+import { useStructuredData } from '@/composables/useStructuredData.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -295,6 +296,31 @@ onMounted(async () => {
     error.value = e.message || 'Erreur lors du chargement du plat'
   } finally {
     loading.value = false
+  }
+})
+
+watch(plat, (val) => {
+  if (val) {
+    useStructuredData({
+      "@context": "https://schema.org",
+      "@type": "Recipe",
+      "name": val.nom,
+      "image": [val.image],
+      "description": val.long_desc || val.short_desc,
+      "recipeCuisine": val.pays,
+      "recipeCategory": val.type,
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": val.note,
+        "reviewCount": val.nb_avis || 0
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": val.prix,
+        "priceCurrency": "EUR",
+        "availability": "https://schema.org/InStock"
+      }
+    })
   }
 })
 

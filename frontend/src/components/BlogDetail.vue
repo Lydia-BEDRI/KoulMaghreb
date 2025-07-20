@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { articlesService } from '@/services/articlesService.js'
 import { useSeo } from '@/composables/useSeo.js'
+import { useStructuredData } from '@/composables/useStructuredData'
 
 const route = useRoute()
 const article = ref(null)
@@ -48,6 +49,25 @@ function getCategoryClass(category) {
 useSeo({
   title: article.value ? `${article.value.title} - KoulMaghreb` : 'Article - KoulMaghreb',
   description: article.value ? article.value.excerpt || article.value.title : 'Découvrez un article culinaire sur KoulMaghreb.'
+})
+
+useStructuredData({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": article.title,
+  "image": [article.image],
+  "datePublished": article.created_at,
+  "author": { "@type": "Organization", "name": "KoulMaghreb" },
+  "publisher": {
+    "@type": "Organization",
+    "name": "KoulMaghreb",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://domaine.com/logo-mobile.png"
+    }
+  },
+  "articleSection": article.category,
+  "description": article.excerpt || article.title
 })
 </script>
 

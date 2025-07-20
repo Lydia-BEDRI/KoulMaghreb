@@ -231,9 +231,8 @@ const resetFilters = () => {
 
 onMounted(async () => {
   try {
-    console.log('Chargement des plats...')
+
     plats.value = await platsService.getAll()
-    console.log('Plats chargés:', plats.value.length)
     
     if (isUserAuthenticated()) {
       try {
@@ -261,10 +260,8 @@ const chargerFavoris = async () => {
       return
     }
     
-    console.log('Chargement des favoris...')
     const mesFavoris = await favorisService.getMesFavoris(token)
     favoris.value = mesFavoris || []
-    console.log('Favoris chargés:', favoris.value)
   } catch (e) {
     console.error('Erreur lors du chargement des favoris:', e)
   }
