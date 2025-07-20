@@ -34,6 +34,11 @@ useSeo({
     <div v-else-if="error" class="text-red-600 text-center py-8">{{ error }}</div>
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <EvenementCard v-for="event in evenements" :key="event.id" :event="event" />
+      <img
+        :src="event.image"
+        :alt="event.title"
+        class="w-full h-full object-cover"
+      />
     </div>
   </div>
 </template>

@@ -7,7 +7,7 @@
       <div v-for="article in articles" :key="article.id"
            class="border rounded-lg shadow hover:shadow-lg transition p-4 bg-white">
         <router-link :to="`/blog/${article.slug}`">
-          <img :src="article.image" alt="" class="rounded-lg h-48 w-full object-cover mb-4"/>
+          <img :src="article.image" :alt="`Image de l'article : ${article.title}`" class="rounded-lg h-48 w-full object-cover mb-4"/>
           <h2 class="text-xl font-semibold text-accent">{{ article.title }}</h2>
           <p class="text-sm text-gray-500 mb-2">
             {{ formatDate(article.created_at) }}

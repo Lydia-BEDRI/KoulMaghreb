@@ -73,7 +73,7 @@
         >
           <div class="flex items-center gap-4">
             <div class="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">
-              <img :src="getItemImage(item)" :alt="getItemName(item)" class="w-full h-full object-cover" />
+              <img :src="plat.image" :alt="plat.nom" class="w-full h-full object-cover" />
             </div>
             <div>
               <div class="flex items-center gap-2 mb-1">

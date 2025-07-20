@@ -53,8 +53,9 @@ useSeo({
 
 <template>
   <div class="max-w-4xl mx-auto p-6" v-if="article">
-    <img :src="article.image" class="w-full max-h-96 object-cover rounded-lg mb-6" v-if="article.image"
-         alt="Image de l'article" />
+    <img :src="article.image" v-if="article.image"
+         :alt="`Image de l'article : ${article.title}`"
+         class="w-full max-h-96 object-cover rounded-lg mb-6" />
     <h1 class="text-4xl font-bold mb-2 text-primary">{{ article.title }}</h1>
     <p class="text-sm text-gray-500 mb-4">
       {{ formatDate(article.created_at) }}
