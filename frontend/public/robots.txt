@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin/
+Disallow: /mon-panier
+Disallow: /mes-commandes
+Disallow: /profil
+Disallow: /mes-favoris
+Disallow: /mes-reservations
+
+Sitemap: https://domaine.com/sitemap.xml
