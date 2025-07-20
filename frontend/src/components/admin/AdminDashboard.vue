@@ -1,35 +1,42 @@
 <script setup>
 import StatCard from '@/components/admin/StatCard.vue'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { adminDashboardService } from '@/services/adminDashboardService'
 
 const stats = ref({
-  commandes: 12,
-  reservations: 5,
-  utilisateurs: 45,
-  noteMoyenne: 4.6,
+  commandes: 0,
+  reservations: 0,
+  utilisateurs: 0,
+  noteMoyenne: 0,
 })
 
-const commandes = ref([
-  { client: 'Amine D.', plat: 'Couscous', statut: 'Livrée' },
-  { client: 'Yasmine Z.', plat: 'Tajine', statut: 'En cours' },
-])
+const commandes = ref([])
+const reservations = ref([])
+const platsFavoris = ref([])
+const platsCommentes = ref([])
 
-const reservations = ref([
-  { date: '2025-07-05', client: 'Rachid B.', personnes: 4 },
-  { date: '2025-07-06', client: 'Lina A.', personnes: 2 },
-])
-
-const plats = ref([
-  { nom: 'Tajine', commandes: 27 },
-  { nom: 'Couscous royal', commandes: 22 },
-])
-
-// Pour colorier les statuts
 const statusColor = {
-  'Livrée': 'text-green-600 bg-green-100',
-  'En cours': 'text-orange-600 bg-orange-100',
-  'Annulée': 'text-red-600 bg-red-100',
+  'En attente': 'bg-yellow-100 text-yellow-600',
+  'En préparation': 'bg-blue-100 text-blue-600',
+  'Prête': 'bg-purple-100 text-purple-600',
+  'En livraison': 'bg-orange-100 text-orange-600',
+  'Livrée': 'bg-green-100 text-green-600',
+  'Annulée': 'bg-red-100 text-red-600'
 }
+
+function formatDate(dateStr) {
+  if (!dateStr) return ''
+  const d = new Date(dateStr)
+  return d.toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+}
+
+onMounted(async () => {
+  stats.value = await adminDashboardService.getStats()
+  commandes.value = await adminDashboardService.getCommandesRecentes()
+  reservations.value = await adminDashboardService.getReservationsAvenir()
+  platsFavoris.value = await adminDashboardService.getPlatsFavoris()
+  platsCommentes.value = await adminDashboardService.getPlatsCommentes()
+})
 </script>
 
 <template>
@@ -55,10 +62,9 @@ const statusColor = {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(cmd, index) in commandes" :key="index"
-                class="bg-background hover:bg-orange-50 rounded">
+            <tr v-for="(cmd, index) in commandes" :key="index" class="bg-background hover:bg-orange-50 rounded">
               <td class="py-2 px-2 font-medium text-gray-800">{{ cmd.client }}</td>
-              <td class="py-2 px-2">{{ cmd.plat }}</td>
+              <td class="py-2 px-2">{{ cmd.nb_plats }}</td>
               <td class="py-2 px-2">
                 <span :class="['px-2 py-1 rounded-full text-xs font-semibold', statusColor[cmd.statut] || 'bg-gray-200 text-gray-700']">
                   {{ cmd.statut }}
@@ -83,7 +89,7 @@ const statusColor = {
           </thead>
           <tbody>
             <tr v-for="(res, index) in reservations" :key="index" class="bg-background hover:bg-orange-50 rounded">
-              <td class="py-2 px-2">{{ res.date }}</td>
+              <td class="py-2 px-2">{{ formatDate(res.evenement_date) }}</td>
               <td class="py-2 px-2">{{ res.client }}</td>
               <td class="py-2 px-2">{{ res.personnes }}</td>
             </tr>
@@ -93,19 +99,39 @@ const statusColor = {
     </section>
 
     <section>
-      <h2 class="text-lg font-semibold text-accent mb-3">Plats les plus populaires</h2>
+      <h2 class="text-lg font-semibold text-accent mb-3">Plats les plus ajoutés en favoris</h2>
       <div class="bg-white rounded-xl shadow p-4 overflow-x-auto">
         <table class="w-full text-left text-sm border-separate border-spacing-y-2">
           <thead class="text-primary uppercase text-xs tracking-wide">
             <tr>
               <th class="py-2 px-2">Plat</th>
-              <th class="py-2 px-2">Commandes</th>
+              <th class="py-2 px-2">Favoris</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(plat, index) in plats" :key="index" class="bg-background hover:bg-orange-50 rounded">
+            <tr v-for="(plat, index) in platsFavoris" :key="index" class="bg-background hover:bg-orange-50 rounded">
               <td class="py-2 px-2">{{ plat.nom }}</td>
-              <td class="py-2 px-2">{{ plat.commandes }}</td>
+              <td class="py-2 px-2">{{ plat.favoris }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-lg font-semibold text-accent mb-3">Plats les plus commentés (avis)</h2>
+      <div class="bg-white rounded-xl shadow p-4 overflow-x-auto">
+        <table class="w-full text-left text-sm border-separate border-spacing-y-2">
+          <thead class="text-primary uppercase text-xs tracking-wide">
+            <tr>
+              <th class="py-2 px-2">Plat</th>
+              <th class="py-2 px-2">Avis</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(plat, index) in platsCommentes" :key="index" class="bg-background hover:bg-orange-50 rounded">
+              <td class="py-2 px-2">{{ plat.nom }}</td>
+              <td class="py-2 px-2">{{ plat.nb_avis }}</td>
             </tr>
           </tbody>
         </table>
