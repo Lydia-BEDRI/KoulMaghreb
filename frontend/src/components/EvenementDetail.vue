@@ -74,6 +74,7 @@ useSeo({
 </script>
 
 <template>
+  <section aria-label="Détail de l'événement" class="bg-gray-50"> 
   <div v-if="event" class="p-6 min-h-screen max-w-6xl mx-auto">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
       <div class="space-y-6">
@@ -171,5 +172,6 @@ useSeo({
     <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
     <p class="mt-2 text-gray-600">Chargement de l'événement...</p>
   </div>
+</section>
 </template>
 

@@ -1,5 +1,5 @@
 <template>
-  <section class="py-12 px-4 md:px-16">
+  <section class="py-12 px-4 md:px-16" aria-label="Mentions légales">
     <div class="max-w-4xl mx-auto">
       <h1 class="text-3xl md:text-4xl font-bold text-primary mb-8 text-center">
         Mentions légales

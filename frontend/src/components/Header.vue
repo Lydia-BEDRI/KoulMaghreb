@@ -76,7 +76,7 @@ watch(() => modal.showLoginModal, (isModalVisible) => {
           <XMarkIcon v-else class="h-6 w-6" />
         </button>
 
-        <a href="/" class="flex-shrink-0" aria-label="Accueil KoulMaghreb">
+        <a href="/" aria-label="Accueil KoulMaghreb">
           <img src="/logo-mobile.png" alt="KoulMaghreb" class="h-10 w-auto" />
         </a>
 
@@ -272,7 +272,7 @@ watch(() => modal.showLoginModal, (isModalVisible) => {
             </div>
           </div>
 
-          <nav class="p-4 space-y-6">
+          <nav aria-label="Menu principal" class="p-4 space-y-6">
             <div>
               <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Navigation</h3>
               <div class="space-y-1">

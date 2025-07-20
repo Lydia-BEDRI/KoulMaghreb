@@ -34,7 +34,6 @@
         <div class="w-24 h-24 rounded-full bg-primary text-white font-bold flex items-center justify-center text-3xl">
           {{ getInitiales(form.prenom, form.nom) }}
         </div>
-        <img :src="form.photo" alt="Photo de profil de {{ form.prenom }} {{ form.nom }}" class="w-24 h-24 rounded-full" />
       </div>
 
       <form v-if="activeTab === 'profile'" @submit.prevent="submitProfile" class="md:col-span-2 space-y-8">
