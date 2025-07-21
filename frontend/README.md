@@ -1,29 +1,50 @@
-# frontend
+# Frontend KoulMaghreb - Projet Annuel ESGI
 
-This template should help get you started developing with Vue 3 in Vite.
+Bienvenue dans le projet **KoulMaghreb**, une application web dédiée à la découverte de la richesse culinaire du Maghreb. Ce projet est développé avec **Vue 3**, **Vite**, et **TailwindCSS**.
 
-## Recommended IDE Setup
+## Prérequis
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+Avant de commencer, assurez-vous d'avoir les outils suivants installés sur votre machine :
 
-## Customize configuration
+- **Node.js** (version 16 ou supérieure) : [Télécharger Node.js](https://nodejs.org/)
+- **npm** (inclus avec Node.js) ou **yarn** pour gérer les dépendances.
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+---
 
-## Project Setup
+## Installation
+1. Clonez le dépôt du projet :
 
-```sh
-npm install
-```
+   ```bash
+   git clone https://github.com/Lydia-BEDRI/KoulMaghreb.git
 
-### Compile and Hot-Reload for Development
+    cd KoulMaghreb/frontend
+    ```
+2. Installez les dépendances du projet :
+   ```bash
+   npm install
+   ```
 
-```sh
-npm run dev
-```
+   ou si vous utilisez **yarn** :
 
-### Compile and Minify for Production
+   ```bash
+   yarn install
+   ```
+3. Lancez le serveur de développement :
+   ```bash
+   npm run dev
+   ```
+   ou avec **yarn** :
 
-```sh
-npm run build
-```
+   ```bash
+   yarn dev
+   ```
+4. Lancez le script watch pour TailwindCSS :
+   ```bash
+   npm run watch
+   ```
+   ou avec **yarn** :
+
+   ```bash
+   yarn watch
+   ```
+5. Ouvrez votre navigateur et accédez à `http://localhost:5173` pour voir l'application en action.

@@ -11,14 +11,21 @@
     "watch": "npx tailwindcss -i ./src/assets/main.css -o ./dist/output.css --watch"
   },
   "dependencies": {
-    "vue": "^3.5.13"
+    "@heroicons/vue": "^2.2.0",
+    "@iconify/vue": "^5.0.0",
+    "@vueuse/head": "^2.0.0",
+    "date-fns": "^4.1.0",
+    "pinia": "^3.0.3",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.1",
+    "vue-toastification": "^2.0.0-rc.5"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.3",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.3",
     "prettier": "3.5.3",
-    "tailwindcss": "^3.4.17",
+    "tailwindcss": "^4.1.10",
     "vite": "^6.2.4",
     "vite-plugin-vue-devtools": "^7.7.2"
   }
