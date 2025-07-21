@@ -44,6 +44,9 @@ services:
       - DB_NAME=koulmaghreb
       - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
       - PORT=3000
+      - FRONTEND_URL=http://localhost:5173
+    ports:
+      - "3001:3000" # PORT EXPOSÉ POUR LE BACKEND (INTERNE)
     # PAS D'EXPOSITION DE PORT - INTERNE SEULEMENT
     networks:
       - koulmaghreb-network

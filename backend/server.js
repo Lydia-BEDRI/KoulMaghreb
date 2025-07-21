@@ -33,6 +33,9 @@ app.use(express.urlencoded({ extended: true }));
 // Middleware pour les uploads
 app.use('/uploads', express.static('uploads'));
 
+// Configuration de la confiance des proxys (pour les environnements derrière un proxy)
+app.set('trust proxy', 1);
+
 // Routes
 const authRoutes = require('./routes/auth');
 const platRoutes = require('./routes/plats');
