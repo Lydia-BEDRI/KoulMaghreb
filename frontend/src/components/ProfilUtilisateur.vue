@@ -182,6 +182,7 @@ import { useAuth } from '../composables/useAuth'
 import { useRouter } from 'vue-router'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { useSeo } from '@/composables/useSeo.js'
 
 const toast = useToast()
 const router = useRouter()
@@ -204,6 +205,11 @@ const security = reactive({
   currentPassword: '',
   newPassword: '',
   confirmPassword: ''
+})
+
+useSeo({
+  title: 'Mon profil utilisateur - KoulMaghreb',
+  description: "Gérez vos informations personnelles, votre adresse et la sécurité de votre compte sur KoulMaghreb. Modifiez vos données et mettez à jour votre mot de passe facilement."
 })
 
 const loadUserData = async () => {

@@ -1,5 +1,5 @@
 <template>
-  <section class="py-12 px-4 md:px-16">
+  <section class="py-12 px-4 md:px-16" aria-label="Mentions légales">
     <div class="max-w-4xl mx-auto">
       <h1 class="text-3xl md:text-4xl font-bold text-primary mb-8 text-center">
         Mentions légales
@@ -65,6 +65,15 @@
     </div>
   </section>
 </template>
+
+<script>
+import { useSeo } from '@/composables/useSeo.js'
+
+useSeo({
+  title: 'Mentions légales - KoulMaghreb',
+  description: "Retrouvez toutes les informations légales concernant le site KoulMaghreb : éditeur, hébergement, propriété intellectuelle, données personnelles et cookies."
+})
+</script>
 
 <style scoped>
 </style>

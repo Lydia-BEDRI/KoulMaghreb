@@ -184,6 +184,12 @@
 <script setup>
 import { ref } from 'vue'
 import { CalendarDaysIcon, BookOpenIcon } from '@heroicons/vue/24/outline'
+import { useSeo } from '@/composables/useSeo.js'
+
+useSeo({
+  title: 'Cuisine tunisienne : recettes, plats et spécialités - KoulMaghreb',
+  description: "Découvrez les saveurs épicées et les plats emblématiques de la cuisine tunisienne : couscous, brik à l'œuf, lablabi, makroudh et bien plus sur KoulMaghreb."
+})
 
 const openIndex = ref(null)
 

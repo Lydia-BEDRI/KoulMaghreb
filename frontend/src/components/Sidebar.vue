@@ -3,7 +3,7 @@
     <div class="flex-1">
       <div class="mb-8">
         <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Navigation</h3>
-        <nav class="space-y-1">
+        <nav aria-label="Navigation latérale" class="space-y-1">
           <SidebarItem icon="home" label="Accueil" to="/" />
 
           <SidebarItem v-if="isAuthenticated" icon="list-bullet" label="Nos plats" to="/nos-plats" />

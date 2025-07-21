@@ -66,6 +66,7 @@ import { Icon } from '@iconify/vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
 import { favorisService } from '@/services/favorisService'
+import { useSeo } from '@/composables/useSeo.js'
 
 const router = useRouter()
 const toast = useToast()
@@ -115,4 +116,9 @@ const voirDetails = (plat) => {
 }
 
 onMounted(chargerFavoris)
+
+useSeo({
+  title: 'Mes favoris - KoulMaghreb',
+  description: "Retrouvez tous vos plats maghrébins préférés dans votre espace favoris et commandez-les en un clic sur KoulMaghreb."
+})
 </script>

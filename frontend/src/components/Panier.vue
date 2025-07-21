@@ -73,7 +73,7 @@
         >
           <div class="flex items-center gap-4">
             <div class="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">
-              <img :src="getItemImage(item)" :alt="getItemName(item)" class="w-full h-full object-cover" />
+              <img :src="plat.image" :alt="plat.nom" class="w-full h-full object-cover" />
             </div>
             <div>
               <div class="flex items-center gap-2 mb-1">
@@ -183,6 +183,7 @@ import { useRouter } from 'vue-router'
 import { usePanier } from '@/composables/usePanier'
 import { useToast } from 'vue-toastification'
 import { useAuth } from '@/composables/useAuth'
+import { useSeo } from '@/composables/useSeo.js'
 
 const router = useRouter()
 const toast = useToast()
@@ -309,6 +310,11 @@ ${reservations.length > 0 ? 'Vos réservations iront dans "Mes réservations"' :
 
 onMounted(() => {
   chargerPanier()
+})
+
+useSeo({
+  title: 'Mon panier - Commande et réservation - KoulMaghreb',
+  description: "Validez votre panier, passez commande de plats maghrébins ou réservez vos événements en quelques clics sur KoulMaghreb."
 })
 </script>
 

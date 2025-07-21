@@ -120,6 +120,7 @@ import { useRouter } from 'vue-router'
 import { useModalStore } from '../stores/useModalStore'
 import { useAuth } from '../composables/useAuth'
 import { useToast } from 'vue-toastification'
+import { useSeo } from '@/composables/useSeo.js'
 
 const modal = useModalStore()
 const toast = useToast()
@@ -139,6 +140,11 @@ const form = reactive({
   adresse: '',
   code_postal: '', 
   telephone: ''
+})
+
+useSeo({
+  title: 'Créer un compte - KoulMaghreb',
+  description: "Inscrivez-vous sur KoulMaghreb pour commander des plats maghrébins, réserver des événements et profiter de votre espace personnel."
 })
 
 const goToStep2 = () => {

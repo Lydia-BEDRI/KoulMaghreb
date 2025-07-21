@@ -185,6 +185,12 @@
 <script setup>
 import { ref } from 'vue'
 import { CalendarDaysIcon, BookOpenIcon } from '@heroicons/vue/24/outline'
+import { useSeo } from '@/composables/useSeo.js'
+
+useSeo({
+  title: 'Cuisine algérienne : plats traditionnels et recettes - KoulMaghreb',
+  description: "Découvrez la richesse de la cuisine algérienne : couscous, chorba, rechta, m’touem et les ingrédients phares de l’Algérie sur KoulMaghreb."
+})
 
 const openIndex = ref(null)
 

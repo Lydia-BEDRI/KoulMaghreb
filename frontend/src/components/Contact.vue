@@ -109,6 +109,12 @@
 
 <script setup>
 import { MapPinIcon, EnvelopeIcon, PhoneIcon } from '@heroicons/vue/24/outline'
+import { useSeo } from '@/composables/useSeo.js'
+
+useSeo({
+  title: 'Contactez-nous - KoulMaghreb',
+  description: "Besoin d’un renseignement ou d’une réservation ? Retrouvez toutes les coordonnées et le formulaire de contact du restaurant KoulMaghreb."
+})
 </script>
 
 <style scoped></style>

@@ -7,7 +7,7 @@
       <div v-for="article in articles" :key="article.id"
            class="border rounded-lg shadow hover:shadow-lg transition p-4 bg-white">
         <router-link :to="`/blog/${article.slug}`">
-          <img :src="article.image" alt="" class="rounded-lg h-48 w-full object-cover mb-4"/>
+          <img :src="article.image" :alt="`Image de l'article : ${article.title}`" class="rounded-lg h-48 w-full object-cover mb-4"/>
           <h2 class="text-xl font-semibold text-accent">{{ article.title }}</h2>
           <p class="text-sm text-gray-500 mb-2">
             {{ formatDate(article.created_at) }}
@@ -25,6 +25,7 @@
 <script setup>
 import {ref, onMounted} from 'vue'
 import {articlesService} from '@/services/articlesService.js'
+import { useSeo } from '@/composables/useSeo.js'
 
 const articles = ref([])
 
@@ -63,4 +64,9 @@ function getCategoryClass(category) {
       return "text-gray-600";
   }
 }
+
+useSeo({
+  title: 'Articles culinaires - KoulMaghreb',
+  description: 'Découvrez nos articles sur la cuisine maghrébine, les recettes traditionnelles et les tendances culinaires du Maghreb.'
+})
 </script>

@@ -171,6 +171,12 @@
 <script setup>
 import { ref } from 'vue'
 import { CalendarDaysIcon, BookOpenIcon } from '@heroicons/vue/24/outline'
+import { useSeo } from '@/composables/useSeo.js'
+
+useSeo({
+  title: 'Cuisine marocaine : tajine, couscous et spécialités - KoulMaghreb',
+  description: "Explorez les saveurs authentiques du Maroc : tajine au citron confit, couscous marocain, pastilla, harira et les épices traditionnelles sur KoulMaghreb."
+})
 
 const openIndex = ref(null)
 

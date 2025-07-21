@@ -133,7 +133,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { platsService } from '@/services/platsService.js'
 import { favorisService } from '@/services/favorisService.js'
@@ -142,6 +142,8 @@ import { useAuth } from '@/composables/useAuth'
 import { useToast } from 'vue-toastification'
 import { Icon } from '@iconify/vue'
 import AvisCommentaires from './AvisCommentaires.vue'
+import { useSeo } from '@/composables/useSeo.js'
+import { useStructuredData } from '@/composables/useStructuredData.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -295,6 +297,36 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+})
+
+watch(plat, (val) => {
+  if (val) {
+    useStructuredData({
+      "@context": "https://schema.org",
+      "@type": "Recipe",
+      "name": val.nom,
+      "image": [val.image],
+      "description": val.long_desc || val.short_desc,
+      "recipeCuisine": val.pays,
+      "recipeCategory": val.type,
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": val.note,
+        "reviewCount": val.nb_avis || 0
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": val.prix,
+        "priceCurrency": "EUR",
+        "availability": "https://schema.org/InStock"
+      }
+    })
+  }
+})
+
+useSeo({
+  title: plat.value ? `${plat.value.nom} - Plat maghrébin - KoulMaghreb` : 'Détail du plat - KoulMaghreb',
+  description: plat.value ? plat.value.short_desc || plat.value.nom : "Découvrez les ingrédients, la recette et l'histoire de ce plat maghrébin sur KoulMaghreb."
 })
 </script>
 

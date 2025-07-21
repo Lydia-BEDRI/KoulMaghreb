@@ -1,8 +1,7 @@
 <template>
   <main class="px-4 py-8 space-y-16">
     <section class="relative bg-gray-200 text-accent rounded-xl overflow-hidden shadow-md">
-      <img src="/src/assets/img/banner.png" alt="Bannière KoulMaghreb"
-        class="absolute inset-0 w-full h-full object-cover" />
+      <img src="/src/assets/img/banner.png" alt="Bannière KoulMaghreb" class="absolute inset-0 w-full h-full object-cover" />
       <div class="absolute inset-0 bg-gradient-to-br from-accent/80 via-primary/70 to-accent/80"></div>
       
       <div class="relative z-10 text-center py-16 px-4">
@@ -216,6 +215,12 @@
 
 <script setup>
 import { Icon } from '@iconify/vue'
+import { useSeo } from '@/composables/useSeo.js'
+
+useSeo({
+  title: 'Accueil - KoulMaghreb',
+  description: "Bienvenue sur KoulMaghreb, le site dédié à la cuisine du Maghreb. Découvrez nos plats, nos chefs et nos événements culinaires marocains, algériens et tunisiens."
+})
 </script>
 
 <style scoped>

@@ -104,6 +104,7 @@ import { useRouter } from 'vue-router'
 import { useModalStore } from '../stores/useModalStore'
 import { useAuth } from '../composables/useAuth'
 import { useToast } from 'vue-toastification'
+import { useSeo } from '@/composables/useSeo.js'
 
 const modal = useModalStore()
 const toast = useToast()
@@ -117,6 +118,11 @@ const form = reactive({
 
 const loading = ref(false)
 const error = ref('')
+
+useSeo({
+  title: 'Connexion à votre espace - KoulMaghreb',
+  description: "Connectez-vous à votre espace personnel KoulMaghreb pour commander, réserver et gérer vos favoris."
+})
 
 function close() {
   modal.closeLogin()

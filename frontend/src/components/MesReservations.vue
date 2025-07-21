@@ -147,6 +147,7 @@ import { useAuth } from '@/composables/useAuth'
 import { reservationsService } from '@/services/reservationsService'
 import { useToast } from 'vue-toastification'
 import { Icon } from '@iconify/vue'
+import { useSeo } from '@/composables/useSeo.js'
 
 const { token } = useAuth()
 const toast = useToast()
@@ -316,6 +317,11 @@ Confirmer l'annulation ?`)
 
 onMounted(() => {
   chargerReservations()
+})
+
+useSeo({
+  title: 'Mes réservations - KoulMaghreb',
+  description: "Consultez et gérez vos réservations d'événements culinaires maghrébins sur KoulMaghreb. Annulez ou suivez vos réservations facilement."
 })
 </script>
 

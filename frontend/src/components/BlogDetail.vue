@@ -2,6 +2,8 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { articlesService } from '@/services/articlesService.js'
+import { useSeo } from '@/composables/useSeo.js'
+import { useStructuredData } from '@/composables/useStructuredData'
 
 const route = useRoute()
 const article = ref(null)
@@ -43,12 +45,37 @@ function getCategoryClass(category) {
       return "text-gray-600";
   }
 }
+
+useSeo({
+  title: article.value ? `${article.value.title} - KoulMaghreb` : 'Article - KoulMaghreb',
+  description: article.value ? article.value.excerpt || article.value.title : 'Découvrez un article culinaire sur KoulMaghreb.'
+})
+
+useStructuredData({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": article.title,
+  "image": [article.image],
+  "datePublished": article.created_at,
+  "author": { "@type": "Organization", "name": "KoulMaghreb" },
+  "publisher": {
+    "@type": "Organization",
+    "name": "KoulMaghreb",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://domaine.com/logo-mobile.png"
+    }
+  },
+  "articleSection": article.category,
+  "description": article.excerpt || article.title
+})
 </script>
 
 <template>
   <div class="max-w-4xl mx-auto p-6" v-if="article">
-    <img :src="article.image" class="w-full max-h-96 object-cover rounded-lg mb-6" v-if="article.image"
-         alt="Image de l'article" />
+    <img :src="article.image" v-if="article.image"
+         :alt="`Image de l'article : ${article.title}`"
+         class="w-full max-h-96 object-cover rounded-lg mb-6" />
     <h1 class="text-4xl font-bold mb-2 text-primary">{{ article.title }}</h1>
     <p class="text-sm text-gray-500 mb-4">
       {{ formatDate(article.created_at) }}

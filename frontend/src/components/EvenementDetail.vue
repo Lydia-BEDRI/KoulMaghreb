@@ -1,12 +1,15 @@
 <script setup>
 import { useRoute } from 'vue-router'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { evenementsService } from '@/services/evenementsService.js'
 import { Icon } from '@iconify/vue'
 import { usePanier } from '@/composables/usePanier'
 import { useToast } from 'vue-toastification'
+import { useSeo } from '@/composables/useSeo.js'
+import { useStructuredData } from '@/composables/useStructuredData.js'
+import { watchEffect } from 'vue'
 
 const route = useRoute()
 const event = ref(null)
@@ -65,9 +68,39 @@ const placesDisponibles = computed(() => {
   if (!event.value?.places_restantes) return 0
   return Math.min(event.value.places_restantes, 10) 
 })
+
+watchEffect(() => {
+  if (event.value) {
+    useStructuredData({
+      "@context": "https://schema.org",
+      "@type": "Event",
+      "name": event.value.title,
+      "description": event.value.long_desc || event.value.short_desc,
+      "startDate": event.value.date,
+      "location": {
+        "@type": "Place",
+        "name": event.value.lieu
+      },
+      "image": event.value.image,
+      "offers": {
+        "@type": "Offer",
+        "price": event.value.prix_par_personne || "0",
+        "priceCurrency": "EUR",
+        "availability": event.value.places_restantes > 0 ? "https://schema.org/InStock" : "https://schema.org/SoldOut"
+      }
+    })
+  }
+})
+
+
+useSeo({
+  title: event.value ? `${event.value.title} - Événement - KoulMaghreb` : 'Événement - KoulMaghreb',
+  description: event.value ? event.value.short_desc || event.value.title : "Détail d'un événement maghrébin organisé par KoulMaghreb."
+})
 </script>
 
 <template>
+  <section aria-label="Détail de l'événement" class="bg-gray-50"> 
   <div v-if="event" class="p-6 min-h-screen max-w-6xl mx-auto">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
       <div class="space-y-6">
@@ -165,5 +198,6 @@ const placesDisponibles = computed(() => {
     <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
     <p class="mt-2 text-gray-600">Chargement de l'événement...</p>
   </div>
+</section>
 </template>
 

@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import EvenementCard from './EvenementCard.vue'
 import { evenementsService } from '@/services/evenementsService.js'
+import { useSeo } from '@/composables/useSeo.js'
 
 const evenements = ref([])
 const loading = ref(true)
@@ -16,6 +17,11 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+useSeo({
+  title: 'Événements maghrébins à venir - KoulMaghreb',
+  description: "Découvrez et participez aux événements culinaires, ateliers et rencontres culturelles organisés par KoulMaghreb."
+})
 </script>
 
 <template>
@@ -27,7 +33,7 @@ onMounted(async () => {
     <div v-if="loading" class="text-center py-8">Chargement...</div>
     <div v-else-if="error" class="text-red-600 text-center py-8">{{ error }}</div>
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <EvenementCard v-for="event in evenements" :key="event.id" :event="event" />
+      <EvenementCard v-for="event in evenements" :key="event.id" :event="event" /> 
     </div>
   </div>
 </template>
