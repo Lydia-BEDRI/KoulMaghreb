@@ -21,7 +21,6 @@ import EvenementList from '@/components/EvenementList.vue'
 import MesReservations from '@/components/MesReservations.vue'
 import EvenementDetail from '@/components/EvenementDetail.vue'
 import ProfilUtilisateur from '@/components/ProfilUtilisateur.vue'
-import TestBackend from '@/components/TestBackend.vue'
 
 import AdminDashboard from '@/components/admin/AdminDashboard.vue'
 import AdminCommandesTable from '@/components/admin/AdminCommandesTable.vue'
@@ -57,7 +56,6 @@ const routes = [
       { path: 'evenements/:id', name: 'Événement Détail', component: EvenementDetail },
       { path: 'mes-reservations', name: 'Mes réservations', component: MesReservations },
       { path: 'profil', name: 'Mon profil', component: ProfilUtilisateur },
-      { path: 'test-backend', name: 'Test Backend', component: TestBackend },
     ],
   },
 

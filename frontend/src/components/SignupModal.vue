@@ -43,23 +43,23 @@
               <form @submit.prevent="goToStep2" class="space-y-4">
                 <div class="flex gap-4">
                   <input v-model="form.nom" type="text" placeholder="Nom"
-                    class="w-1/2 px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" 
+                    class="w-1/2 px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
                     required :disabled="loading" />
                   <input v-model="form.prenom" type="text" placeholder="Prénom"
-                    class="w-1/2 px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" 
+                    class="w-1/2 px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
                     required :disabled="loading" />
                 </div>
 
                 <input v-model="form.email" type="email" placeholder="Adresse email"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" 
+                  class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
                   required :disabled="loading" />
 
                 <input v-model="form.password" type="password" placeholder="Mot de passe"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" 
+                  class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
                   required :disabled="loading" />
 
                 <input v-model="form.confirmPassword" type="password" placeholder="Confirmer le mot de passe"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" 
+                  class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
                   required :disabled="loading" />
 
                 <button type="submit"
@@ -105,7 +105,7 @@
           </transition>
 
           <p class="text-center text-sm text-gray-600 mt-6">
-            Déjà inscrit ? 
+            Déjà inscrit ?
             <a @click="switchToLogin" class="text-accent hover:underline cursor-pointer">Connectez-vous</a>
           </p>
         </div>
@@ -138,7 +138,7 @@ const form = reactive({
   password: '',
   confirmPassword: '',
   adresse: '',
-  code_postal: '', 
+  code_postal: '',
   telephone: ''
 })
 
@@ -153,12 +153,12 @@ const goToStep2 = () => {
     error.value = 'Les mots de passe ne correspondent pas'
     return
   }
-  
+
   if (form.password.length < 6) {
     error.value = 'Le mot de passe doit contenir au moins 6 caractères'
     return
   }
-  
+
   error.value = ''
   currentStep.value = 2
 }
@@ -167,20 +167,18 @@ const submitForm = async () => {
   try {
     loading.value = true
     error.value = ''
-    
+
     // Validation étape 2
     if (!form.code_postal || form.code_postal.length !== 5) {
       error.value = 'Le code postal doit contenir exactement 5 chiffres'
       return
     }
-    
+
     if (!/^\d{5}$/.test(form.code_postal)) {
       error.value = 'Le code postal doit contenir uniquement des chiffres'
       return
     }
-    
-    console.log('Form data:', form)
-    
+
     const userData = {
       prenom: form.prenom,
       nom: form.nom,
@@ -190,34 +188,33 @@ const submitForm = async () => {
       adresse: form.adresse || null,
       code_postal: form.code_postal
     }
-    
-    console.log('Données à envoyer:', userData)
-    
-    const response = await fetch('http://localhost:3001/api/auth/register', {
+
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api'
+
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(userData)
     })
-    
+
     const data = await response.json()
-    console.log('Réponse du serveur:', data)
-    
+
     if (!response.ok) {
       throw new Error(data.error || data.errors?.[0]?.msg || 'Erreur inscription')
     }
-    
+
     toast.success('Inscription réussie !')
-    
+
     close()
-    
+
     if (data.user?.role === 'Admin') {
       router.push('/admin/dashboard')
     } else {
       router.push('/')
     }
-    
+
   } catch (err) {
     console.error('Erreur complète:', err)
     error.value = err.message
@@ -255,17 +252,17 @@ function switchToLogin() {
 
 .fade-slide-enter-from {
   opacity: 0;
-  transform: translateY(20px); 
+  transform: translateY(20px);
 }
 
 .fade-slide-enter-to {
   opacity: 1;
-  transform: translateY(0); 
+  transform: translateY(0);
 }
 
 .fade-slide-leave-from {
   opacity: 1;
-  transform: translateY(0); 
+  transform: translateY(0);
 }
 
 .fade-slide-leave-to {
