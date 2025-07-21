@@ -21,7 +21,7 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // CORS
-const allowedOrigins = ['http://localhost', 'http://localhost:5173'];
+const allowedOrigins = ['http://localhost', 'http://localhost:5173' , 'https://koul-maghreb.vercel.app/'];
 
 app.use(cors({
   origin: function(origin, callback){
