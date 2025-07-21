@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build:css": "npx tailwindcss -i ./src/assets/main.css -o ./dist/assets/output.css --minify",
+    "build": "vite build && npm run build:css",
     "preview": "vite preview",
     "format": "prettier --write src/",
     "watch": "npx tailwindcss -i ./src/assets/main.css -o ./dist/output.css --watch"
