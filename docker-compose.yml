@@ -1,0 +1,94 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: koulmaghreb_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: koulmaghreb
+      MYSQL_USER: koulmaghreb
+      MYSQL_PASSWORD: koulmaghreb
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - koulmaghreb-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      timeout: 20s
+      retries: 10
+      interval: 30s
+    command: --default-authentication-plugin=mysql_native_password
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: koulmaghreb_backend
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=koulmaghreb
+      - DB_PASSWORD=koulmaghreb
+      - DB_NAME=koulmaghreb
+      - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+      - PORT=3000
+      - FRONTEND_URL=http://localhost:5173
+    ports:
+      - "3001:3000"
+    networks:
+      - koulmaghreb-network
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000/api/health",
+        ]
+      timeout: 10s
+      retries: 5
+      interval: 30s
+      start_period: 60s
+    volumes:
+      - ./backend/uploads:/app/uploads
+
+  nginx:
+    build:
+      context: ./backend/nginx
+      dockerfile: Dockerfile
+    container_name: koulmaghreb_nginx
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - koulmaghreb-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/nginx-health"]
+      timeout: 10s
+      retries: 3
+      interval: 30s
+    volumes:
+      - ./backend/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./frontend/dist:/usr/share/nginx/html
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  koulmaghreb-network:
+    driver: bridge
