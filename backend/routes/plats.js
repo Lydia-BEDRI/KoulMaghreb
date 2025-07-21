@@ -7,9 +7,7 @@ const router = express.Router();
 // Route pour récupérer tous les plats (public)
 router.get('/', async (req, res) => {
   try {
-    console.log('🔍 Route GET /plats appelée');
-    console.log('📦 Query params:', +req.query);
-    
+
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 50;
     const offset = (page - 1) * limit;
@@ -38,18 +36,12 @@ router.get('/', async (req, res) => {
       params.push(searchPattern, searchPattern, searchPattern);
     }
 
-    console.log('🔍 Where clause:', whereClause);
-    console.log('🔍 Params:', params);
-
     // Compter le total
     const countQuery = `SELECT COUNT(*) as total FROM plats ${whereClause}`;
-    console.log('🔍 Count query:', countQuery);
-    
+
     const countResult = await query(countQuery, params);
     const total = countResult[0].total;
-    console.log('🔍 Total plats:', total);
 
-    // ✅ Récupérer les plats avec les vraies colonnes de ton seed
     const platsQuery = `
       SELECT id, nom, prix, note, image, short_desc, long_desc, pays, type
       FROM plats 
@@ -57,19 +49,16 @@ router.get('/', async (req, res) => {
       ORDER BY note DESC, nom ASC
       LIMIT ${limit} OFFSET ${offset}
     `;
-    console.log('🔍 Plats query:', platsQuery);
 
     const platsResults = await query(platsQuery, params);
-    console.log('🔍 Plats trouvés:', platsResults.length);
 
-    // ✅ Formater les données pour correspondre au frontend
     const plats = platsResults.map(plat => ({
       id: plat.id,
       nom: plat.nom,
       prix: parseFloat(plat.prix),
       note: parseFloat(plat.note || 0),
       image: plat.image,
-      description: plat.short_desc, // Frontend utilise 'description'
+      description: plat.short_desc,
       long_desc: plat.long_desc,
       pays: plat.pays,
       type: plat.type
@@ -85,7 +74,6 @@ router.get('/', async (req, res) => {
       }
     };
 
-    console.log('✅ Réponse envoyée:', response);
     res.json(response);
 
   } catch (error) {

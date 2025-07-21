@@ -6,8 +6,6 @@ const router = express.Router();
 
 router.get('/', auth, async (req, res) => {
   try {
-    console.log('req.user:', req.user);
-    
     const userId = req.user.id || req.user.userId;
     
     if (!userId) {
