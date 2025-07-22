@@ -1,10 +1,12 @@
 <template>
   <div class="p-6 bg-background min-h-screen">
     <div class="flex justify-between items-center mb-4">
-      <h1 class="text-2xl font-semibold text-primary">Validez votre panier et passez votre commande</h1>
-      <button 
+      <h1 class="text-2xl font-semibold text-primary">
+        Validez votre panier et passez votre commande
+      </h1>
+      <button
         v-if="!isEmpty && !loading"
-        @click="viderPanier" 
+        @click="viderPanier"
         class="flex items-center gap-2 py-2 px-4 bg-red-500 text-white rounded-xl hover:bg-red-600 transition"
       >
         <Icon icon="mdi:trash-can" class="w-5 h-5" />
@@ -17,29 +19,32 @@
       <p class="mt-2 text-gray-600">Chargement du panier...</p>
     </div>
 
-    <div v-else-if="isEmpty" class="bg-white p-6 rounded-2xl shadow border border-gray-200 text-center">
+    <div
+      v-else-if="isEmpty"
+      class="bg-white p-6 rounded-2xl shadow border border-gray-200 text-center"
+    >
       <Icon icon="mdi:cart-outline" class="w-16 h-16 mx-auto text-gray-400 mb-4" />
       <h3 class="text-xl font-semibold text-gray-700 mb-2">Votre panier est vide</h3>
       <p class="text-gray-500 mb-6">Découvrez nos délicieux plats et nos événements exclusifs</p>
-      
+
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <router-link 
-          to="/nos-plats" 
+        <router-link
+          to="/nos-plats"
           class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-accent transition inline-flex items-center justify-center gap-2 font-medium"
         >
           <Icon icon="mdi:silverware-fork-knife" class="w-5 h-5" />
           Découvrir nos plats
         </router-link>
-        
-        <router-link 
-          to="/evenements" 
+
+        <router-link
+          to="/evenements"
           class="bg-accent text-white px-6 py-3 rounded-lg hover:bg-primary transition inline-flex items-center justify-center gap-2 font-medium"
         >
           <Icon icon="mdi:calendar-star" class="w-5 h-5" />
           Voir nos événements
         </router-link>
       </div>
-      
+
       <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
         <div class="bg-green-50 border border-green-200 rounded-lg p-4">
           <div class="flex items-center gap-2 mb-2">
@@ -50,7 +55,7 @@
             Cuisine traditionnelle du Maghreb, plats authentiques préparés avec amour
           </p>
         </div>
-        
+
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div class="flex items-center gap-2 mb-2">
             <Icon icon="mdi:calendar-star" class="w-5 h-5 text-blue-600" />
@@ -73,22 +78,33 @@
         >
           <div class="flex items-center gap-4">
             <div class="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">
-              <img :src="plat.image" :alt="plat.nom" class="w-full h-full object-cover" />
+              <img
+                :src="getItemImage(item)"
+                :alt="getItemName(item)"
+                class="w-full h-full object-cover"
+              />
             </div>
             <div>
               <div class="flex items-center gap-2 mb-1">
                 <p class="text-lg font-semibold text-primary">{{ getItemName(item) }}</p>
-                <span 
-                  :class="item.type === 'plat' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'"
+                <span
+                  :class="
+                    item.type === 'plat'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-blue-100 text-blue-800'
+                  "
                   class="px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1"
                 >
-                  <Icon :icon="item.type === 'plat' ? 'mdi:silverware-fork-knife' : 'mdi:calendar-star'" class="w-3 h-3" />
+                  <Icon
+                    :icon="item.type === 'plat' ? 'mdi:silverware-fork-knife' : 'mdi:calendar-star'"
+                    class="w-3 h-3"
+                  />
                   {{ item.type === 'plat' ? 'Plat' : 'Événement' }}
                 </span>
               </div>
               <p class="text-sm text-gray-600 flex items-center gap-1">
                 <Icon icon="mdi:currency-eur" class="w-4 h-4" />
-                {{ parseFloat(item.prix_unitaire).toFixed(2) }}€ x {{ item.quantite }} = 
+                {{ parseFloat(item.prix_unitaire).toFixed(2) }}€ x {{ item.quantite }} =
                 <span class="font-bold">{{ parseFloat(item.sous_total).toFixed(2) }}€</span>
               </p>
               <div v-if="item.type === 'reservation'" class="text-xs text-gray-500 mt-1">
@@ -111,28 +127,33 @@
           </div>
 
           <div class="flex items-center gap-2">
-            <button 
-              @click="modifierQuantite(item.id, item.quantite - 1)" 
+            <button
+              @click="modifierQuantite(item.id, item.quantite - 1)"
               :disabled="item.quantite <= 1"
               class="bg-gray-200 text-gray-700 px-3 py-1 rounded-lg hover:bg-gray-300 transition disabled:opacity-50"
             >
               <Icon icon="mdi:minus" class="w-4 h-4" />
             </button>
             <span class="text-lg font-semibold px-3">{{ item.quantite }}</span>
-            <button 
-              @click="modifierQuantite(item.id, item.quantite + 1)" 
+            <button
+              @click="modifierQuantite(item.id, item.quantite + 1)"
               class="bg-gray-200 text-gray-700 px-3 py-1 rounded-lg hover:bg-gray-300 transition"
             >
               <Icon icon="mdi:plus" class="w-4 h-4" />
             </button>
-            <button @click="supprimerItem(item.id)" class="ml-4 p-2 hover:bg-red-50 rounded-lg transition">
+            <button
+              @click="supprimerItem(item.id)"
+              class="ml-4 p-2 hover:bg-red-50 rounded-lg transition"
+            >
               <Icon icon="mdi:delete" class="w-5 h-5 text-red-500 hover:text-red-700" />
             </button>
           </div>
         </div>
       </section>
 
-      <section class="bg-neutral p-6 rounded-2xl shadow border-2 border-primary hover:shadow-lg hover:-translate-y-1 transition">
+      <section
+        class="bg-neutral p-6 rounded-2xl shadow border-2 border-primary hover:shadow-lg hover:-translate-y-1 transition"
+      >
         <h2 class="text-xl font-medium mb-4 flex items-center gap-2">
           <Icon icon="mdi:calculator" class="w-5 h-5" />
           Résumé du paiement
@@ -161,13 +182,16 @@
             <span class="text-primary">{{ totalAvecTaxe.toFixed(2) }}€</span>
           </div>
         </div>
-        
-        <button 
+
+        <button
           @click="confirmerCommande"
           :disabled="commandeLoading || isEmpty"
           class="w-full py-3 mt-6 bg-accent text-white rounded-xl hover:bg-primary transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium"
         >
-          <div v-if="commandeLoading" class="inline-block animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+          <div
+            v-if="commandeLoading"
+            class="inline-block animate-spin rounded-full h-5 w-5 border-b-2 border-white"
+          ></div>
           <Icon v-else icon="mdi:credit-card-check" class="w-5 h-5" />
           <span>{{ commandeLoading ? 'Traitement en cours...' : 'Passer la commande' }}</span>
         </button>
@@ -189,17 +213,17 @@ const router = useRouter()
 const toast = useToast()
 const { isAuthenticated } = useAuth()
 
-const { 
-  panier, 
-  loading, 
-  totalItems, 
-  totalPrix, 
+const {
+  panier,
+  loading,
+  totalItems,
+  totalPrix,
   isEmpty,
   chargerPanier,
   modifierQuantite,
   supprimerItem,
   viderPanier,
-  passerCommande
+  passerCommande,
 } = usePanier()
 
 const commandeLoading = ref(false)
@@ -216,8 +240,8 @@ const getItemImage = (item) => {
 
 const getItemDetails = (item) => {
   try {
-    return typeof item.item_details === 'string' 
-      ? JSON.parse(item.item_details) 
+    return typeof item.item_details === 'string'
+      ? JSON.parse(item.item_details)
       : item.item_details || {}
   } catch (e) {
     return {}
@@ -232,7 +256,7 @@ const formatDate = (dateString) => {
       day: 'numeric',
       month: 'short',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     })
   } catch (e) {
     return dateString
@@ -255,9 +279,9 @@ const confirmerCommande = async () => {
       return
     }
 
-    const plats = panier.value.filter(item => item.type === 'plat')
-    const reservations = panier.value.filter(item => item.type === 'reservation')
-    
+    const plats = panier.value.filter((item) => item.type === 'plat')
+    const reservations = panier.value.filter((item) => item.type === 'reservation')
+
     const confirmation = confirm(`
 Confirmation de commande
 
@@ -288,7 +312,6 @@ ${reservations.length > 0 ? 'Vos réservations iront dans "Mes réservations"' :
     } else if (response.reservations.length > 0) {
       setTimeout(() => router.push('/mes-reservations'), 2000)
     }
-
   } catch (error) {
     if (error.message.includes('connecté')) {
       toast.error('Session expirée, veuillez vous reconnecter')
@@ -314,13 +337,16 @@ onMounted(() => {
 
 useSeo({
   title: 'Mon panier - Commande et réservation - KoulMaghreb',
-  description: "Validez votre panier, passez commande de plats maghrébins ou réservez vos événements en quelques clics sur KoulMaghreb."
+  description:
+    'Validez votre panier, passez commande de plats maghrébins ou réservez vos événements en quelques clics sur KoulMaghreb.',
 })
 </script>
 
 <style scoped>
 .hover\:shadow-lg:hover {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 .hover\:-translate-y-1:hover {
   transform: translateY(-0.25rem);
