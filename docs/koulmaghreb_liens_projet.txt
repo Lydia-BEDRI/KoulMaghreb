@@ -9,4 +9,9 @@ https://www.figma.com/design/dbLKP17D2joZe16j8t3iDh/KoulMaghreb_Final?node-id=0-
 3. Dépôt GitHub du projet :
 https://github.com/Lydia-BEDRI/KoulMaghreb
 
+4. Lien de déploiement en ligne du backend :
+https://koulmaghrebbackend-production.up.railway.app
+
+5. Lien de déploiement en ligne du frontend :
+https://koul-maghreb.vercel.app
 
