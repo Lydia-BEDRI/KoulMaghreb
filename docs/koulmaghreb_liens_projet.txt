@@ -1,17 +1,20 @@
 Liens importants pour le projet KoulMaghreb :
 
 1. Tableau de gestion du projet (Trello) :
-https://trello.com/b/80kv7HJ8/projet-annuel-s2-4iw1
+https://trello.com/invite/b/6803e286b53d2f2c084589db/ATTI1bccabd7989bce4e28f0014306d9b92c6C2C2584/projet-annuel-s2-4iw1
 
 2. Maquettes Figma :
 https://www.figma.com/design/dbLKP17D2joZe16j8t3iDh/KoulMaghreb_Final?node-id=0-1&m=dev&t=Hvo356Jl3ibQAD4r-1
 
-3. Dépôt GitHub du projet :
+3. Schéma de la base de données :
+https://www.planttext.com?text=jLR1Rjim3BtxAtJhDg10Do2Ne2ZgTIaMB6cAp1XsCpIRIRd9aYVBGODstxFbE_9ZesmdjcCv0uBk5hz7YkGZAUKwCroRF17U6Sj-e4ovvWaJAC6iKs1AcmVbUI0DcZNB3GhCk85SP-p9O-mDncp8ndS1kxoy_tHrHL2gGQg4q2_-_EQZFtyrk7XDi0k3XADee6yl2jY0WFH1IMXGxmg6nngoh8KF1fQ8L0nXggYMzdcMIvG9BSkTdbe9w2H6vvZSTE180uI5UJ2UZZu7_lJU-xKN9nNSzAhIBhygDDNuIEY7qSruwayAAsDFlvtC_80-CU5BHyenP976rA2IOQHoNVW4ew_10IUKNEODBkNhB5GQboYx9KVKrIMHXqoZFYuH-llUc8smmTwMh4iwsveO5-WWU6HmGTZxsMmoyk-wMOH7rIwD76bOBmVyC-VsT2ZngZDXBj5mrD1eKPq7h412GX-zIP2PXcxJOv8et7lRi_rWP6idJY3aNO-N7WF18yX2esXP8AjBBc5QC4DYD0ZdCjH2a0Fe5RUXJfoDlHWEZlRccuQmJ6wVKaAtGAb9LTFnpOnKad19cfoMNw5KQqzFkX_sMHoVtPtPVvrUli8JnUZ9uU3ciaLGg2f-rQIJLAF72IFHtxh3BQkM8nFviel2ez4SJMDk58swp6kWPzTSjsErdSVJN_0LkRsirZqHpzWSHBc7djTwgP-Vpy_Lq_u27p9wARFjdnYy7TIsg0PqMCY3L8bN0ZrM_BlApNOJnhmlShs05Dk-mrwD79hy8xZBha2s6tVirlqqP7gxiT_WDIvmjoN5Zq3BldEB5HgoxOOkseCSAqh3zhSYpkc-6moI3nDe-zTS-Skx1XdRlsX_0G00
+
+4. Dépôt GitHub du projet :
 https://github.com/Lydia-BEDRI/KoulMaghreb
 
-4. Lien de déploiement en ligne du backend :
+5. Lien de déploiement en ligne du backend :
 https://koulmaghrebbackend-production.up.railway.app
 
-5. Lien de déploiement en ligne du frontend :
+6. Lien de déploiement en ligne du frontend :
 https://koul-maghreb.vercel.app
 
