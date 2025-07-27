@@ -51,7 +51,7 @@ KoulMaghreb permet aux utilisateurs de :
 ### 1. Cloner le dépôt
 
 ```bash
-git clone <lien-du-repo>
+git clone https://github.com/Lydia-BEDRI/KoulMaghreb
 cd KoulMaghreb
 ```
 
